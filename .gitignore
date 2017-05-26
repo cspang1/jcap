@@ -1,6 +1,9 @@
 # ignore ModelSim generated files and directories (temp files and so on)
 [_@]*
 
+# ignore ModelSim project files
+*.mpf
+
 # ignore compilation output of ModelSim
 *.mti
 *.dat
