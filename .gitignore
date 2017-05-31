@@ -50,7 +50,6 @@ incremental_db/
 *.sld
 *.sof
 *.swp
-*.tdf
 .*
 !.gitignore
 
