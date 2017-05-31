@@ -1,4 +1,4 @@
-// File:	74HC165D.v
+// File:	74HC165.v
 // Author:	Connor Spangler
 // Date:	05/24/2017
 // Version:	2.0
@@ -7,12 +7,12 @@
 //				3.0 - Fixed bug #10028 (Quartus error number)
 // Description: 
 // 			This file contains the verilog specification for the
-//				74HC165D 8-bit serial or parallel-in/serial-out shift
+//				74HC165 8-bit serial or parallel-in/serial-out shift
 //				register. 
 
 `timescale 1 ns/1 ns
 
-module ic_74HC165D (
+module ic_74HC165 (
 		PL_n, CP, Q7_n, Q7, DS, DN, CE_n
 	);
 

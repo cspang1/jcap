@@ -1,6 +1,6 @@
 `timescale 1 ns/1 ns
 
-module ic_74HC165D_tb;
+module ic_74HC165_tb;
 	reg PL_n;
 	reg clk;
 	reg [7:0] DN1, DN2;
@@ -18,7 +18,7 @@ module ic_74HC165D_tb;
 	parameter t_h_c = 5;
 	parameter t_rec_pl_c = 20;
 
-	ic_74HC165D sreg1(
+	ic_74HC165 sreg1(
 		.PL_n(PL_n),
 		.CP(clk),
 		.DS(1'b0),
@@ -28,7 +28,7 @@ module ic_74HC165D_tb;
 		.Q7(out1)
 	);
 	
-	ic_74HC165D sreg2(
+	ic_74HC165 sreg2(
 		.PL_n(PL_n),
 		.CP(clk),
 		.DS(out1),
