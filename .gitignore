@@ -1,3 +1,7 @@
+############
+# ModelSim #
+############
+
 # ignore ModelSim generated files and directories (temp files and so on)
 [_@]*
 
@@ -24,3 +28,33 @@ cov*/
 transcript*
 sc_dpiheader.h
 vsim.dbg
+
+###########
+# Quartus #
+###########
+
+# Generated folders #
+db/
+incremental_db/
+.qsys_edit/
+
+# Generated Files #
+*.ammdb
+*.cdb
+*.done
+*.hdb
+*.jdi
+*.map.*
+*.pin
+*.qws
+*.sld
+*.sof
+*.swp
+*.tdf
+.*
+!.gitignore
+
+# Reports #
+*.rpt
+*.smsg
+*.summary
