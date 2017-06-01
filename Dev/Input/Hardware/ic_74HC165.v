@@ -20,16 +20,16 @@ module ic_74HC165 (
 	input wire PL_n;		// Asynchronous parallel load input (active low)
 	input wire CP;			// Clock input
 	input wire DS;			// Serial data input
-	input wire [7:0] DN;	// Parallel data inputs
+	input wire [7:0] DN;		// Parallel data inputs
 	input wire CE_n;		// Clock enable input (active low)
 	output wire Q7_n;		// Complimentary serial output
-	output wire Q7;		// Serial output
+	output wire Q7;			// Serial output
 	
 	// Timing characteristics
 	parameter T_PD_C_Q7 = 16;								// CP/CE_n to Q7/Q7_n propogation delay
 	parameter T_PD_PL_Q7 = 15;								// PL_n to Q7/Q7_n propogation delay
 	parameter T_PD_D7_Q7 = 11;								// D7 to Q7/Q7_n propogation delay
-	parameter T_PD_PL_D7 = T_PD_PL_Q7 - T_PD_D7_Q7;	// PL_n to D7 propogation delay
+	parameter T_PD_PL_D7 = T_PD_PL_Q7 - T_PD_D7_Q7;						// PL_n to D7 propogation delay
 
 	// Functional characteristics
 	reg [7:0] shift_reg;								// Internal shift register

@@ -34,7 +34,7 @@ variable
 	nres			: dffe;
 
 	pin		[31..0]	: tri;
-	
+		
 	sreg			: ic_74HC165;
 
 begin
