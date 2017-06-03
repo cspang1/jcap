@@ -17,7 +17,7 @@ input   or              dira,   Pin_outs        ' Set output pins
         andn            outa,   Pin_PL_n        ' Drive parallel load pin low
         or              outa,   Pin_PL_n        ' Drive parallel load pin high
          
-        mov             Count,  #16
+        mov             Count,  #15
 :dsin   or              outa,   Pin_CP          ' Drive clock pin high
         andn            outa,   Pin_CP          ' Drive clock pin low
         
@@ -33,7 +33,7 @@ input   or              dira,   Pin_outs        ' Set output pins
 Pin_CP        long      |< 0                            ' 74HC165 clock pin bitmask
 Pin_CE_n      long      |< 1                            ' 74HC165 clock enable pin bitmask
 Pin_PL_n      long      |< 2                            ' 74HC165 parallel load pin bitmask
-Pin_outs      long      Pin_CP | Pin_CE_n | Pin_PL_n    ' Set output pin bitmask                      
+Pin_outs      long      |< 0 | |< 1 | |< 2    ' Set output pin bitmask                      
 Pin_Q7        long      |< 12                           ' 74HC165 serial output pin bitmask
 Count         res       1                               ' 74HC165 clock pulse count
 Pin_in        res       1                               ' I/O pin state bitmask         

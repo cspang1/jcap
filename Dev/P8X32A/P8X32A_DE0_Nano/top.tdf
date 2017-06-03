@@ -35,7 +35,9 @@ variable
 
 	pin		[31..0]	: tri;
 		
-	sreg			: ic_74HC165;
+	sreg1			: ic_74HC165;
+	
+	sreg2			: ic_74HC165;
 
 begin
 
@@ -66,15 +68,19 @@ begin
 	pin[].in			= core.pin_out[];
 	pin[].oe			= core.pin_dir[];
 	
-	prop_io[]		= (pin[31..14].out, sreg.Q7_n, sreg.Q7, pin[11..0]);
+	prop_io[]		= (pin[31..14].out, sreg1.Q7_n, sreg1.Q7, pin[11..0]);
 	
 	-- 74HC165 pins
 	
-	sreg.CP		= prop_io[0];
-	sreg.CE_n	= prop_io[1];
-	sreg.PL_n	= prop_io[2];
-	sreg.DS		= prop_io[3];
-	sreg.DN[]	= prop_io[11..4];	
+	sreg1.CP		= prop_io[0];
+	sreg2.CP		= prop_io[0];
+	sreg1.CE_n	= prop_io[1];
+	sreg2.CE_n	= prop_io[1];
+	sreg1.PL_n	= prop_io[2];
+	sreg2.PL_n	= prop_io[2];
+	sreg1.DS		= sreg2.Q7;
+	sreg1.DN[]	= prop_io[11..4];	
+	sreg2.DN[]	= prop_io[11..4];	
 
 	-- cog leds
 
