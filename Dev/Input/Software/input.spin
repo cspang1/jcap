@@ -15,7 +15,7 @@ CON
   _XINFREQ = 5_000_000          ' 5Mhz crystal
 
 VAR
-  long input_state              ' Register in Main RAM containing state of inputs                                      
+  word input_state              ' Register in Main RAM containing state of inputs                                      
 PUB main
   cognew(@input, @input_state)  ' Initialize cog running input routine with reference to input_state register                           
 DAT
