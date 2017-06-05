@@ -15,9 +15,10 @@ CON
   _XINFREQ = 5_000_000          ' 5Mhz crystal
 
 VAR
-  word input_state              ' Register in Main RAM containing state of inputs                                      
+  word input_state              ' Register in Main RAM containing state of inputs 
+  byte tilt_state				' Register in Main RAM containing state of tilt sensor  
 PUB main
-  cognew(@input, @input_state)  ' Initialize cog running input routine with reference to input_state register                           
+  cognew(@input, @input_state)  ' Initialize cog running input routine with reference to start of variable registers
 DAT
         org             0
 {{
@@ -26,15 +27,19 @@ The "input" routine is the main routine for interfacing with the 74HC165s
 input   or              dira,   Pin_outs        ' Set output pins
         andn            dira,   Pin_Q7          ' Set input pin
 
-        andn            outa,   Pin_CE_n        ' Drive clock enable pin low   
-                                                
+        andn            outa,   Pin_CE_n        ' Drive clock enable pin low
+
+		mov				Inptr,	par				' Load Main RAM input_state address into Inptr
+		mov				Tltptr,	par				' Load Main RAM input_state address into Tltptr
+		add				Tltptr,	#4				' Increment Tltptr to point to tilt_state in Main RAM
+		
 {{
-The "poll" subroutine reprents the entire processing of latching and then pulsing the 74HC165s
+The "poll" subroutine reprents the entire process of latching and then pulsing the 74HC165s
 }}
 :poll   andn            outa,   Pin_CP          ' Drive clock pin low
         andn            outa,   Pin_PL_n        ' Drive parallel load pin low
         or              outa,   Pin_PL_n        ' Drive parallel load pin high
-         
+		
         mov             Count,  #15             ' Load number of 74HC165 polls into register
 {{
 The "dsin" subroutine performs the individual clock pulses to retrieve the bits from the 74HC165s
@@ -47,8 +52,18 @@ The "dsin" subroutine performs the individual clock pulses to retrieve the bits 
         
         djnz            Count,  #:dsin          ' Repeat to retrieve all 16 bits
         
-        wrword          Inputs, par             ' Write Inputs to Main RAM input_state register
-        
+		or              outa,   Pin_CP          ' Drive clock pin high
+        andn            outa,   Pin_CP          ' Drive clock pin low
+		
+		test            Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
+		
+        wrword          Inputs, Inptr	      	' Write Inputs to Main RAM input_state register
+		
+		rcl             Inputs, #1              ' Shift tilt state in Inputs register
+		and				Inputs, #1				' Isolate tilt state
+		
+		wrbyte			Inputs,	Tltptr			' Write tilt state to Main RAM 
+		
         jmp             #:poll                  ' Loop infinitely
 
 Pin_CP        long      |< 0                            ' 74HC165 clock pin bitmask
@@ -56,7 +71,8 @@ Pin_CE_n      long      |< 1                            ' 74HC165 clock enable p
 Pin_PL_n      long      |< 2                            ' 74HC165 parallel load pin bitmask
 Pin_outs      long      |< 0 | |< 1 | |< 2              ' Set output pin bitmask                      
 Pin_Q7        long      |< 12                           ' 74HC165 serial output pin bitmask
+Inptr		  res		1								' Pointer to input_state register in Main RAM
+Tltptr		  res		1								' Pointer to tilt_state register in Main RAM
 Count         res       1                               ' 74HC165 clock pulse count
-Pin_in        res       1                               ' I/O pin state bitmask         
 Inputs        res       1                               ' Control input shift register
         fit
