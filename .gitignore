@@ -1,0 +1,60 @@
+############
+# ModelSim #
+############
+
+# ignore ModelSim generated files and directories (temp files and so on)
+[_@]*
+
+# ignore ModelSim project files
+*.mpf
+
+# ignore compilation output of ModelSim
+*.mti
+*.dat
+*.dbs
+*.psm
+*.bak
+*.cmp
+*.jpg
+*.html
+*.bsf
+
+# ignore simulation output of ModelSim
+wlf*
+*.wlf
+*.vstf
+*.ucdb
+cov*/
+transcript*
+sc_dpiheader.h
+vsim.dbg
+
+###########
+# Quartus #
+###########
+
+# Generated folders #
+db/
+incremental_db/
+.qsys_edit/
+
+# Generated Files #
+*.ammdb
+*.cdb
+*.done
+*.hdb
+*.jdi
+*.map.*
+*.pin
+*.qws
+*.sld
+*.sof
+*.swp
+*.ddb
+.*
+!.gitignore
+
+# Reports #
+*.rpt
+*.smsg
+*.summary
