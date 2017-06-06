@@ -48,7 +48,7 @@ The "poll" subroutine reprents the entire process of latching and then pulsing t
         mov             Count,  #15             ' Load number of 74HC165 polls into register
 {{
 The "dsin" subroutine performs the individual clock pulses to retrieve the bits from the 74HC165s
- }}
+}}
 :dsin   or              outa,   Pin_CP          ' Drive clock pin high
         andn            outa,   Pin_CP          ' Drive clock pin low
         
