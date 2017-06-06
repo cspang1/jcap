@@ -1,6 +1,6 @@
-<p align="center"><img src="http://i.imgur.com/zlPQGJ4.jpg" alt="JCAP" align="center"></p>
+<h1 align="center"><img src="http://i.imgur.com/zlPQGJ4.jpg" alt="JCAP" align="center"></h1>
 
-<p>JCAP is a project with the goal of developing a <a href="https://www.jammaboards.com/jcenter_jammaFAQ.html">JAMMA arcade standard</a> compatible game board using the <a href="https://www.parallax.com/product/p8x32a-q44">Parallax Propeller 1 (P8X32A) microcontroller</a> upon which a user can implement their own custom arcade game, either from scratch or by using the library of graphics, sound, input, and other drivers developed under the project. Ultimately, the project will provide:</p>
+<p><b><u>JCAP</u></b> is a project with the goal of developing a <a href="https://www.jammaboards.com/jcenter_jammaFAQ.html">JAMMA arcade standard</a> compatible game board using the <a href="https://www.parallax.com/product/p8x32a-q44">Parallax Propeller 1 (P8X32A) microcontroller</a> upon which a user can implement their own custom arcade game, either from scratch or by using the library of graphics, sound, input, and other drivers developed under the project. Ultimately, the project will provide:</p>
 
 * VGA video driver
 * Sprite/tile based graphics driver
