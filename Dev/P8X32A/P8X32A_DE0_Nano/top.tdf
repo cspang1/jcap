@@ -79,11 +79,13 @@ begin
 	sreg1.PL_n	= prop_io[2];
 	sreg2.PL_n	= prop_io[2];
 	sreg1.DS		= sreg2.Q7;
+	sreg2.DS		= prop_io[14];
 	sreg1.DN[]	= prop_io[11..4];	
 	sreg2.DN[]	= prop_io[11..4];	
 
 	-- cog leds
 
-	ledg[]			= core.cog_led[];
+	--ledg[]		= core.cog_led[];
+	ledg[]		= pin[23..16].out;
 
 end;
