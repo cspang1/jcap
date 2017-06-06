@@ -64,4 +64,5 @@ The most significant benefit of using the Propeller as the backbone for JCAP is 
 
 <h1>Current Contributors</h1>
 <p>The following individuals have contributed to JCAP:</p>
+
 * Connor Spangler (cspang1): cspang1@vt.edu
