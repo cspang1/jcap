@@ -4,3 +4,6 @@ http://www.rayslogic.com/propeller/Users/VGA_Tile_Driver_Demo_-_Archive__[Date_2
 http://retrorgb.com/240p.html
 http://forums.shoryuken.com/discussion/176031/my-analog-a-v-setup-240p-goodness/p1
 	- 240p explained
+
+https://www.clivemaxfield.com/diycalculator/popup-h-console.shtml
+	- Useful diagram to explain 8bit color
