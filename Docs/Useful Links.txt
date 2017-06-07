@@ -1,2 +1,6 @@
 http://www.rayslogic.com/propeller/Users/VGA_Tile_Driver_Demo_-_Archive__[Date_2006.11.12__Time_03.56].zip
 	- 1024x768 tile-based VGA driver, of important note is setcommand in graphics.spin
+
+http://retrorgb.com/240p.html
+http://forums.shoryuken.com/discussion/176031/my-analog-a-v-setup-240p-goodness/p1
+	- 240p explained
