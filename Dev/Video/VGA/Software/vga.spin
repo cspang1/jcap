@@ -29,11 +29,20 @@ vga           or        dira,   vgapin          ' Set video generator output pin
               add       cnt,    cnt             ' Add 1ms wait
               waitcnt   cnt,    #0              ' Allow PLL to settle
               mov       vcfg,   VidCfg          ' Start video generator
-:loop         waitvid   
-              jmp       #:loop                  ' Loop infinitely
+              mov       tptr,   #40             ' Initialize tile pointer
+:active       waitvid   colors, pixels          ' Update 16-pixel scanline                 
+              djnz      tptr,   #:active        ' Display forty 16-pixel segments (40*16=640 pixels)
+              jmp       #:active                ' Loop infinitely
 
 vgapin        long      |< 0 | |< 1 | |< 2 | |< 3 | |< 4 | |< 5 | |< 6 | |< 7   ' Counter A output pin
 pllfreq       long      337893130                                               ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                 ' Counter A configuration                        
 VidCfg        long      %0_01_1_0_0_000_00000000000_000_0_11111111              ' Video generator configuration
 VidScl        long      %000000000000_00000001_000000010000                     ' Video generator scale register
+
+colors        long      %00000011_00000111_00010111_00011111                    ' Navy Blue test color
+pixels        long      %11_11_11_11_11_11_11_11_11_11_11_11_11_11_11_11        ' Test pixels
+
+tptr          long      0                                                       ' Current tile being rendered
+
+'R-R-G-G-B-B-H-V
