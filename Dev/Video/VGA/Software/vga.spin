@@ -76,9 +76,9 @@ HVidScl       long      %000000000000_00010000_000010100000                     
 BVidScl       long      %000000000000_00000000_001010000000                     ' Video generator blank line scale register
 
 ' Video Generator inputs
-tColor        long      %00000011_00000111_00010111_00011111                    ' Test colors
+tColor        long      %00001111_00001011_00000111_00000011                    ' Test colors
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
-tPixel        long      %01_01_01_01_01_01_01_01_01_01_01_01_01_01_01_01        ' Test pixels
+tPixel        long      %11_10_01_00_11_10_01_00_11_10_01_00_11_10_01_00        ' Test pixels
 hPixel        long      %00_00_00_00_00_00_11_11_11_10_10_10_10_10_10_11        ' HSync pixels
 vPixel        long      %01_01_01_01_01_01_01_01_01_01_01_01_01_01_01_01        ' VSync pixels
 vpPixel       long      %11_11_11_11_11_11_11_11_11_11_11_11_11_11_11_11        ' Vertical porch blank pixels
