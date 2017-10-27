@@ -48,7 +48,7 @@ vga
               'Display vertical sync area
               mov       vptr,   numFP           ' Initialize vertical sync pointer        
 :frontporch   mov       vscl,   BVidScl         ' Set video scale for blank active video area
-              waitvid   sColor, #0              ' Display blank active video line
+              waitvid   sColor, vpPixel         ' Display blank active video line
               mov       vscl,   HVidScl         ' Set video scale for HSync
               waitvid   sColor, hPixel          ' Horizontal sync
               djnz      vptr,   #:frontporch    ' Display 10 front porch lines           
@@ -60,14 +60,14 @@ vga
               djnz      vptr,   #:vsync         ' Display 2 vertical sync lines 
               mov       vptr,   numBP           ' Initialize vertical sync pointer        
 :backporch    mov       vscl,   BVidScl         ' Set video scale for blank active video area
-              waitvid   sColor, #0              ' Display blank active video line
+              waitvid   sColor, vpPixel         ' Display blank active video line
               mov       vscl,   HVidScl         ' Set video scale for HSync
               waitvid   sColor, hPixel          ' Horizontal sync
               djnz      vptr,   #:backporch     ' Display 33 back porch lines 
               jmp       #:frame                 ' Display frames forever      
 
 ' Config values
-vgapin        long      |< 0 | |< 1 | |< 2 | |< 3 | |< 4 | |< 5 | |< 6 | |< 7   ' Counter A output pin
+vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' Counter A output pin
 pllfreq       long      337893130                                               ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                 ' Counter A configuration                        
 VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111              ' Video generator configuration
@@ -78,9 +78,10 @@ BVidScl       long      %000000000000_00000000_001010000000                     
 ' Video Generator inputs
 tColor        long      %00000011_00000111_00010111_00011111                    ' Test colors
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
-tPixel        long      %11_11_11_11_11_11_11_11_11_11_11_11_11_11_11_11        ' Test pixels
-hPixel        long      %00_00_00_00_00_00_10_10_10_01_01_01_01_01_01_10        ' HSync pixels
+tPixel        long      %01_01_01_01_01_01_01_01_01_01_01_01_01_01_01_01        ' Test pixels
+hPixel        long      %00_00_00_00_00_00_11_11_11_10_10_10_10_10_10_11        ' HSync pixels
 vPixel        long      %01_01_01_01_01_01_01_01_01_01_01_01_01_01_01_01        ' VSync pixels
+vpPixel       long      %11_11_11_11_11_11_11_11_11_11_11_11_11_11_11_11        ' Vertical porch blank pixels
 hvPixel       long      %00_00_00_00_00_00_01_01_01_00_00_00_00_00_00_01        ' HVSync pixels
 
 ' Frame attributes
