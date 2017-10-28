@@ -37,7 +37,7 @@ vga
         ' Initialize variables
         mov             iptr,   par             ' Load Main RAM input_state address into iptr              
 
-        ' Display video frame              
+        ' Display visible area              
 :frame  rdword          is,     iptr            ' Read input_state from Main RAM
         mov             colors, ColorK          ' Set default color to black        
         test            btn1,   is wc           ' Test button 1 pressed
