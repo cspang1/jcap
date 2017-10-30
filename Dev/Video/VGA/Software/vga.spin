@@ -104,11 +104,11 @@ ColorB        long      %00001111_00001111_00001111_00001111                    
 ColorW        long      %11111111_11111111_11111111_11111111                    ' Test colors
 ColorK        long      %00000011_00000011_00000011_00000011                    ' Test colors
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
-tPixel        long      %11_10_01_00_11_10_01_00_11_10_01_00_11_10_01_00        ' Test pixels
-hPixel        long      %00_00_00_00_00_00_11_11_11_10_10_10_10_10_10_11        ' HSync pixels
-vPixel        long      %01_01_01_01_01_01_01_01_01_01_01_01_01_01_01_01        ' VSync pixels
-vpPixel       long      %11_11_11_11_11_11_11_11_11_11_11_11_11_11_11_11        ' Vertical porch blank pixels
-hvPixel       long      %00_00_00_00_00_00_01_01_01_00_00_00_00_00_00_01        ' HVSync pixels
+tPixel        long      %%3_2_1_0_3_2_1_0_3_2_1_0_3_2_1_0                       ' Test pixels
+hPixel        long      %%0_0_0_0_0_0_3_3_3_2_2_2_2_2_2_3                       ' HSync pixels
+vPixel        long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       ' VSync pixels
+vpPixel       long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       ' Vertical porch blank pixels
+hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       ' HVSync pixels
 
 ' Frame attributes
 numTL         long      40      ' Number of tiles per scanline (640 pixels/16 pixels per tile = 40 tiles) 
