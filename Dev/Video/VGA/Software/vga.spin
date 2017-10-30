@@ -63,8 +63,8 @@ vga
         add             ti,     tpbase          ' Add ti*64 to the tile palette base address to reference specific tile
         rdlong          tile,   ti              ' Read tile from Main RAM
         shl             ci,     #2              ' Multiply color index by 4 (each color palette is 4 bytes: color palette address = color palette base * (color palette index * 4))
-        add             ci,     cpbase          ' Add ti*64 to the tile map base address to reference specific tile
-        rdlong          colors, ci              ' Read tile from Main RAM
+        add             ci,     cpbase          ' Add ci*4 to the color palette base address to reference specific color palette
+        'rdlong          colors, ci              ' Read tile from Main RAM
                  
         
         mov             tptr,   numTL           ' Initialize tile pointer
@@ -312,9 +312,9 @@ tile_pup      long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0 ' tile 3
               long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
 
               ' Test palettes
-palette_map   long $07_5C_0C_02 ' palette 0 - background and wall tiles, 0-black,
+palette_map   long %11000011_00110011_00001111_00000011 ' palette 0 - background and wall tiles, 0-black,
                                 ' 1-blue, 2-red, 3-white
-              long $07_5C_BC_02 ' palette 1 - background and wall tiles, 0-black,
+              long %01010111_10101011_11001111_11111111 ' palette 1 - background and wall tiles, 0-black,
                                 ' 1-green, 2-red, 3-white                                          
 
         fit         
