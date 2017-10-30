@@ -230,8 +230,6 @@ numFP         long      10      ' Number of vertical front porch lines
 numVS         long      2       ' Number of vertical sync lines                        
 numBP         long      33      ' Number of vertical back porch lines
 
-t long 1                        
-
 ' Frame pointers
 tptr          res       1       ' Current tile being rendered
 lptr          res       1       ' Current line being rendered
