@@ -14,14 +14,141 @@ CON
         
 VAR
   long  vga_dat       ' VGA data placeholder
-  word  input_state   ' Register in Main RAM containing state of inputs 
-  
+  word  input_state   ' Register in Main RAM containing state of inputs
+  long  tile_map_base ' Register pointing to base of tile maps
+
 PUB main
-  cognew(@vga, @input_state)    ' Initialize cog running "vga" routine with reference to start of variable registers
+  tile_map_base := @tile_map0   ' Point tile_map_base to base of tile maps
+  cognew(@vga, @tile_map_base)    ' Initialize cog running "vga" routine with reference to start of variable registers
   cognew(@input, @input_state)  ' Initialize cog running "input" routine with reference to start of variable registers
   
 DAT
-        org       0
+        org             0
+tile_map
+              ' just the maze
+tile_map0     word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 0
+              word $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 1
+              word $00_01,$00_00,$01_01,$01_01,$01_01,$00_00,$01_01,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 2
+              word $00_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 3
+              word $00_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 4
+              word $00_01,$00_00,$01_01,$01_01,$00_00,$01_01,$01_01,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 5
+              word $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 6
+              word $00_01,$00_00,$01_01,$00_00,$01_01,$01_01,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 7
+              word $00_01,$00_00,$01_01,$00_00,$00_00,$01_01,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 8
+              word $00_01,$00_00,$01_01,$01_01,$00_00,$01_01,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 9
+              word $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 10
+              word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 11
+
+              ' maze plus dots
+tile_map1     word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 0
+              word $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 1
+              word $00_01,$00_02,$01_01,$01_01,$01_01,$00_02,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 2
+              word $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 3
+              word $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 4
+              word $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 5
+              word $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 6
+              word $00_01,$00_02,$01_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 7
+              word $00_01,$00_02,$01_01,$00_02,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 8
+              word $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 9
+              word $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 10
+              word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 11
+
+              ' maze plus powerpills
+tile_map2     word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 0
+              word $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 1
+              word $00_01,$00_02,$01_01,$01_01,$01_01,$00_02,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 2
+              word $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 3
+              word $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 4
+              word $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 5
+              word $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 6
+              word $00_01,$00_02,$01_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 7
+              word $00_01,$00_02,$01_01,$00_02,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 8
+              word $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 9
+              word $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 10
+              word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 11
+
+tile_palette
+              ' empty tile
+tile_blank    long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0 ' tile 0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+
+              ' box segment
+tile_box      long %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1 ' tile 1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
+              long %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1
+
+              ' dot tile
+tile_dot      long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0 ' tile 2
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0
+              long %%0_0_0_0_0_1_1_1_1_1_1_0_0_0_0_0
+              long %%0_0_0_0_0_1_1_1_1_1_1_0_0_0_0_0
+              long %%0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+
+              ' power-up tile
+tile_pup      long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0 ' tile 3
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0
+              long %%0_0_0_0_0_1_1_1_1_1_1_0_0_0_0_0
+              long %%0_0_0_0_1_1_1_1_1_1_1_1_0_0_0_0
+              long %%0_0_0_1_1_1_1_1_1_1_1_1_1_0_0_0
+              long %%0_0_0_1_1_1_1_1_1_1_1_1_1_0_0_0
+              long %%0_0_0_0_1_1_1_1_1_1_1_1_0_0_0_0
+              long %%0_0_0_0_1_1_1_1_1_1_1_0_0_0_0_0
+              long %%0_0_0_0_0_1_1_1_1_1_1_0_0_0_0_0
+              long %%0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+              long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+
+              ' Test palettes
+palette_map   long $07_5C_0C_02 ' palette 0 - background and wall tiles, 0-black,
+                                ' 1-blue, 2-red, 3-white
+              long $07_5C_BC_02 ' palette 1 - background and wall tiles, 0-black,
+                                ' 1-green, 2-red, 3-white                                          
+
+        fit
+DAT
+        org             0
 vga           
         ' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins        
@@ -35,31 +162,22 @@ vga
         mov             vcfg,   VidCfg          ' Start video generator
 
         ' Initialize variables
-        mov             iptr,   par             ' Load Main RAM input_state address into iptr              
+        mov             mptr,   par             ' Load Main RAM tile_map_base address              
 
         ' Display visible area              
-:frame  rdword          is,     iptr            ' Read input_state from Main RAM
-        mov             colors, ColorK          ' Set default color to black        
-        test            btn1,   is wc           ' Test button 1 pressed
-        if_c  mov       colors, ColorR          ' If button 1 pressed set color to red
-        test            btn2,   is wc           ' Test button 2 pressed
-        if_c  mov       colors, ColorG          ' If button 2 pressed set color to green
-        test            btn3,   is wc           ' Test button 3 pressed
-        if_c  mov       colors, ColorB          ' If button 3 pressed set color to blue
-        test            tilt,   is wc           ' Test tilt sensor
-        if_c  mov       colors, ColorW          ' If tilt sensor triggered set color to white
+:frame  mov             colors, ColorK          ' Set default color to black
         mov             fptr,   numTF           ' Initialize frame pointer
 :active mov             lptr,   numLT           ' Initialize line pointer
 :tile   mov             tptr,   numTL           ' Initialize tile pointer
         mov             vscl,   VidScl          ' Set video scale for active video
 :line   waitvid         colors, tPixel          ' Update 16-pixel scanline                 
-        djnz            tptr,   #:line          ' Display forty 16-pixel segments (one scanline, 40*16=640 pixels)
+        djnz            tptr,   #:line          ' Display ten 16-pixel segments (one scanline, 40*16=640 pixels downsampled to 10)
 
         ' Display horizontal sync area
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            lptr,   #:tile          ' Display sixteen scanlines (one row of tiles, 40*16*16=10240 pixels)
-        djnz            fptr,   #:active        ' Display thirty tiles (entire frame, 480/16=30 tiles)
+        djnz            fptr,   #:active        ' Display twelve tiles (entire frame, 480/16=30 tiles downsampled to 12)
 
         ' Display vertical sync area
         mov             vptr,   numFP           ' Initialize vertical sync pointer        
@@ -83,19 +201,13 @@ vga
         jmp             #:frame                 ' Display frames forever      
 
 ' Config values
-vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' Counter A output pin
+vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
 pllfreq       long      337893130                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
 VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
-VidScl        long      %000000000000_00000001_000000010000                                             ' Video generator scale register
+VidScl        long      %000000000000_00000100_000001000000                                             ' Video generator scale register                         
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
-
-' Input locations
-btn1          long      |< 7    ' Button 1 location in input states
-btn2          long      |< 6    ' Button 2 location in input states
-btn3          long      |< 5    ' Button 3 location in input states
-tilt          long      |< 4    ' Tilt location in input states
 
 ' Video Generator inputs
 ColorR        long      %11000011_11000011_11000011_11000011                    ' Test colors
@@ -104,26 +216,28 @@ ColorB        long      %00001111_00001111_00001111_00001111                    
 ColorW        long      %11111111_11111111_11111111_11111111                    ' Test colors
 ColorK        long      %00000011_00000011_00000011_00000011                    ' Test colors
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
-tPixel        long      %%3_2_1_0_3_2_1_0_3_2_1_0_3_2_1_0                       ' Test pixels
+tPixel        long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' Test pixels
 hPixel        long      %%0_0_0_0_0_0_3_3_3_2_2_2_2_2_2_3                       ' HSync pixels
 vPixel        long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       ' VSync pixels
 vpPixel       long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       ' Vertical porch blank pixels
 hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       ' HVSync pixels
 
 ' Frame attributes
-numTL         long      40      ' Number of tiles per scanline (640 pixels/16 pixels per tile = 40 tiles) 
-numLT         long      16      ' Number of scanlines per tile (16 pixels tall)
-numTF         long      30      ' Number of vertical tiles per frame (480 pixels/16 pixels per tile = 30 tiles)                        
+numTL         long      10      ' Number of tiles per scanline (640 pixels/16 pixels per tile = 40 tiles downsampled to 10 via vscl)
+numLT         long      40      ' Number of scanlines per tile (16 pixels tall, upsampled to 40 for 12 vertical tiles)
+numTF         long      12      ' Number of vertical tiles per frame (480 pixels/16 pixels per tile = 30 tiles downsampled to 12 via vscl)                    
 numFP         long      10      ' Number of vertical front porch lines                        
 numVS         long      2       ' Number of vertical sync lines                        
-numBP         long      33      ' Number of vertical back porch lines                        
+numBP         long      33      ' Number of vertical back porch lines
+
+t long 1                        
 
 ' Frame pointers
 tptr          res       1       ' Current tile being rendered
 lptr          res       1       ' Current line being rendered
 fptr          res       1       ' Current frame position being rendered
 vptr          res       1       ' Current vertical sync line being rendered
-iptr          res       1       ' Pointer to input states in Main RAM
+mptr          res       1       ' Pointer to tile maps in Main RAM
 is            res       1       ' Register containing input states
 colors        res       1       ' Register containing current colors
         fit
