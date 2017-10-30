@@ -21,8 +21,8 @@ VAR
 
 PUB main
   tile_map_base := @tile_map                            ' Point tile_map_base to base of tile maps
-  tile_palette_base := @tile_palette                    ' Point tile_map_base to base of tile maps
-  color_palette_base := @palette_map                    ' Point tile_map_base to base of tile maps
+  tile_palette_base := @tile_palette                    ' Point tile_palette_base to base of tile palettes
+  color_palette_base := @palette_map                    ' Point color_palette_base to base of color palettes
   cognew(@vga, @tile_map_base)                          ' Initialize cog running "vga" routine with reference to start of variable registers
   cognew(@input, @input_state)                          ' Initialize cog running "input" routine with reference to start of variable registers
   
@@ -41,15 +41,18 @@ vga
         mov             vcfg,   VidCfg      
 
         ' Initialize variables
+        mov             colors, ColorK          ' Make default color black
         mov             tmbase, par             ' Load Main RAM tile_map_base address
         mov             tpbase, par             ' Load Main RAM tile_map_base address
         mov             cpbase, par             ' Load Main RAM tile_map_base address
-        add             tpbase, #4              ' Point tile palette pointer to correct register
-        add             cpbase, #8              ' Point color palette pointer to correct register
-
+        add             tpbase, #4              ' Point tile palette pointer to correct Main RAM register
+        add             cpbase, #8              ' Point color palette pointer to correct Main RAM register
+        rdlong          tmbase, tmbase          ' Load tile map base pointer 
+        rdlong          tpbase, tpbase          ' Load tile palette base pointer
+        rdlong          cpbase, cpbase          ' Load color palette base pointer
+                
         ' Display visible area              
-:frame  mov             colors, ColorK          ' Set default color to black
-        mov             fptr,   numTF           ' Initialize frame pointer
+:frame  mov             fptr,   numTF           ' Initialize frame pointer
         mov             tmptr,  tmbase          ' Initialize tile map pointer
 :active mov             lptr,   numLT           ' Initialize line pointer
 :tile
@@ -64,8 +67,7 @@ vga
         rdlong          tile,   ti              ' Read tile from Main RAM
         shl             ci,     #2              ' Multiply color index by 4 (each color palette is 4 bytes: color palette address = color palette base * (color palette index * 4))
         add             ci,     cpbase          ' Add ci*4 to the color palette base address to reference specific color palette
-        'rdlong          colors, ci              ' Read tile from Main RAM
-                 
+        rdlong          colors, ci              ' Read tile from Main RAM       
         
         mov             tptr,   numTL           ' Initialize tile pointer
         mov             vscl,   VidScl          ' Set video scale for active video
@@ -115,7 +117,7 @@ ColorB        long      %00001111_00001111_00001111_00001111                    
 ColorW        long      %11111111_11111111_11111111_11111111                    ' Test colors
 ColorK        long      %00000011_00000011_00000011_00000011                    ' Test colors
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
-tPixel        long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' Test pixels
+tPixel        long      %%0_0_0_0_1_1_1_1_2_2_2_2_3_3_3_3                       ' Test pixels
 hPixel        long      %%0_0_0_0_0_0_3_3_3_2_2_2_2_2_2_3                       ' HSync pixels
 vPixel        long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       ' VSync pixels
 vpPixel       long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       ' Vertical porch blank pixels
@@ -197,7 +199,7 @@ DAT
         org             0
 tile_map
               ' just the maze
-tile_map0     word $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 0
+tile_map0     word $01_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01 ' row 0
               word $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 1
               word $00_01,$00_00,$01_01,$01_01,$01_01,$00_00,$01_01,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 2
               word $00_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00 ' row 3
@@ -314,7 +316,7 @@ tile_pup      long %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0 ' tile 3
               ' Test palettes
 palette_map   long %11000011_00110011_00001111_00000011 ' palette 0 - background and wall tiles, 0-black,
                                 ' 1-blue, 2-red, 3-white
-              long %01010111_10101011_11001111_11111111 ' palette 1 - background and wall tiles, 0-black,
+              long %10101011_01010111_11001111_10110111 ' palette 1 - background and wall tiles, 0-black,
                                 ' 1-green, 2-red, 3-white                                          
 
         fit         
