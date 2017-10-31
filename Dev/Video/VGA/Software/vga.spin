@@ -19,9 +19,9 @@ VAR
   word  input_state             ' Register in Main RAM containing state of inputs
 
 PUB main
-  tile_map_base := @tile_map                           ' Point tile_map_base to base of tile maps
-  tile_palette_base := @tile_palette                      ' Point tile_palette_base to base of tile palettes
-  color_palette_base := @color_palette                    ' Point color_palette_base to base of color palettes
+  tile_map_base := @tile_map                            ' Point tile_map_base to base of tile maps
+  tile_palette_base := @tile_palette                    ' Point tile_palette_base to base of tile palettes
+  color_palette_base := @color_palette                  ' Point color_palette_base to base of color palettes
   cognew(@vga, @tile_map_base)                          ' Initialize cog running "vga" routine with reference to start of variable registers
   cognew(@input, @input_state)                          ' Initialize cog running "input" routine with reference to start of variable registers
   
@@ -52,11 +52,12 @@ vga
         rdlong          cpbase, cpbase          ' Load color palette base pointer
 
         ' Calculate tile map locations
-        mov             map0,   tmbase
-        mov             map1,   tmbase
-        add             map1,   #480
-        mov             map2,   map1
-        add             map2,   #480
+        mov             map0,   tmbase          ' Load base tile map
+        add             map0,   #480            ' Point to next tile map
+        mov             map1,   map0            ' Store tile map location
+        add             map1,   #480            ' Point to next tile map
+        mov             map2,   map1            ' Store tile map location
+        add             map2,   #480            ' 
                 
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
@@ -292,6 +293,23 @@ tile_map2     word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,
               word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 13
               word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 14
 
+              ' maze plus powerpills
+tile_map3     word      $01_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 0
+              word      $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 1
+              word      $00_01,$01_02,$01_01,$01_01,$01_02,$00_02,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 2
+              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$01_01                 ' row 3
+              word      $00_01,$00_02,$01_01,$00_02,$00_02,$01_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00                 ' row 4
+              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_01,$01_01,$00_02,$01_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00                 ' row 5
+              word      $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$02_00,$00_00                 ' row 6
+              word      $00_01,$00_02,$01_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$01_00,$00_00,$00_00,$00_00                 ' row 7
+              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_01,$00_02,$01_01,$00_02,$00_01,$01_00,$00_00,$00_02,$00_00,$00_00,$00_00                 ' row 8
+              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$01_03,$00_00,$00_00                 ' row 9
+              word      $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 10
+              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$01_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 11
+              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 12
+              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 13
+              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 14              
+
 tile_palette
               ' empty tile
 tile_blank    long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' tile 0
@@ -369,6 +387,4 @@ tile_pup      long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       
 color_palette long      %11000011_00110011_00001111_00000011                    ' palette 0 - background and wall tiles, 0-black,
                                                                                 ' 1-blue, 2-red, 3-white
               long      %11001111_11010111_00100111_10011111                    ' palette 1 - background and wall tiles, 0-black,
-                                                                                ' 1-green, 2-red, 3-white                                           
-
-        fit         
+                                                                                ' 1-green, 2-red, 3-white         
