@@ -14,13 +14,12 @@ CON
   _CLKMODE = xtal1 + pll16x     ' Fast external clock mode w/ 16x PLL
   _XINFREQ = 5_000_000          ' 5Mhz crystal
 VAR
-  word input_state              ' Register in Main RAM containing state of inputs 
-  byte tilt_state               ' Register in Main RAM containing state of tilt sensor
-PUB main
-  cognew(@input, @input_state)  ' Initialize cog running "input" routine with reference to start of variable registers
-  tester                        ' Test the "input" routine
-PUB tester
-  cognew(@testing, @input_state)' Initialize cog running "testing" routine with reference to start of variable registers
+  word base_input_addr_      ' Register in Main RAM containing state of inputs 
+PUB start (base_input_addr)                          
+  base_input_addr_ := base_input_addr                   ' Set global base_input_addr var
+  cognew(@input, @base_input_addr_)                      ' Initialize cog running "input" routine with reference to start of variable registers
+PUB tester                      
+  cognew(@testing, @base_input_addr_)' Initialize cog running "testing" routine with reference to start of variable registers
 DAT        
         org             0
 {{
