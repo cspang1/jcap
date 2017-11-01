@@ -16,8 +16,14 @@ CON
 OBJ
   Input : "input"
 VAR
-  word base_input_addr_         ' Register in Main RAM containing state of inputs
-  byte bast_tilt_addr_          ' Register in Main RAM containing state of tilt sensor 
+  long base_input_addr_         ' Register in Main RAM containing state of inputs
+  long base_tilt_addr_          ' Register in Main RAM containing state of tilt sensor 
 PUB main                          
-  Input.start(@base_input_addr_)
+  base_input_addr_ := @wtf
+  Input.start(base_input_addr_) 
   Input.tester
+
+DAT
+
+wtf     word  0             
+wtflol  byte  0  

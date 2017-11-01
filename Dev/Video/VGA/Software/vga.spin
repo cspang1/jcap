@@ -11,19 +11,13 @@
 CON
         _clkmode = xtal1 + pll16x                       ' Standard clock mode * crystal frequency = 80 MHz
         _xinfreq = 5_000_000
-        
-VAR
-  long  tile_map_base           ' Register pointing to base of tile maps
-  long  tile_palette_base       ' Register pointing to base of tile palettes
-  long  color_palette_base      ' Register pointing to base of color palettes
-  word  input_state             ' Register in Main RAM containing state of inputs
 
-PUB main
-  tile_map_base := @tile_map                            ' Point tile_map_base to base of tile maps
-  tile_palette_base := @tile_palette                    ' Point tile_palette_base to base of tile palettes
-  color_palette_base := @color_palette                  ' Point color_palette_base to base of color palettes
-  cognew(@vga, @tile_map_base)                          ' Initialize cog running "vga" routine with reference to start of variable registers
-  cognew(@input, @input_state)                          ' Initialize cog running "input" routine with reference to start of variable registers
+VAR
+  long  graphics_addr_base_     ' Register pointing to base address of graphics
+
+PUB start(graphics_addr_base)
+  graphics_addr_base_ := graphics_addr_base             ' Point tile_map_base to base of tile maps
+  cognew(@vga, graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
   
 DAT
         org             0
@@ -50,26 +44,29 @@ vga
         rdlong          tmbase, tmbase          ' Load tile map base pointer 
         rdlong          tpbase, tpbase          ' Load tile palette base pointer
         rdlong          cpbase, cpbase          ' Load color palette base pointer
+        rdlong          isptr,  isptr           ' Load color palette base pointer
 
         ' Calculate tile map locations
         mov             map0,   tmbase          ' Load base tile map
-        add             map0,   #480            ' Point to next tile map
-        mov             map1,   map0            ' Store tile map location
+        mov             map1,   tmbase          ' Load base tile map
         add             map1,   #480            ' Point to next tile map
         mov             map2,   map1            ' Store tile map location
-        add             map2,   #480            ' 
+        add             map2,   #480            ' Point to next tile map
+        mov             map3,   map2            ' Store tile map location
+        add             map3,   #480            ' Point to next tile map
                 
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
 
+        mov             tmbase, map0            ' Set default map
         ' Select tile map                                                        
         rdword          is,     isptr           ' Read input states from Main RAM
         test            btn1,   is wc           ' Test button 1 pressed
-        if_c  mov       tmbase, map0            ' If button 1 pressed set map to map0
+        if_c  mov       tmbase, map1            ' If button 1 pressed set map to map0
         test            btn2,   is wc           ' Test button 1 pressed
-        if_c  mov       tmbase, map1            ' If button 1 pressed set map to map1
+        if_c  mov       tmbase, map2            ' If button 1 pressed set map to map1
         test            btn3,   is wc           ' Test button 1 pressed
-        if_c  mov       tmbase, map2            ' If button 1 pressed set map to map2
+        if_c  mov       tmbase, map3            ' If button 1 pressed set map to map2}}
         mov             tmptr,  tmbase          ' Initialize tile map pointer
 
         ' Display active video
@@ -160,12 +157,12 @@ btn3          long      |< 5    ' Button 3 location in input states
 
 ' Frame attributes
 numTL         long      10      ' Number of tiles per scanline (640 pixels/16 pixels per tile = 40 tiles downsampled to 10 via vscl)
-numLT         long      32      ' Number of scanlines per tile (16 pixels tall, upsampled to 32 for 12 vertical tiles)
-numTF         long      15      ' Number of vertical tiles per frame (480 pixels/16 pixels per tile = 30 tiles downsampled to 12 via vscl)                    
+numLT         long      48      ' Number of scanlines per tile (16 pixels tall, upsampled to 32 for 12 vertical tiles)
+numTF         long      10      ' Number of vertical tiles per frame (480 pixels/16 pixels per tile = 30 tiles downsampled to 12 via vscl)                    
 numFP         long      10      ' Number of vertical front porch lines                        
 numVS         long      2       ' Number of vertical sync lines                        
 numBP         long      33      ' Number of vertical back porch lines
-slr           long      1       ' Ratio of screen scan lines to tile rows
+slr           long      2       ' Ratio of screen scan lines to tile rows
 csl           long      0       ' Current scan line register
 
 ' Frame pointers
@@ -192,199 +189,5 @@ is            res       1       ' Register containing input states
 map0          res       1       ' Register containing address of map 0
 map1          res       1       ' Register containing address of map 1
 map2          res       1       ' Register containing address of map 2
-        fit
-DAT        
-        org             0
-{{
-The "input" routine interfaces with the arcade controls via the 74HC165s
-}}
-input   or              dira,   Pin_outs        ' Set output pins
-        andn            dira,   Pin_Q7          ' Set input pin
-        andn            outa,   Pin_CE_n        ' Drive clock enable pin low
-        mov             Inptr,  par             ' Load Main RAM input_state address into Inptr
-        mov             Tltptr, par             ' Load Main RAM input_state address into Inptrr
-        add             Tltptr, #2              ' Increment Tltptr to point to tilt_state in Main RAM          
-{{
-The "poll" subroutine reprents the entire process of latching and then pulsing the 74HC165s
-}}
-:poll   andn            outa,   Pin_CP          ' Drive clock pin low
-        andn            outa,   Pin_PL_n        ' Drive parallel load pin low
-        or              outa,   Pin_PL_n        ' Drive parallel load pin high           
-        mov             Count,  #15             ' Load number of 74HC165 polls into register
-{{
-The "dsin" subroutine performs the individual clock pulses to retrieve the bits from the 74HC165s
-}}
-:dsin   or              outa,   Pin_CP          ' Drive clock pin high
-        andn            outa,   Pin_CP          ' Drive clock pin low
-        test            Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
-        rcl             Inputs, #1              ' Shift Pin_Q7 state in Inputs register             
-        djnz            Count,  #:dsin          ' Repeat to retrieve all 16 bits
-        or              outa,   Pin_CP          ' Drive clock pin high
-        andn            outa,   Pin_CP          ' Drive clock pin low
-        test            Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
-        wrword          Inputs, Inptr           ' Write Inputs to Main RAM input_state register
-        rcl             Inputs, #1              ' Shift tilt state in Inputs register
-        and             Inputs, #1              ' Isolate tilt state
-        wrbyte          Inputs, Tltptr          ' Write tilt state to Main RAM 
-        jmp             #:poll                  ' Loop infinitely
-Pin_CP        long      |< 0                    ' 74HC165 clock pin bitmask
-Pin_CE_n      long      |< 1                    ' 74HC165 clock enable pin bitmask
-Pin_PL_n      long      |< 2                    ' 74HC165 parallel load pin bitmask
-Pin_outs      long      |< 0 | |< 1 | |< 2      ' Set output pin bitmask                      
-Pin_Q7        long      |< 12                   ' 74HC165 serial output pin bitmask
-Inptr         res       1                       ' Pointer to input_state register in Main RAM
-Tltptr        res       1                       ' Pointer to tilt_state register in Main RAM
-Count         res       1                       ' 74HC165 clock pulse count
-Inputs        res       1                       ' Control input shift register
-        fit
-DAT
-        org             0
-tile_map
-              '         |<------------------visible on screen-------------------------------->|<------ to right of screen ---------->|
-              ' column     0      1      2      3      4      5      6      7      8      9   |  10     11     12     13     14     15
-              ' just the maze
-tile_map0     word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 0
-              word      $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 1
-              word      $00_01,$00_00,$01_01,$01_01,$01_01,$00_00,$01_01,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 2
-              word      $00_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 3
-              word      $00_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 4
-              word      $00_01,$00_00,$01_01,$01_01,$00_00,$01_01,$01_01,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 5
-              word      $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 6
-              word      $00_01,$00_00,$01_01,$00_00,$01_01,$01_01,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 7
-              word      $00_01,$00_00,$01_01,$00_00,$00_00,$01_01,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 8
-              word      $00_01,$00_00,$01_01,$01_01,$00_00,$01_01,$00_00,$01_01,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 9
-              word      $00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 10
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 11
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 12
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 13
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 14
-
-              ' maze plus dots
-tile_map1     word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 0
-              word      $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 1
-              word      $00_01,$00_02,$01_01,$01_01,$01_01,$00_02,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 2
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 3
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 4
-              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 5
-              word      $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 6
-              word      $00_01,$00_02,$01_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 7
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 8
-              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 9
-              word      $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 10
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 11
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 12
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 13
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 14
-
-              ' maze plus powerpills
-tile_map2     word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 0
-              word      $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 1
-              word      $00_01,$00_02,$01_01,$01_01,$01_01,$00_02,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 2
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 3
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 4
-              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 5
-              word      $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 6
-              word      $00_01,$00_02,$01_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 7
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 8
-              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 9
-              word      $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 10
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 11
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 12
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 13
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 14
-
-              ' maze plus powerpills
-tile_map3     word      $01_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 0
-              word      $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 1
-              word      $00_01,$01_02,$01_01,$01_01,$01_02,$00_02,$01_01,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 2
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$01_01                 ' row 3
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$01_02,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$00_01,$00_00                 ' row 4
-              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_01,$01_01,$00_02,$01_01,$00_00,$01_01,$00_00,$00_00,$00_00,$00_00                 ' row 5
-              word      $00_01,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_01,$00_00,$00_00,$00_00,$00_00,$02_00,$00_00                 ' row 6
-              word      $00_01,$00_02,$01_01,$00_02,$01_01,$01_01,$00_02,$01_01,$00_02,$00_01,$00_00,$00_00,$01_00,$00_00,$00_00,$00_00                 ' row 7
-              word      $00_01,$00_02,$01_01,$00_02,$00_02,$00_01,$00_02,$01_01,$00_02,$00_01,$01_00,$00_00,$00_02,$00_00,$00_00,$00_00                 ' row 8
-              word      $00_01,$00_02,$01_01,$01_01,$00_02,$01_01,$01_02,$01_01,$00_02,$00_01,$00_00,$00_00,$00_00,$01_03,$00_00,$00_00                 ' row 9
-              word      $00_01,$00_03,$00_02,$00_02,$00_02,$00_02,$00_02,$00_02,$00_03,$00_01,$00_00,$00_00,$00_00,$00_00,$00_00,$00_00                 ' row 10
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$01_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 11
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 12
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 13
-              word      $00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01,$00_01                 ' row 14              
-
-tile_palette
-              ' empty tile
-tile_blank    long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' tile 0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-
-              ' box tile
-tile_box      long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       ' tile 1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1
-              long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1
-
-              ' dot tile
-tile_dot      long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' tile 2
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0
-              long      %%0_0_0_0_0_1_1_1_1_1_1_0_0_0_0_0
-              long      %%0_0_0_0_0_1_1_1_1_1_1_0_0_0_0_0
-              long      %%0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-
-              ' power-up tile
-tile_pup      long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' tile 3
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_2_2_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_2_1_1_2_0_0_0_0_0_0
-              long      %%0_0_0_0_0_2_1_1_1_1_2_0_0_0_0_0
-              long      %%0_0_0_0_2_1_1_1_1_1_1_2_0_0_0_0
-              long      %%0_0_0_2_1_1_1_1_1_1_1_1_2_0_0_0
-              long      %%0_0_2_1_1_1_1_1_1_1_1_1_1_2_0_0
-              long      %%0_0_2_1_1_1_1_1_1_1_1_1_1_2_0_0
-              long      %%0_0_0_2_1_1_1_1_1_1_1_1_2_0_0_0
-              long      %%0_0_0_2_1_1_1_1_1_1_1_2_0_0_0_0
-              long      %%0_0_0_0_2_1_1_1_1_1_1_2_0_0_0_0
-              long      %%0_0_0_0_0_2_1_1_1_1_2_0_0_0_0_0
-              long      %%0_0_0_0_0_0_2_1_1_2_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_2_2_0_0_0_0_0_0_0
-              long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-
-              ' Test palettes
-color_palette long      %11000011_00110011_00001111_00000011                    ' palette 0 - background and wall tiles, 0-black,
-                                                                                ' 1-blue, 2-red, 3-white
-              long      %11001111_11010111_00100111_10011111                    ' palette 1 - background and wall tiles, 0-black,
-                                                                                ' 1-green, 2-red, 3-white         
+map3          res       1       ' Register containing address of map 2
+        fit         
