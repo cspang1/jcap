@@ -63,3 +63,4 @@ tptr          res       1                       ' Pointer to tilt_state register
 pcnt          res       1                       ' 74HC165 clock pulse pcnt
 inputs        res       1                       ' Control input shift register
         fit
+        
