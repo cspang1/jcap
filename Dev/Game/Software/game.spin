@@ -42,16 +42,16 @@ VAR
   long  cur_pos_base_           ' Current horizontal tile position
 
 PUB main
-  tile_map_base_ := @tile_maps                          ' Point tile map base to base of tile maps
-  tile_palette_base_ := @tile_palettes                  ' Point tile palette base to base of tile palettes
-  color_palette_base_ := @color_palettes                ' Point color palette base to base of color palettes
-  input_state_base_ := @input_states                    ' Point input stat base to base of input states
-  cur_pos_base_ := @position                            ' Point current position base to base of positions                
+  tile_map_base_ := @tile_maps                                                                          ' Point tile map base to base of tile maps
+  tile_palette_base_ := @tile_palettes                                                                  ' Point tile palette base to base of tile palettes
+  color_palette_base_ := @color_palettes                                                                ' Point color palette base to base of color palettes
+  input_state_base_ := @input_states                                                                    ' Point input stat base to base of input states
+  cur_pos_base_ := @position                                                                            ' Point current position base to base of positions                
   
-  'vga.start(@tile_map_base_)                            ' Start VGA engine
-  input.start(@input_state_base_)                       ' Start input system                        
-  cognew(@game, @input_state_base_)                     ' Start game
-  cognew(@testing, cur_pos_base_+4)                       ' Test game  
+  vga.start(@tile_map_base_, vTilesH, vTilesV, tSizeH, tSizeV, tMapSizeH, tMapSizeV)                    ' Start VGA engine
+  input.start(@input_state_base_)                                                                       ' Start input system                        
+  cognew(@game, @input_state_base_)                                                                     ' Start game
+  'cognew(@testing, cur_pos_base_)                                                                      ' Test game  
 DAT
         org             0
 game    ' Initialize variables
