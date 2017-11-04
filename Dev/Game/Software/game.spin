@@ -48,10 +48,10 @@ PUB main
   input_state_base_ := @input_states                    ' Point input stat base to base of input states
   cur_pos_base_ := @position                            ' Point current position base to base of positions                
   
-  vga.start(@tile_map_base_)                            ' Start VGA engine
+  'vga.start(@tile_map_base_)                            ' Start VGA engine
   input.start(@input_state_base_)                       ' Start input system                        
   cognew(@game, @input_state_base_)                     ' Start game
-  'cognew(@testing, cur_pos_base_)                       ' Test game  
+  cognew(@testing, cur_pos_base_+4)                       ' Test game  
 DAT
         org             0
 game    ' Initialize variables
@@ -59,23 +59,26 @@ game    ' Initialize variables
         mov             pbase,  par             ' Load Main RAM tile map base address into position base
         add             pbase,  #4              ' Point position pointer to its Main RAM register
         rdlong          isbase, isbase          ' Load input state base pointer
-        rdlong          pbase,  pbase           ' Load position base pointer       
+        rdlong          pbase,  pbase           ' Load position base pointer
+        mov             xbase,  pbase           ' Set horizontal position base address
+        mov             ybase,  pbase           ' Set vertical position base address       
+        add             ybase,  #4              ' Increment vertical position base address
 
         ' Initialize game map attributes
         mov             xpos,   #0              ' Initialize horizontal position
         mov             ypos,   #0              ' Initialize vertical position        
-        mov             xbound, #sMaxH          ' Initialize left boundry of tile map
+        mov             xbound, #tMapSizeH      ' Initialize left boundry of tile map
         mov             ybound, #tMapSizeV      ' Initialize right boundry of tile map
 
         ' Scroll tile map
-:left   rdword          istate, isbase          ' Read input states from Main RAM
-        test            btn1,   istate wc       ' Test button 1 pressed
+:read   rdword          istate, isbase          ' Read input states from Main RAM
+:left   test            btn1,   istate wc       ' Test button 1 pressed
         if_c  mov       pstateL,#1              ' Set pressed state 1 to 1 if so
         if_c  jmp       #:right                 ' And continue to next input
         cmp             pstateL,#1 wz           ' Otherwise test if button 1 was previously pressed
         if_nz jmp       #:right                 ' If not continue to next input
         mov             pstateL,#0              ' Otherwise reset pressed 1 state
-        cmp             zero,   xPos wc         ' Test if at far left of tile map
+        cmp             zero,   xpos wc         ' Test if at far left of tile map
         if_c  sub       xpos,   #1              ' If not decrement horizontal position
 :right  test            btn2,   istate wc       ' Test button 2 pressed
         if_c  mov       pstateR,#1              ' Set pressed state 2 to 1 if so
@@ -85,22 +88,42 @@ game    ' Initialize variables
         mov             pstateR,#0              ' Otherwise reset pressed 2 state
         cmp             xpos,   xbound wc       ' Test if at far right of tile map
         if_c  add       xpos,   #1              ' If not increment horizontal position
-:up
-:down        
-        wrlong          xpos,   pbase           ' Write tile map pointer to tile map base
-        wrlong          ypos,   pbase+4         ' Write tile map pointer to tile map base
-        jmp             #:left                  ' Return to reading inputs
+:up     test            btn3,   istate wc       ' Test button 3 pressed
+        if_c  mov       pstateU,#1              ' Set pressed state 3 to 1 if so
+        if_c  jmp       #:down                  ' And continue to next input
+        cmp             pstateU,#1 wz           ' Otherwise test if button 3 was previously pressed
+        if_nz jmp       #:down                  ' If not continue to next input
+        mov             pstateU,#0              ' Otherwise reset pressed 3 state
+        cmp             zero,   ypos wc         ' Test if at top of tile map
+        if_c  sub       ypos,   #1              ' If not decrement vertical position
+:down   test            btn4,   istate wc       ' Test button 4 pressed
+        if_c  mov       pstateD,#1              ' Set pressed state 4 to 1 if so
+        if_c  jmp       #:write                 ' And continue to writing positions
+        cmp             pstateD,#1 wz           ' Otherwise test if button 4 was previously pressed
+        if_nz jmp       #:write                 ' If not continue to writing positions
+        mov             pstateD,#0              ' Otherwise reset pressed 4 state
+        cmp             ypos,   ybound wc       ' Test if at top of tile map
+        if_c  add       ypos,   #1              ' If not increment vertical position     
+:write  wrlong          xpos,   xbase           ' Write tile map pointer to tile map base
+        wrlong          ypos,   ybase           ' Write tile map pointer to tile map base
+        jmp             #:read                  ' Return to reading inputs
 
 ' Input attributes
 btn1          long      |< 7    ' Button 1 location in input states
 btn2          long      |< 6    ' Button 2 location in input states
+btn3          long      |< 5    ' Button 3 location in input states
+btn4          long      |< 4    ' Button 4 location in input states
 pstateL       long      0       ' State of left input button
 pstateR       long      0       ' State of right input button
+pstateU       long      0       ' State of left input button
+pstateD       long      0       ' State of right input button
 zero          long      0       ' Register containing zero value
 
 ' Registers
 isbase        res       1       ' Pointer to input state base in Main RAM        
 pbase         res       1       ' Pointer to position base in Main RAM      
+xbase         res       1       ' Pointer to position base in Main RAM      
+ybase         res       1       ' Pointer to position base in Main RAM      
 istate        res       1       ' Register containing input states
 xpos          res       1       ' Register containing horizontal game position
 ypos          res       1       ' Register containing vertical game position
