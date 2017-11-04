@@ -2,7 +2,7 @@
 
 ***
 
-<p><b>Check out the <a href="https://github.com/cspang1/JCAP/wiki">Project Wiki</a> for the development log.</b></p> 
+<p align="center"><b>Check out the <a href="https://github.com/cspang1/JCAP/wiki">Project Wiki</a> for the development log</b></p> 
 
 ***
 
