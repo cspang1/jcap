@@ -12,37 +12,48 @@ CON
   ' Constants defining screen dimensions
   sResH = 640                                           ' Horizontal screen resolution
   sResV = 480                                           ' Vertical screen resolution
-  vTilesH = 10                                          ' Number of visible tiles horizontally                                          
-  vTilesV = 10                                          ' Number of visible tiles vertically
-
-  ' Constants defining memory tile map
-  tMapSizeH = 16                                        ' Horizontal tile map size in words
-  tMapSizeV = 10                                        ' Vertical tile map size in words
-
-  ' Constants defining memory tile palette
-  tSizeH = 16                                           ' Width of tiles in pixels 
-  tSizeV = 16                                           ' Height of tiles in pixels                       
-  
-  ' Constants defining calculated attributes
-  tMemSizeH = tSizeH/4                                  ' Width of tiles in bytes
-  tSize = tMemSizeH * tSizeV                            ' Total size of tile in bytes                       
-  tOffset = (>| tSize) - 1                              ' Tile offset modifier
-  vLineSize = vTilesH * 2                               ' Total visible line size in words                         
-  tMapLineSize = tMapSizeH * 2                          ' Total tile map line size in words                         
-  tMapSize = tMapSizeH * tMapSizeV * 2                  ' Total tile map size in words
-  tlslRatio = (sResV / tSizeV) / vTilesV                ' Ratio of tile lines to scan lines
-  lPerTile = tlslRatio * tSizeV                         ' Scan lines per tile
-  cPerFrame = sResH / vTilesH                           ' Pixel clocks per pixel
-  cPerPixel = cPerFrame / tSizeH                        ' Pixel clocks per frame
-  vSclVal = (cPerPixel << 12) + cPerFrame               ' vscl register value for visible pixels
-  sMaxH = (tMapSizeH - vTilesH) * 2                     ' Maximum horizontal scroll in words
 
 VAR
-  long  graphics_addr_base_                             ' Register pointing to base address of graphics
+  long  graphics_addr_base_                             ' Variable for pointer to base address of graphics
+  long  v_tiles_h_                                      ' Variable for visible horizontal tiles 
+  long  v_tiles_v_                                      ' Variable for visible vertical tiles
+  long  t_size_h_                                       ' Variable for horizontal tile size 
+  long  t_size_v_                                       ' Variable for vertical tile size
+  long  t_map_size_h_                                   ' Variable for horizontal tile map size
+  long  t_map_size_v_                                   ' Variable for vertical tile map size
+  long  t_mem_size_h_                                   ' Variable for width of tile map in bytes
+  long  t_size_                                         ' Variable for total size of tile in bytes                       
+  long  t_offset_                                       ' Variable for tile offset modifier
+  long  v_line_size_                                    ' Variable for total visible line size in words                         
+  long  t_map_line_size_                                ' Variable for total tile map line size in words                         
+  long  tlsl_ratio_                                     ' Variable for ratio of tile lines to scan lines
+  long  l_per_tile_                                     ' Variable for scan lines per tile
+  long  c_per_frame_                                    ' Variable for pixel clocks per pixel
+  long  c_per_pixel_                                    ' Variable for pixel clocks per frame
+  long  v_scl_val_                                      ' Variable for vscl register value for visible pixels
+  
+PUB start(graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize)                     ' Function to start vga driver with pointer to Main RAM variables
+  ' Calculate video/tile attributes                    
+  v_tiles_h_ := numHorTiles                             ' Set visible horizontal tiles
+  v_tiles_v_ := numVertTiles                            ' Set visible vertical tiles
+  t_size_h_ := horTileSize                              ' Set horizontal tile size 
+  t_size_v_ := vertTileSize                             ' Set vertical tile size
+  t_map_size_h_ := horTileMapSize                       ' Set horizontal tile map size
+  t_map_size_v_ := vertTileMapSize                      ' Set vertical tile map size
+  t_mem_size_h_ := t_size_h_ / 4                        ' Calculate width of tile map in bytes
+  t_size_ := t_mem_size_h_ * t_size_v_                  ' Calculate total size of tile in bytes                       
+  t_offset_ := (>| t_size_) - 1                         ' Calculate tile offset modifier
+  v_line_size_ := v_tiles_h_ * 2                        ' Calculate total visible line size in words                         
+  t_map_line_size_ := t_map_size_h_ * 2                 ' Calculate total tile map line size in words                         
+  tlsl_ratio_ := (sResV / t_size_v_) / v_tiles_v_       ' Calculate ratio of tile lines to scan lines
+  l_per_tile_ := tlsl_ratio_ * t_size_v_                ' Calculate scan lines per tile
+  c_per_frame_ := sResH / v_tiles_h_                    ' Calculate pixel clocks per pixel
+  c_per_pixel_ := c_per_frame_ / t_size_h_              ' Calculate pixel clocks per frame
+  v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels}}
+  graphics_addr_base_ := graphAddr                      ' Point tile_map_base to base of tile maps
 
-PUB start(graphics_addr_base)                           ' Function to start vga driver with pointer to Main RAM variables
-  graphics_addr_base_ := graphics_addr_base             ' Point tile_map_base to base of tile maps
-  cognew(@vga, graphics_addr_base_)                     ' Initialize cog running "vga" routine with reference to start of variable registers
+  ' Start VGA driver
+  cognew(@vga, @graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
   
 DAT
         org             0
@@ -58,60 +69,59 @@ vga
         waitcnt         cnt,    #0              ' Allow PLL to settle
         mov             vcfg,   VidCfg          ' Start video generator
 
-        ' Initialize variables
+        ' Initialize frame attributes
         mov             csl,    #0              ' Initialize upscale tracking register
-        mov             tmbase, par             ' Load Main RAM tile_map_base address
-        mov             tpbase, par             ' Load Main RAM tile_map_base address
-        mov             cpbase, par             ' Load Main RAM tile_map_base address
-        mov             isptr,  par             ' Load Main RAM tile_map_base address
+        mov             attptr, par             ' Set attribute pointer        
+        add             attptr, #4              ' Iterate through attributes and set external to internal equivalents        
+        rdlong          vTilesH,attptr
+        mov             numTL,  vTilesH
+        add             attptr, #4
+        rdlong          vTilesV,attptr
+        mov             numTF,  vTilesV
+        add             attptr, #4
+        rdlong          tSizeH,attptr
+        add             attptr, #4
+        rdlong          tSizeV,attptr
+        add             attptr, #4
+        rdlong          tMapSizeH,attptr
+        add             attptr, #4
+        rdlong          tMapSizeV,attptr
+        add             attptr, #4
+        rdlong          tMemSizeH,attptr
+        add             attptr, #4
+        rdlong          tSize,attptr
+        add             attptr, #4
+        rdlong          tOffset,attptr
+        add             attptr, #4
+        rdlong          vLineSize,attptr
+        add             attptr, #4
+        rdlong          tMapLineSize,attptr
+        add             attptr, #4
+        rdlong          tlslRatio,attptr
+        mov             slr,    tlslRatio
+        sub             slr,    #1
+        add             attptr, #4
+        rdlong          lPerTile,attptr
+        mov             numLT,  lPerTile
+        add             attptr, #4
+        rdlong          cPerFrame,attptr
+        add             attptr, #4
+        rdlong          cPerPixel,attptr
+        add             attptr, #4
+        rdlong          vSclVal,attptr
+
+        ' Initialize graphics resource pointers
+        rdlong          tmbase, par             ' Load Main RAM tile map base address
+        mov             tpbase, tmbase          ' Load Main RAM tile map base address
+        mov             cpbase, tmbase          ' Load Main RAM tile map base address
         add             tpbase, #4              ' Point tile palette pointer to correct Main RAM register
         add             cpbase, #8              ' Point color palette pointer to correct Main RAM register
-        add             isptr,  #12             ' Point input state pointer to input states in Main RAM
-        rdlong          tmbase, tmbase          ' Load tile map base pointer 
         rdlong          tpbase, tpbase          ' Load tile palette base pointer
         rdlong          cpbase, cpbase          ' Load color palette base pointer
-        rdlong          isptr,  isptr           ' Load inputs base pointer
         
-        ' Calculate and set tile map locations
-        mov             map0,   tmbase          ' Load base tile map
-        mov             map1,   tmbase          ' Load base tile map
-        add             map1,   #tMapSize       ' Point to next tile map
-        mov             map2,   map1            ' Store tile map location
-        add             map2,   #tMapSize       ' Point to next tile map
-        mov             map3,   map2            ' Store tile map location
-        add             map3,   #tMapSize       ' Point to next tile map
-        mov             map4,   map3            ' Store tile map location
-        add             map4,   #tMapSize       ' Point to next tile map
-        mov             tmbase, map0            ' Load tile map to be used
-        
-        ' Calculate max scroll boundry
-        mov             curt,   tmbase          ' Instantiate tile pointer for scrolling
-        mov             mScroll,tmbase          ' Set max scroll to base of specified tile map
-        add             mScroll,#sMaxH          ' Add maximum scroll amount to max scroll
-                        
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
-        mov             tmptr,  curt            ' Set tile map pointer to current start tile 
-
-        ' Scroll tile map
-:left   rdword          is,     isptr           ' Read input states from Main RAM
-        test            btn1,   is wc           ' Test button 1 pressed
-        if_c  mov       pstateL,#1              ' Set pressed state 1 to 1 if so
-        if_c  jmp       #:active                ' And continue to displaying video
-        cmp             pstateL,#1 wz           ' Otherwise test if button 1 was previously pressed
-        if_nz jmp       #:right                 ' If not continue to testing button two
-        mov             pstateL,#0              ' Otherwise reset pressed 1 state
-        cmp             tmbase, tmptr wc        ' Test if video at far left of tile map
-        if_c  sub       curt,   #2              ' If not scroll left
-        jmp             #:active                ' Continue to displaying video
-:right  test            btn2,   is wc           ' Test button 2 pressed
-        if_c  mov       pstateR,#1              ' Set pressed state 2 to 1 if so
-        if_c  jmp       #:active                ' And continue to displaying video
-        cmp             pstateR,#1 wz           ' Otherwise test if button 2 was previously pressed
-        if_nz jmp       #:active                ' If not continue to displaying video
-        mov             pstateR,#0              ' Otherwise reset pressed 2 state
-        cmp             tmptr, mScroll wc       ' Test if video at far right of tile map
-        if_c  add       curt,   #2              ' If not scroll left
+        rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile 
 
         ' Display active video
 :active mov             lptr,   numLT           ' Initialize line pointer
@@ -120,7 +130,7 @@ vga
         
         ' Display scanline
 :tile   mov             tptr,   numTL           ' Initialize tile pointer       
-        mov             vscl,   AVidScl         ' Set video scale for active video
+        mov             vscl,   vSclVal         ' Set video scale for active video
 :line
         ' Retrieve tile and colors
         rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
@@ -128,10 +138,10 @@ vga
         and             ti,     #255            ' Isolate tile index of current map tile
         shr             cmap,   #8              ' Isolate color index of current map tile
         mov             ci,     cmap            ' Store color index of current map tile        
-        shl             ti,     #tOffset        ' Multiply tile index by size of tile map
+        shl             ti,     tOffset         ' Multiply tile index by size of tile map
         add             ti,     tpbase          ' Increment tile index to correct line
         add             ti,     tpptr           ' Add tile palette pointer to tile index to specify row of tile to be displayed
-        test            tMaskH, #tSizeV wc      ' Check the width of the tiles
+        test            tMaskH, tSizeV wc       ' Check the width of the tiles
         if_nc rdword    tile,   ti              ' Read 8-pixel-wide tile from Main RAM
         if_c  rdlong    tile,   ti              ' Read 16-pixel-wide tile from Main RAM
         shl             ci,     #2              ' Multiply color index by size of color palette
@@ -144,13 +154,13 @@ vga
         ' Display horizontal sync area
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
-        sub             tmptr,  #vLineSize      ' Return tile map pointer to beginning of row
+        sub             tmptr,  vLineSize       ' Return tile map pointer to beginning of row
         cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
-        if_z  add       tpptr,  #tMemSizeH      ' Increment tile palette pointer if so        
+        if_z  add       tpptr,  tMemSizeH       ' Increment tile palette pointer if so        
         if_z  mov       csl,    #0              ' Reset scan line register if so
         if_nz add       csl,    #1              ' Increment scan line register otherwise
         djnz            lptr,   #:tile          ' Display forty-eight scanlines
-        add             tmptr,  #tMapLineSize   ' Increment tile map pointer to next row of tiles
+        add             tmptr,  tMapLineSize    ' Increment tile map pointer to next row of tiles
         djnz            fptr,   #:active        ' Display fifteen tiles
 
         ' Display vertical sync area
@@ -181,7 +191,7 @@ CtrCfg        long      %0_00001_101_00000000_000000_000_000000                 
 VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
-AVidScl       long      vSclVal                                                                         ' Video generator active video scale register                         
+tMaskH        long      16                                                                              ' Mask to detect horizontal pixel width of tiles
 
 ' Video Generator inputs
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
@@ -191,25 +201,10 @@ vPixel        long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       
 vpPixel       long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       ' Vertical porch blank pixels
 hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       ' HVSync pixels
 
-' Input attributes
-btn1          long      |< 7    ' Button 1 location in input states
-btn2          long      |< 6    ' Button 2 location in input states
-btn3          long      |< 5    ' Button 3 location in input states
-btn4          long      |< 4    ' Button 3 location in input states
-pstateL       long      0
-pstateR       long      0
-
-' Frame attributes
-numTL         long      vTilesH                 ' Number of visible tiles per scanline
-numLT         long      lPerTile                ' Number of scanlines per tile
-numTF         long      vTilesV                 ' Number of visible vertical tiles per frame
-tMaskH        byte      16                      ' Mask to detect horizontal pixel width of tiles
-slr           long      tlslRatio - 1           ' Ratio of screen scan lines to tile rows
-
 ' Video attributes
-numFP         long      10                      ' Number of vertical front porch lines                        
-numVS         long      2                       ' Number of vertical sync lines                        
-numBP         long      33                      ' Number of vertical back porch lines
+numFP         long      10      ' Number of vertical front porch lines                        
+numVS         long      2       ' Number of vertical sync lines                        
+numBP         long      33      ' Number of vertical back porch lines
 
 ' Frame pointers
 tptr          res       1       ' Current tile being rendered
@@ -217,8 +212,6 @@ lptr          res       1       ' Current line being rendered
 fptr          res       1       ' Current frame position being rendered
 vptr          res       1       ' Current vertical sync line being rendered
 csl           res       1       ' Upscale tracking register
-curt          res       1       ' Current tile in map
-mScroll       res       1       ' Max scroll position pointer
 
 ' Tile and color map pointers
 tmptr         res       1       ' Pointer to current tile map in Main RAM
@@ -232,12 +225,28 @@ ti            res       1       ' Tile index
 ci            res       1       ' Color index
 tile          res       1       ' Current tile section        
 colors        res       1       ' Register containing current colors
-isptr         res       1       ' Register containing pointer to input states                
-is            res       1       ' Register containing input states
-map0          res       1       ' Register containing address of map 0
-map1          res       1       ' Register containing address of map 1
-map2          res       1       ' Register containing address of map 2
-map3          res       1       ' Register containing address of map 3
-map4          res       1       ' Register containing address of map 4
+
+' Frame attributes
+numTL         res       1       ' Number of visible tiles per scanline
+numLT         res       1       ' Number of scanlines per tile
+numTF         res       1       ' Number of vertical tiles per frame
+slr           res       1       ' Ratio of scanlines to tile lines
+attptr        res       1       ' Pointer to attributes in Main RAM
+vTilesH       res       1       ' Visible horizontal tiles
+vTilesV       res       1       ' Visible vertical tiles
+tSizeH        res       1       ' Horizontal tile size 
+tSizeV        res       1       ' Vertical tile size
+tMapSizeH     res       1       ' Horizontal tile map size
+tMapSizeV     res       1       ' Vertical tile map size
+tMemSizeH     res       1       ' Width of tile map in bytes
+tSize         res       1       ' Total size of tile in bytes                       
+tOffset       res       1       ' Tile offset modifier
+vLineSize     res       1       ' Total visible line size in words                         
+tMapLineSize  res       1       ' Total tile map line size in words                         
+tlslRatio     res       1       ' Ratio of tile lines to scan lines
+lPerTile      res       1       ' Scan lines per tile
+cPerFrame     res       1       ' Pixel clocks per pixel
+cPerPixel     res       1       ' Pixel clocks per frame
+vSclVal       res       1       ' vscl register value for visible pixels
         fit
         

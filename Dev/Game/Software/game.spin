@@ -1,4 +1,4 @@
- {{
+{{
         File:     game.spin
         Author:   Connor Spangler
         Date:     11/3/2017

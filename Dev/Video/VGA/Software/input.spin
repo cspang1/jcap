@@ -10,9 +10,6 @@
                   and store them in Main RAM on the Hub.
 }}
 
-CON
-  _CLKMODE = xtal1 + pll16x     ' Fast external clock mode w/ 16x PLL
-  _XINFREQ = 5_000_000          ' 5Mhz crystal
 VAR
   long base_input_addr_      ' Register in Main RAM containing state of inputs 
 PUB start (base_input_addr)                          
@@ -51,7 +48,7 @@ The "dsin" subroutine performs the individual clock pulses to retrieve the bits 
         wrword          inputs, iptr            ' Write inputs to Main RAM input_state register
         rcl             inputs, #1              ' Shift tilt state in inputs register
         and             inputs, #1              ' Isolate tilt state
-        wrbyte          inputs, tptr            ' Write tilt state to Main RAM 
+        wrword          inputs, tptr            ' Write tilt state to Main RAM 
         jmp             #:poll                  ' Loop infinitely
 Pin_CP        long      |< 0                    ' 74HC165 clock pin bitmask
 Pin_CE_n      long      |< 1                    ' 74HC165 clock enable pin bitmask
