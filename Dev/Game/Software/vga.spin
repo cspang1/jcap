@@ -32,8 +32,8 @@ VAR
   long  c_per_pixel_                                    ' Variable for pixel clocks per frame
   long  v_scl_val_                                      ' Variable for vscl register value for visible pixels
   
-PUB start(graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize)            ' Function to start vga driver with pointer to Main RAM variables
-  ' Calculated video/tile attributes                    ' Set visible horizontal tiles
+PUB start(graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize)                     ' Function to start vga driver with pointer to Main RAM variables
+  ' Calculate video/tile attributes                    
   v_tiles_h_ := numHorTiles                             ' Set visible horizontal tiles
   v_tiles_v_ := numVertTiles                            ' Set visible vertical tiles
   t_size_h_ := horTileSize                              ' Set horizontal tile size 
@@ -52,6 +52,7 @@ PUB start(graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTi
   v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels}}
   graphics_addr_base_ := graphAddr                      ' Point tile_map_base to base of tile maps
 
+  ' Start VGA driver
   cognew(@vga, @graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
   
 DAT
@@ -68,14 +69,15 @@ vga
         waitcnt         cnt,    #0              ' Allow PLL to settle
         mov             vcfg,   VidCfg          ' Start video generator
 
-        ' Initialize variables
+        ' Initialize frame attributes
         mov             csl,    #0              ' Initialize upscale tracking register
-        mov             attptr, par
-        
-:setatt add             attptr, #4
+        mov             attptr, par             ' Set attribute pointer        
+        add             attptr, #4              ' Iterate through attributes and set external to internal equivalents        
         rdlong          vTilesH,attptr
+        mov             numTL,  vTilesH
         add             attptr, #4
         rdlong          vTilesV,attptr
+        mov             numTF,  vTilesV
         add             attptr, #4
         rdlong          tSizeH,attptr
         add             attptr, #4
@@ -96,8 +98,11 @@ vga
         rdlong          tMapLineSize,attptr
         add             attptr, #4
         rdlong          tlslRatio,attptr
+        mov             slr,    tlslRatio
+        sub             slr,    #1
         add             attptr, #4
         rdlong          lPerTile,attptr
+        mov             numLT,  lPerTile
         add             attptr, #4
         rdlong          cPerFrame,attptr
         add             attptr, #4
@@ -105,24 +110,18 @@ vga
         add             attptr, #4
         rdlong          vSclVal,attptr
 
-        mov             numTL,  vTilesH                 ' Number of visible tiles per scanline
-        mov             numLT,  lPerTile                ' Number of scanlines per tile
-        mov             numTF,  vTilesV                 ' Number of visible vertical tiles per frame
-        mov             slr,    tlslRatio               ' Ratio of screen scan lines to tile rows
-        sub             slr,    #1                      ' Use slr as index
-        
-        rdlong          tmbase, par
-        mov             tpbase, tmbase          ' Load Main RAM tile_map_base address
-        mov             cpbase, tmbase          ' Load Main RAM tile_map_base address
+        ' Initialize graphics resource pointers
+        rdlong          tmbase, par             ' Load Main RAM tile map base address
+        mov             tpbase, tmbase          ' Load Main RAM tile map base address
+        mov             cpbase, tmbase          ' Load Main RAM tile map base address
         add             tpbase, #4              ' Point tile palette pointer to correct Main RAM register
         add             cpbase, #8              ' Point color palette pointer to correct Main RAM register
-        rdlong          tmbase, tmbase          ' Load tile map base pointer 
         rdlong          tpbase, tpbase          ' Load tile palette base pointer
         rdlong          cpbase, cpbase          ' Load color palette base pointer
         
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
-        mov             tmptr,  tmbase          ' Set tile map pointer to current start tile 
+        rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile 
 
         ' Display active video
 :active mov             lptr,   numLT           ' Initialize line pointer
@@ -203,9 +202,9 @@ vpPixel       long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       
 hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       ' HVSync pixels
 
 ' Video attributes
-numFP         long      10                      ' Number of vertical front porch lines                        
-numVS         long      2                       ' Number of vertical sync lines                        
-numBP         long      33                      ' Number of vertical back porch lines
+numFP         long      10      ' Number of vertical front porch lines                        
+numVS         long      2       ' Number of vertical sync lines                        
+numBP         long      33      ' Number of vertical back porch lines
 
 ' Frame pointers
 tptr          res       1       ' Current tile being rendered
