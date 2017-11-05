@@ -12,8 +12,8 @@ CON
   _xinfreq = 5_000_000
 
   ' Constants defining screen dimensions
-  vTilesH = 8                                          ' Number of visible tiles horizontally                                          
-  vTilesV = 6                                           ' Number of visible tiles vertically
+  vTilesH = 16                                          ' Number of visible tiles horizontally                                          
+  vTilesV = 12                                           ' Number of visible tiles vertically
 
   ' Constants defining memory tile palette
   tSizeH = 8                                           ' Width of tiles in pixels 
@@ -46,8 +46,8 @@ PUB main
   tile_palette_base_ := @tile_palettes_8bit                                                                  ' Point tile palette base to base of tile palettes
   color_palette_base_ := @color_palettes                                                                ' Point color palette base to base of color palettes
   input_state_base_ := @input_states                                                                    ' Point input stat base to base of input states
-  cur_pos_base_ := @position                                                                            ' Point current position base to base of positions                
-  
+  cur_pos_base_ := @positions                                                                           ' Point current position base to base of positions                
+                           
   vga.start(@tile_map_base_, vTilesH, vTilesV, tSizeH, tSizeV, tMapSizeH, tMapSizeV)                    ' Start VGA engine
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
@@ -57,15 +57,14 @@ DAT
 game    ' Initialize variables
         mov             tmbase, par             ' Load Main RAM tile map base address into tile map base
         mov             isbase, par             ' Load Main RAM tile map base address into input state base
-        mov             pbase,  par             ' Load Main RAM tile map base address into position base
+        mov             pobase, par             ' Load Main RAM tile map base address into position base
         add             isbase, #12             ' Point input state pointer to its Main RAM register
-        add             pbase,  #16             ' Point position pointer to its Main RAM register
+        add             pobase, #16             ' Point position pointer to its Main RAM register
         rdlong          tmptr,  tmbase          ' Load tile map base pointer
-        rdlong          tmbase, tmbase
-        rdlong          isbase, isbase          ' Load input state base pointer
-        rdlong          pbase,  pbase           ' Load position base pointer
-        mov             xbase,  pbase           ' Set horizontal position base address
-        mov             ybase,  pbase           ' Set vertical position base address       
+        rdlong          isptr,  isbase          ' Load input state base pointer
+        rdlong          poptr,  pobase          ' Load position base pointer
+        mov             xbase,  poptr           ' Set horizontal position base address
+        mov             ybase,  poptr           ' Set vertical position base address       
         add             ybase,  #4              ' Increment vertical position base address
 
         ' Initialize game map attributes
@@ -74,75 +73,45 @@ game    ' Initialize variables
         mov             xbound, #tMapSizeH      ' Initialize left boundry of tile map
         mov             ybound, #tMapSizeV      ' Initialize right boundry of tile map
 
-        ' Scroll tile map
-:read   rdword          istate, isbase          ' Read input states from Main RAM
-        mov             tmptr,  tmbase
+        ' Initialize input attributes
+        mov             psL,    #0              ' Initialize left push state register                
+        mov             psR,    #0              ' Initialize right push state register  
+        mov             psU,    #0              ' Initialize up push state register  
+        mov             psD,    #0              ' Initialize down push state register
+        
+:read   rdword          istate, isptr           ' Read input states from Main RAM
 :left   test            btn1,   istate wc       ' Test button 1 pressed
-        if_c  mov       pstateL,#1              ' Set pressed state 1 to 1 if so
-        if_c  jmp       #:right                 ' And continue to next input
-        cmp             pstateL,#1 wz           ' Otherwise test if button 1 was previously pressed
-        if_nz jmp       #:right                 ' If not continue to next input
-        mov             pstateL,#0              ' Otherwise reset pressed 1 state
-        cmp             zero,   xpos wc         ' Test if at far left of tile map
-        if_c  sub       xpos,   #1              ' If not decrement horizontal position
-:right  test            btn2,   istate wc       ' Test button 2 pressed
-        if_c  mov       pstateR,#1              ' Set pressed state 2 to 1 if so
-        if_c  jmp       #:up                    ' And continue to next input
-        cmp             pstateR,#1 wz           ' Otherwise test if button 2 was previously pressed
-        if_nz jmp       #:up                    ' If not continue to next input
-        mov             pstateR,#0              ' Otherwise reset pressed 2 state
-        cmp             xpos,   xbound wc       ' Test if at far right of tile map
-        if_c  add       xpos,   #1              ' If not increment horizontal position
-:up     test            btn3,   istate wc       ' Test button 3 pressed
-        if_c  mov       pstateU,#1              ' Set pressed state 3 to 1 if so
-        if_c  jmp       #:down                  ' And continue to next input
-        cmp             pstateU,#1 wz           ' Otherwise test if button 3 was previously pressed
-        if_nz jmp       #:down                  ' If not continue to next input
-        mov             pstateU,#0              ' Otherwise reset pressed 3 state
-        cmp             zero,   ypos wc         ' Test if at top of tile map
-        if_c  sub       ypos,   #1              ' If not decrement vertical position
-:down   test            btn4,   istate wc       ' Test button 4 pressed
-        if_c  mov       pstateD,#1              ' Set pressed state 4 to 1 if so
-        if_c  jmp       #:write                 ' And continue to writing positions
-        cmp             pstateD,#1 wz           ' Otherwise test if button 4 was previously pressed
-        if_nz jmp       #:write                 ' If not continue to writing positions
-        mov             pstateD,#0              ' Otherwise reset pressed 4 state
-        cmp             ypos,   ybound wc       ' Test if at top of tile map
-        if_c  add       ypos,   #1              ' If not increment vertical position     
-:write  mov             tx,     xpos
-        mov             ty,     ypos
-:incx   add             tmptr,  #2
-        djnz            tx,     #:incx
-:incy   add             tmptr,  #64
-        djnz            ty,     #:incy              
+        if_c  cmp       psL,    #0 wz
+        if_nc mov       psL,    #0
+        if_z  mov       psL,    #1
+        if_z  cmp       xpos,   xbound wc
+        if_c_and_z add  tmptr,  #2
+        if_c_and_z add  xpos,   #1
+
         wrlong          tmptr,  tmbase
-
-
-        {{wrlong          xpos,   xbase           ' Write tile map pointer to tile map base
-        wrlong          ypos,   ybase           ' Write tile map pointer to tile map base}}
-        jmp             #:read                  ' Return to reading inputs
+        jmp             #:read                  
 
 ' Input attributes
 btn1          long      |< 7    ' Button 1 location in input states
 btn2          long      |< 6    ' Button 2 location in input states
 btn3          long      |< 5    ' Button 3 location in input states
 btn4          long      |< 4    ' Button 4 location in input states
-pstateL       long      0       ' State of left input button
-pstateR       long      0       ' State of right input button
-pstateU       long      0       ' State of left input button
-pstateD       long      0       ' State of right input button
 zero          long      0       ' Register containing zero value
 
 ' Registers
+psL           res       1       ' State of left input button
+psR           res       1       ' State of right input button
+psU           res       1       ' State of left input button
+psD           res       1       ' State of right input button
+tmbase        res       1       ' Pointer to tile maps base register in Main RAM
 tmptr         res       1       ' Pointer to tile maps base in Main RAM
-tmbase        res       1       ' Pointer to tile maps base in Main RAM
-isbase        res       1       ' Pointer to input state base in Main RAM        
-pbase         res       1       ' Pointer to position base in Main RAM      
-xbase         res       1       ' Pointer to position base in Main RAM      
-ybase         res       1       ' Pointer to position base in Main RAM      
-tx            res       1       ' Temporary x pos
-ty            res       1       ' Temporary y pos
+isbase        res       1       ' Pointer to input state base register in Main RAM        
+isptr         res       1       ' Pointer to tile maps base in Main RAM
 istate        res       1       ' Register containing input states
+pobase        res       1       ' Pointer to position base register in Main RAM      
+poptr         res       1       ' Pointer to tile maps base in Main RAM
+xbase         res       1       ' Pointer to x position base in Main RAM      
+ybase         res       1       ' Pointer to y position base in Main RAM
 xpos          res       1       ' Register containing horizontal game position
 ypos          res       1       ' Register containing vertical game position
 xbound        res       1       ' Register containing horizontal boundry of tile map
@@ -449,7 +418,7 @@ input_states
 control_state word      0       ' Control states
 tilt_state    word      0       ' Tilt shift state 
 
-position
+positions
               ' Current position
 cur_pos_x     long      0       ' Current horizontal tile position       
 cur_pos_y     long      0       ' Current vertical tile position       
