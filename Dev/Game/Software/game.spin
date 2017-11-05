@@ -12,16 +12,16 @@ CON
   _xinfreq = 5_000_000
 
   ' Constants defining screen dimensions
-  vTilesH = 16                                          ' Number of visible tiles horizontally                                          
-  vTilesV = 12                                           ' Number of visible tiles vertically
+  vTilesH = 10                                          ' Number of visible tiles horizontally                                          
+  vTilesV = 15                                           ' Number of visible tiles vertically
 
   ' Constants defining memory tile palette
-  tSizeH = 8                                           ' Width of tiles in pixels 
-  tSizeV = 8                                           ' Height of tiles in pixels
+  tSizeH = 16                                           ' Width of tiles in pixels 
+  tSizeV = 16                                           ' Height of tiles in pixels
 
   ' Constants defining memory tile map
-  tMapSizeH = 32                                        ' Horizontal tile map size in words
-  tMapSizeV = 30                                        ' Vertical tile map size in words
+  tMapSizeH = 16                                        ' Horizontal tile map size in words
+  tMapSizeV = 15                                        ' Vertical tile map size in words
 
   ' Constants defining calculated attributes
   sMaxH = (tMapSizeH - vTilesH) * 2                     ' Maximum horizontal scroll in words
@@ -42,8 +42,8 @@ VAR
   long  cur_pos_base_           ' Current horizontal tile position
 
 PUB main
-  tile_map_base_ := @tile_maps_8bit                                                                          ' Point tile map base to base of tile maps
-  tile_palette_base_ := @tile_palettes_8bit                                                                  ' Point tile palette base to base of tile palettes
+  tile_map_base_ := @tile_maps                                                                          ' Point tile map base to base of tile maps
+  tile_palette_base_ := @tile_palettes                                                                  ' Point tile palette base to base of tile palettes
   color_palette_base_ := @color_palettes                                                                ' Point color palette base to base of color palettes
   input_state_base_ := @input_states                                                                    ' Point input stat base to base of input states
   cur_pos_base_ := @positions                                                                           ' Point current position base to base of positions                
