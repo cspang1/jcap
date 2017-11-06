@@ -185,10 +185,10 @@ vga
         jmp             #:frame                 ' Return to start of video frame      
 
 ' Config values
-vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
+vgapin        long      |< 24 | |< 25 | |< 26 | |< 27 | |< 28 | |< 29 | |< 30 | |< 31                   ' VGA output pins
 pllfreq       long      337893130                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
-VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
+VidCfg        long      %0_01_1_0_0_000_00000000000_011_0_11111111                                      ' Video generator configuration
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
 tMaskH        long      16                                                                              ' Mask to detect horizontal pixel width of tiles

@@ -12,19 +12,19 @@ CON
   _xinfreq = 5_000_000
 
   ' Constants defining screen dimensions
-  vTilesH = 10                                          ' Number of visible tiles horizontally                                          
+  vTilesH = 16                                          ' Number of visible tiles horizontally                                          
   vTilesV = 15                                           ' Number of visible tiles vertically
 
   ' Constants defining memory tile palette
-  tSizeH = 16                                           ' Width of tiles in pixels 
-  tSizeV = 16                                           ' Height of tiles in pixels
+  tSizeH = 8                                           ' Width of tiles in pixels 
+  tSizeV = 8                                           ' Height of tiles in pixels
 
   ' Constants defining memory tile map
-  tMapSizeH = 16                                        ' Horizontal tile map size in words
-  tMapSizeV = 15                                        ' Vertical tile map size in words
+  tMapSizeH = 32                                        ' Horizontal tile map size in words
+  tMapSizeV = 30                                        ' Vertical tile map size in words
 
   ' Constants defining calculated attributes
-  sMaxH = (tMapSizeH - vTilesH) * 2                     ' Maximum horizontal scroll in words
+  sMaxH = tMapSizeH - vTilesH                           ' Maximum horizontal scroll
   sMaxV = tMapSizeV - vTilesV                           ' Maximum vertical scroll
 
 OBJ
@@ -42,8 +42,8 @@ VAR
   long  cur_pos_base_           ' Current horizontal tile position
 
 PUB main
-  tile_map_base_ := @tile_maps                                                                          ' Point tile map base to base of tile maps
-  tile_palette_base_ := @tile_palettes                                                                  ' Point tile palette base to base of tile palettes
+  tile_map_base_ := @tile_maps_8bit                                                                          ' Point tile map base to base of tile maps
+  tile_palette_base_ := @tile_palettes_8bit                                                                  ' Point tile palette base to base of tile palettes
   color_palette_base_ := @color_palettes                                                                ' Point color palette base to base of color palettes
   input_state_base_ := @input_states                                                                    ' Point input stat base to base of input states
   cur_pos_base_ := @positions                                                                           ' Point current position base to base of positions                
@@ -51,7 +51,7 @@ PUB main
   vga.start(@tile_map_base_, vTilesH, vTilesV, tSizeH, tSizeV, tMapSizeH, tMapSizeV)                    ' Start VGA engine
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
-  'cognew(@testing, cur_pos_base_)
+  cognew(@testing, cur_pos_base_)
 DAT
         org             0
 game    ' Initialize variables
@@ -70,8 +70,8 @@ game    ' Initialize variables
         ' Initialize game map attributes
         mov             xpos,   #0              ' Initialize horizontal position
         mov             ypos,   #0              ' Initialize vertical position        
-        mov             xbound, #tMapSizeH      ' Initialize left boundry of tile map
-        mov             ybound, #tMapSizeV      ' Initialize right boundry of tile map
+        mov             xbound, #sMaxH          ' Initialize horizontal boundry of tile map
+        mov             ybound, #sMaxV          ' Initialize vertical boundry of tile map
 
         ' Initialize input attributes
         mov             psL,    #0              ' Initialize left push state register                
@@ -83,11 +83,33 @@ game    ' Initialize variables
 :left   test            btn1,   istate wc       ' Test button 1 pressed
         if_c  cmp       psL,    #0 wz
         if_nc mov       psL,    #0
-        if_z  mov       psL,    #1
-        if_z  cmp       xpos,   xbound wc
+        if_c_and_z mov  psL,    #1
+        if_c_and_z cmp  zero,   xpos wc
+        if_c_and_z sub  tmptr,  #2
+        if_c_and_z sub  xpos,   #1
+:right  test            btn2,   istate wc       ' Test button 1 pressed
+        if_c  cmp       psR,    #0 wz
+        if_nc mov       psR,    #0
+        if_c_and_z mov  psR,    #1
+        if_c_and_z cmp  xpos,   xbound wc
         if_c_and_z add  tmptr,  #2
         if_c_and_z add  xpos,   #1
-
+:up     test            btn3,   istate wc       ' Test button 1 pressed
+        if_c  cmp       psU,    #0 wz
+        if_nc mov       psU,    #0
+        if_c_and_z mov  psU,    #1
+        if_c_and_z cmp  zero,   ypos wc
+        if_c_and_z sub  tmptr,  #64
+        if_c_and_z sub  ypos,   #1
+:down   test            btn4,   istate wc       ' Test button 1 pressed
+        if_c  cmp       psD,    #0 wz
+        if_nc mov       psD,    #0
+        if_c_and_z mov  psD,    #1
+        if_c_and_z cmp  ypos,   ybound wc
+        if_c_and_z add  tmptr,  #64
+        if_c_and_z add  ypos,   #1        
+        wrlong          xpos,   xbase
+        wrlong          ypos,   ybase
         wrlong          tmptr,  tmbase
         jmp             #:read                  
 
