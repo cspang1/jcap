@@ -71,44 +71,19 @@ vga
 
         ' Initialize frame attributes
         mov             csl,    #0              ' Initialize upscale tracking register
-        mov             attptr, par             ' Set attribute pointer        
-        add             attptr, #4              ' Iterate through attributes and set external to internal equivalents        
-        rdlong          vTilesH,attptr
-        mov             numTL,  vTilesH
-        add             attptr, #4
-        rdlong          vTilesV,attptr
-        mov             numTF,  vTilesV
-        add             attptr, #4
-        rdlong          tSizeH,attptr
-        add             attptr, #4
-        rdlong          tSizeV,attptr
-        add             attptr, #4
-        rdlong          tMapSizeH,attptr
-        add             attptr, #4
-        rdlong          tMapSizeV,attptr
-        add             attptr, #4
-        rdlong          tMemSizeH,attptr
-        add             attptr, #4
-        rdlong          tSize,attptr
-        add             attptr, #4
-        rdlong          tOffset,attptr
-        add             attptr, #4
-        rdlong          vLineSize,attptr
-        add             attptr, #4
-        rdlong          tMapLineSize,attptr
-        add             attptr, #4
-        rdlong          tlslRatio,attptr
-        mov             slr,    tlslRatio
-        sub             slr,    #1
-        add             attptr, #4
-        rdlong          lPerTile,attptr
-        mov             numLT,  lPerTile
-        add             attptr, #4
-        rdlong          cPerFrame,attptr
-        add             attptr, #4
-        rdlong          cPerPixel,attptr
-        add             attptr, #4
-        rdlong          vSclVal,attptr
+        mov             attptr, par             ' Load the base variable address
+        add             attptr, #4              ' Increment to point to start of attributes         
+        movd            :att,   #vTilesH        ' Modify instruction @:att to load first attribute address 
+        mov             natt,   #16             ' Initialize number of attributes          
+:att    rdlong          0-0,    attptr          ' Load current attribute into current register         
+        add             attptr, #4              ' Increment to point to next attribute                  
+        add             :att,   incDest         ' Increment to point to next register 
+        djnz            natt,   #:att           ' Iterate through all attributes                                                
+        mov             numTL,  vTilesH         ' Set tiles per line
+        mov             numTF,  vTilesV         ' Set tiles per frame     
+        mov             numLT,  lPerTile        ' Set lines per tile
+        mov             slr,    tlslRatio       ' Set tile line per scanline ratio                           
+        sub             slr,    #1              ' Decrement to be used as do while loop limit                                                
 
         ' Initialize graphics resource pointers
         rdlong          tmbase, par             ' Load Main RAM tile map base address
@@ -192,6 +167,7 @@ VidCfg        long      %0_01_1_0_0_000_00000000000_011_0_11111111              
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
 tMaskH        long      16                                                                              ' Mask to detect horizontal pixel width of tiles
+incDest       long      1 << 9                                                                          ' Value to increment dest field during attribute loading
 
 ' Video Generator inputs
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
@@ -232,6 +208,7 @@ numLT         res       1       ' Number of scanlines per tile
 numTF         res       1       ' Number of vertical tiles per frame
 slr           res       1       ' Ratio of scanlines to tile lines
 attptr        res       1       ' Pointer to attributes in Main RAM
+natt          res       1       ' Number of attributes
 vTilesH       res       1       ' Visible horizontal tiles
 vTilesV       res       1       ' Visible vertical tiles
 tSizeH        res       1       ' Horizontal tile size 
