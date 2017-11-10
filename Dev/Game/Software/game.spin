@@ -87,21 +87,21 @@ game    ' Initialize variables
         if_c_and_z cmp  zero,   xpos wc
         if_c_and_z sub  tmptr,  #2
         if_c_and_z sub  xpos,   #1
-:right  test            btn2,   istate wc       ' Test button 1 pressed
+:right  test            btn2,   istate wc       ' Test button 2 pressed
         if_c  cmp       psR,    #0 wz
         if_nc mov       psR,    #0
         if_c_and_z mov  psR,    #1
         if_c_and_z cmp  xpos,   xbound wc
         if_c_and_z add  tmptr,  #2
         if_c_and_z add  xpos,   #1
-:up     test            btn3,   istate wc       ' Test button 1 pressed
+:up     test            btn3,   istate wc       ' Test button 3 pressed
         if_c  cmp       psU,    #0 wz
         if_nc mov       psU,    #0
         if_c_and_z mov  psU,    #1
         if_c_and_z cmp  zero,   ypos wc
         if_c_and_z sub  tmptr,  #32
         if_c_and_z sub  ypos,   #1
-:down   test            btn4,   istate wc       ' Test button 1 pressed
+:down   test            btn4,   istate wc       ' Test button 4 pressed
         if_c  cmp       psD,    #0 wz
         if_nc mov       psD,    #0
         if_c_and_z mov  psD,    #1
