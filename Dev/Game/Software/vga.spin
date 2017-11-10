@@ -7,11 +7,26 @@
                   This file contains the PASM code to drive a VGA signal via the Propeller
                   Cog Video Generator.
 }}
+CON
+  numCogs = 1
 VAR
+  long cog[numCogs]
   long graphics_addr_base_
-PUB start(graphics_addr_base)                     ' Function to start vga driver with pointer to Main RAM variables
-  ' Start VGA driver
-  cognew(@vga, graphics_addr_base)                    ' Initialize cog running "vga" routine with reference to start of variable registers
+PUB start(graphics_addr_base) : vidstatus | i           ' Function to start vga driver with pointer to Main RAM variables
+
+    repeat i from 0 to numCogs-1
+      ifnot cog[i] := cognew(@vga, graphics_addr_base) + 1                        ' Initialize cog running "vga" routine with reference to start of variable registers
+        stop
+        abort FALSE
+    waitcnt($8000 + cnt)        'allow cog to launch before modifying variables
+
+    return TRUE
+    
+PUB stop | i
+  'If already running, stop any VGA cogs
+  repeat i from 0 to numCogs-1
+    if cog[i]
+      cogstop(cog[i]~ - 1)
   
 DAT
         org             0

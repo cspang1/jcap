@@ -13,9 +13,17 @@ CON
   sResH = 640                                           ' Horizontal screen resolution
   sResV = 480                                           ' Vertical screen resolution
 
+  ' Enumeration of video modes
+  #0
+  VGA_mode
+  RGBS_mode
+  NTSC_mode
+
 OBJ
   input : "input"
   vga : "vga"
+  'rgbs : "rgbs"
+  'ntsc : "ntsc"
   
 VAR
   long  graphics_addr_base_                             ' Variable for pointer to base address of graphics
@@ -36,7 +44,7 @@ VAR
   long  c_per_pixel_                                    ' Variable for pixel clocks per frame
   long  v_scl_val_                                      ' Variable for vscl register value for visible pixels
   
-PUB start(graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize)                     ' Function to start vga driver with pointer to Main RAM variables
+PUB start(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize) : vidstatus                        ' Function to start vga driver with pointer to Main RAM variables
   ' Calculate video/tile attributes                    
   graphics_addr_base_ := graphAddr                      ' Point tile_map_base to base of tile maps
   v_tiles_h_ := numHorTiles                             ' Set visible horizontal tiles
@@ -56,5 +64,9 @@ PUB start(graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTi
   c_per_pixel_ := c_per_frame_ / t_size_h_              ' Calculate pixel clocks per frame
   v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels}}
 
-  ' Start VGA driver
-  vga.start(@graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
+  ' Start specified video driver
+  case vidMode
+    VGA_mode : return vga.start(@graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
+    RGBS_mode : return FALSE
+    NTSC_mode : return FALSE
+    other : abort FALSE
