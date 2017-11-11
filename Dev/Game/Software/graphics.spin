@@ -20,12 +20,12 @@ CON
   NTSC_mode
 
 OBJ
-  input : "input"
   vga : "vga"
   'rgbs : "rgbs"
   'ntsc : "ntsc"
   
 VAR
+  ' Video dirver attributes
   long  graphics_addr_base_                             ' Variable for pointer to base address of graphics
   long  v_tiles_h_                                      ' Variable for visible horizontal tiles 
   long  v_tiles_v_                                      ' Variable for visible vertical tiles
@@ -43,8 +43,11 @@ VAR
   long  c_per_frame_                                    ' Variable for pixel clocks per pixel
   long  c_per_pixel_                                    ' Variable for pixel clocks per frame
   long  v_scl_val_                                      ' Variable for vscl register value for visible pixels
+
+  ' Graphics system attributes
+  byte  video_mode_                                     ' Variable for current video mode
   
-PUB start(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize) : vidstatus                        ' Function to start vga driver with pointer to Main RAM variables
+PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize) : vidstatus                        ' Function to start vga driver with pointer to Main RAM variables
   ' Calculate video/tile attributes                    
   graphics_addr_base_ := graphAddr                      ' Point tile_map_base to base of tile maps
   v_tiles_h_ := numHorTiles                             ' Set visible horizontal tiles
@@ -62,11 +65,24 @@ PUB start(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSi
   l_per_tile_ := tlsl_ratio_ * t_size_v_                ' Calculate scan lines per tile
   c_per_frame_ := sResH / v_tiles_h_                    ' Calculate pixel clocks per pixel
   c_per_pixel_ := c_per_frame_ / t_size_h_              ' Calculate pixel clocks per frame
-  v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels}}
+  v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels
 
+  ' Set video mode
+  video_mode_ := vidMode
+
+PUB start
   ' Start specified video driver
-  case vidMode
+  case video_mode_
     VGA_mode : return vga.start(@graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
     RGBS_mode : return FALSE
     NTSC_mode : return FALSE
     other : abort FALSE
+      
+PUB stop
+  ' Stop specified video driver
+  case video_mode_
+    VGA_mode : vga.stop
+    RGBS_mode : return
+    NTSC_mode : return
+    other : abort
+  

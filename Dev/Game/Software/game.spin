@@ -54,10 +54,11 @@ PUB main
   input_state_base_ := @input_states                                                                    ' Point input stat base to base of input states
   cur_pos_base_ := @positions                                                                           ' Point current position base to base of positions                
                            
-  graphics.start(VGA_mode, @tile_map_base_, vTilesH, vTilesV, tSizeH, tSizeV, tMapSizeH, tMapSizeV)     ' Start VGA engine
+  graphics.config(VGA_mode, @tile_map_base_, vTilesH, vTilesV, tSizeH, tSizeV, tMapSizeH, tMapSizeV)    ' Configure graphics engine
+  graphics.start                                                                                        ' Start graphics engine
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
-  cognew(@testing, cur_pos_base_)
+  cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
 DAT
         org             0
 game    ' Initialize variables

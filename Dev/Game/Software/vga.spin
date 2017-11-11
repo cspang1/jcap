@@ -9,9 +9,11 @@
 }}
 CON
   numCogs = 1
+  
 VAR
   long cog[numCogs]
   long graphics_addr_base_
+  
 PUB start(graphics_addr_base) : vidstatus | i           ' Function to start vga driver with pointer to Main RAM variables
 
     repeat i from 0 to numCogs-1
