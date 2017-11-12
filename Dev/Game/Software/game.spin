@@ -59,6 +59,12 @@ PUB main
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
   cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
+
+  repeat
+    if (control_state & 8)
+      graphics.stop
+    elseif (control_state & 4)
+      graphics.start
 DAT
         org             0
 game    ' Initialize variables
@@ -77,8 +83,8 @@ game    ' Initialize variables
         ' Initialize game map attributes
         mov             xpos,   #0              ' Initialize horizontal position
         mov             ypos,   #0              ' Initialize vertical position        
-        mov             xbound, smx             ' Initialize horizontal boundry of tile map
-        mov             ybound, smy             ' Initialize vertical boundry of tile map
+        mov             xbound, #sMaxH          ' Initialize horizontal boundry of tile map
+        mov             ybound, #sMaxV          ' Initialize vertical boundry of tile map
 
         ' Initialize input attributes
         mov             psL,    #0              ' Initialize left push state register                
@@ -126,8 +132,7 @@ btn2          long      |< 6    ' Button 2 location in input states
 btn3          long      |< 5    ' Button 3 location in input states
 btn4          long      |< 4    ' Button 4 location in input states
 zero          long      0       ' Register containing zero value
-smx           long      sMaxH
-smy           long      sMaxV
+
 
 ' Registers
 psL           res       1       ' State of left input button

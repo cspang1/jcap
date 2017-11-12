@@ -8,27 +8,24 @@
                   Cog Video Generator.
 }}
 CON
-  numCogs = 1
+  numCogs = 1                   ' Number of cogs used for video generation
   
 VAR
-  long cog[numCogs]
-  long graphics_addr_base_
+  long cog_[numCogs]            ' Array containing IDs of cogs generating video
+  long graphics_addr_base_      ' Base address if graphics resources
   
-PUB start(graphics_addr_base) : vidstatus | i           ' Function to start vga driver with pointer to Main RAM variables
-
-    repeat i from 0 to numCogs-1
-      ifnot cog[i] := cognew(@vga, graphics_addr_base) + 1                        ' Initialize cog running "vga" routine with reference to start of variable registers
-        stop
-        abort FALSE
-    waitcnt($8000 + cnt)        'allow cog to launch before modifying variables
-
-    return TRUE
+PUB start(graphics_addr_base) : vidstatus | nCogs,i                             ' Function to start VGA driver with pointer to Main RAM variables
+    repeat i from 0 to numCogs-1                                                ' Loop through cogs
+      ifnot cog_[i] := cognew(@vga, graphics_addr_base) + 1                     ' Initialize cog running "vga" routine with reference to start of variable registers
+        stop                                                                    ' Stop all cogs if insufficient number available
+        abort FALSE                                                             ' Abort returning FALSE
+    waitcnt($8000 + cnt)                                                        ' Wait for cogs to finish initializing 
+    return TRUE                                                                 ' Return TRUE                                                
     
-PUB stop | i
-  'If already running, stop any VGA cogs
-  repeat i from 0 to numCogs-1
-    if cog[i]
-      cogstop(cog[i]~ - 1)
+PUB stop | nCogs,i              ' Function to stop VGA driver 
+  repeat i from 0 to numCogs-1  ' Loop through cogs                        
+    if cog_[i]                  ' If cog is running
+      cogstop(cog_[i]~ - 1)     ' Stop the cog
   
 DAT
         org             0
@@ -72,7 +69,7 @@ vga
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
         rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile 
-
+                
         ' Display active video
 :active mov             lptr,   numLT           ' Initialize line pointer
         mov             tpptr,  #0              ' Initialize tile palette pointer
@@ -200,5 +197,7 @@ lPerTile      res       1       ' Scan lines per tile
 cPerFrame     res       1       ' Pixel clocks per pixel
 cPerPixel     res       1       ' Pixel clocks per frame
 vSclVal       res       1       ' vscl register value for visible pixels
+pixBuffSize   res       160     ' Size of line pixel buffer in longs
+colBuffSize   res       160     ' Size of line color buffer in longs
         fit
         
