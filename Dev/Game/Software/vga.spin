@@ -15,6 +15,7 @@ VAR
   long graphics_addr_base_      ' Base address if graphics resources
   
 PUB start(graphics_addr_base) : vidstatus | nCogs,i                             ' Function to start VGA driver with pointer to Main RAM variables
+    stop                                                                        ' Stop driver if already running
     repeat i from 0 to numCogs-1                                                ' Loop through cogs
       ifnot cog_[i] := cognew(@vga, graphics_addr_base) + 1                     ' Initialize cog running "vga" routine with reference to start of variable registers
         stop                                                                    ' Stop all cogs if insufficient number available

@@ -47,7 +47,7 @@ VAR
   long  input_state_base_       ' Register in Main RAM containing state of inputs
   long  cur_pos_base_           ' Current horizontal tile position
 
-PUB main
+PUB main | started
   tile_map_base_ := @tile_maps                                                                          ' Point tile map base to base of tile maps
   tile_palette_base_ := @tile_palettes                                                                  ' Point tile palette base to base of tile palettes
   color_palette_base_ := @color_palettes                                                                ' Point color palette base to base of color palettes
@@ -59,12 +59,16 @@ PUB main
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
   cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
+                                                                                                        
+  started := true                                       ' Initialize video driver status
+  repeat                                                ' Loop infinitely
+    if (control_state & 8) AND started                  ' Test button #4 and that the video driver is started                  
+      graphics.stop                                     ' Stop the video driver
+      started := false                                  ' Set started status to false
+    elseif (control_state & 4) AND !started             ' Test button #3 and that the video driver is not started
+      graphics.start                                    ' Start the video driver
+      started := true                                   ' Set started status to true
 
-  repeat
-    if (control_state & 8)
-      graphics.stop
-    elseif (control_state & 4)
-      graphics.start
 DAT
         org             0
 game    ' Initialize variables
