@@ -20,9 +20,9 @@ CON
   NTSC_mode     ' NTSC video mode
 
 OBJ
-  vga : "vga"
-  'rgbs : "rgbs"
-  'ntsc : "ntsc"
+  vga   :       "vga"
+  'rgbs  :       "rgbs"
+  'ntsc  :       "ntsc"
   
 VAR
   ' Video dirver attributes
@@ -68,7 +68,7 @@ PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileS
   v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels
 
   ' Set video mode
-  video_mode_ := vidMode
+  video_mode_ := vidMode                                ' Initialize video mode                        
 
 PUB start
   ' Start specified video driver

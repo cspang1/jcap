@@ -8,34 +8,35 @@
 }}
 
 CON
-  _clkmode = xtal1 + pll16x                       ' Standard clock mode * crystal frequency = 80 MHz
-  _xinfreq = 5_000_000
+  ' Clock settings
+  _clkmode = xtal1 + pll16x     ' Standard clock mode w/ 16x PLL
+  _xinfreq = 5_000_000          ' 5 MHz clock for x16 = 80 MHz
 
   ' Constants defining screen dimensions
-  vTilesH = 10                                          ' Number of visible tiles horizontally                                          
-  vTilesV = 10                                           ' Number of visible tiles vertically
+  vTilesH = 10  ' Number of visible tiles horizontally                                          
+  vTilesV = 10  ' Number of visible tiles vertically
 
   ' Constants defining memory tile palette
-  tSizeH = 16                                           ' Width of tiles in pixels 
-  tSizeV = 16                                           ' Height of tiles in pixels
+  tSizeH = 16   ' Width of tiles in pixels 
+  tSizeV = 16   ' Height of tiles in pixels
 
   ' Constants defining memory tile map
-  tMapSizeH = 16                                        ' Horizontal tile map size in words
-  tMapSizeV = 15                                        ' Vertical tile map size in words
+  tMapSizeH = 16  ' Horizontal tile map size in words
+  tMapSizeV = 15  ' Vertical tile map size in words
 
   ' Constants defining calculated attributes
-  sMaxH = tMapSizeH - vTilesH                           ' Maximum horizontal scroll
-  sMaxV = tMapSizeV - vTilesV                           ' Maximum vertical scroll
+  sMaxH = tMapSizeH - vTilesH   ' Maximum horizontal scroll
+  sMaxV = tMapSizeV - vTilesV   ' Maximum vertical scroll
 
   ' Enumeration of video modes
   #0
-  VGA_mode
-  RGBS_mode
-  NTSC_mode
+  VGA_mode      ' VGA video mode
+  RGBS_mode     ' RGBS video mode
+  NTSC_mode     ' NTSC video mode 
 
 OBJ
-  input : "input"
-  graphics : "graphics"
+  input         : "input"       ' Import input system
+  graphics      : "graphics"    ' Import graphics system
   
 VAR
   ' Graphic resources pointers
@@ -171,9 +172,9 @@ DAT
          rdlong          ps,     pptr            ' Read input_state from Main RAM                                                        
          shl             ps,     #16             ' Shift input_state to LED positions
          mov             ledout, Pin_LED         ' Combine chosen display state with current outputs        
-         xor             ledout, xormask
-         and             ledout, outa
-         or              ledout, ps
+         xor             ledout, xormask         
+         and             ledout, outa             
+         or              ledout, ps              
          mov             outa,   ledout          ' Display chosen state on LEDs                                           
          jmp             #:loop                  ' Loop infinitely
  Pin_LED       long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' DE0-Nano LED pin bitmask
@@ -181,7 +182,8 @@ DAT
  pptr          res       1                                                                               ' Pointer to input_state register in Main RAM
  ps            res       1                                                                               ' Register holding input_state
  ledout        res       1                                                                               ' Register holding final output state
-         fit        
+         fit
+                 
 DAT
 tile_maps
               '         |<------------------visible on screen-------------------------------->|<------ to right of screen ---------->|
