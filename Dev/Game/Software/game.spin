@@ -13,8 +13,8 @@ CON
   _xinfreq = 5_000_000          ' 5 MHz clock for x16 = 80 MHz
 
   ' Constants defining screen dimensions
-  vTilesH = 10  ' Number of visible tiles horizontally                                          
-  vTilesV = 10  ' Number of visible tiles vertically
+  vTilesH = 1  ' Number of visible tiles horizontally                                          
+  vTilesV = 1  ' Number of visible tiles vertically
 
   ' Constants defining memory tile palette
   tSizeH = 16   ' Width of tiles in pixels 
@@ -59,7 +59,7 @@ PUB main | started
   graphics.start                                                                                        ' Start graphics engine
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
-  cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
+  'cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
                                                                                                         
   started := true                                       ' Initialize video driver status
   repeat                                                ' Loop infinitely
@@ -451,9 +451,8 @@ tile_box_bl   word      %%3_3_3_3_3_3_3_1                       ' tile 4
 
 color_palettes
               ' Test palettes
-c_palette1    long      %11000011_00110011_00011111_00000011                    ' palette 0 - background and wall tiles, 0-black,
-                                                                                ' 1-blue, 2-red, 3-white
-c_palette2    long      %00000011_00110011_11111111_11000011                    ' palette 1 - background and wall tiles, 0-black,
+c_palette1    long      %11000011_00110011_00011111_00000011                    ' palette 0
+c_palette2    long      %00000011_00110011_11111111_11000011                    ' palette 1
 
 input_states
               ' Input states

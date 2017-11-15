@@ -8,50 +8,38 @@
                   Cog Video Generator.
 }}
 CON
-  numCogs = 4                   ' Number of cogs used for video generation  
+  numCogs = 2                   ' Number of cogs used for video generation  
   
 VAR
   long cog_[numCogs]            ' Array containing IDs of cogs generating video
   long graphics_addr_base_      ' Base address if graphics resources
   long sync_cnt_                ' System clock count used to synchronize video cogs
   
-PUB start(graphics_addr_base) : vidstatus | nCogs,i                             ' Function to start VGA driver with pointer to Main RAM variables
+PUB start(graphics_addr_base, num_FP, num_VS, num_BP) : vidstatus | nCogs, cIndex                       ' Function to start VGA driver with pointer to Main RAM variables
     stop                                                                        ' Stop driver if already running
     graphics_addr_base_ := graphics_addr_base                                   ' Set global base graphics address
-    sync_cnt_ := 240000 + cnt                                                   ' Initialize sync count to give cogs time to initialize 
-    repeat i from 0 to numCogs-1                                                ' Loop through cogs
-      ifnot cog_[i] := cognew(@vga, @graphics_addr_base_) + 1                   ' Initialize cog running "vga" routine with reference to start of variable registers
+    sync_cnt_ := 240000 + cnt                                                   ' Initialize sync count which cogs will sync with 
+    numVS := num_VS                                                             ' Set number of sync lines in cogs                        
+    repeat cIndex from 0 to numCogs-1                                           ' Loop through cogs
+      numFP := num_FP                                                           ' Set number of front porch lines in cog
+      numBP := num_BP                                                           ' Set number of back porch lines in cog
+      ifnot cog_[cIndex] := cognew(@vga, @graphics_addr_base_) + 1              ' Initialize cog running "vga" routine with reference to start of variable registers
         stop                                                                    ' Stop all cogs if insufficient number available
         abort FALSE                                                             ' Abort returning FALSE
     waitcnt($8000 + cnt)                                                        ' Wait for cogs to finish initializing 
     return TRUE                                                                 ' Return TRUE                                                
     
-PUB stop | nCogs,i              ' Function to stop VGA driver 
-  repeat i from 0 to numCogs-1  ' Loop through cogs                        
-    if cog_[i]                  ' If cog is running
-      cogstop(cog_[i]~ - 1)     ' Stop the cog
+PUB stop | nCogs, cIndex                                ' Function to stop VGA driver 
+  repeat cIndex from 0 to numCogs-1                     ' Loop through cogs                        
+    if cog_[cIndex]                                     ' If cog is running
+      cogstop(cog_[cIndex]~ - 1)                        ' Stop the cog
   
 DAT
         org             0
 vga
-        ' Synchronize cogs
-        mov             attptr, par             ' Load the base variable address
-        add             attptr, #4              ' Increment to point to the sync count
-        rdlong          sCnt,   attptr          ' Load the sync count          
-        waitcnt         sCnt,   delay           ' Wait for sync count and add 3 ms delay
-        mov             frqa,   sfreq           ' Set Counter A sync frequency
-        mov             vscl,   #1              ' Reload video generator on every pixel
-        mov             ctra,   CtrCfg          ' Start Counter A
-        mov             vcfg,   VidCfg          ' Start video generator
-        or              dira,   vgapin          ' Set video generator output pins        
-        waitcnt         sCnt,   #0              ' Wait 3 ms for PLL to settle
-        mov             vscl,   #65             ' Set video scale for sync
-        mov             frqa,   pllfreq         ' Set Counter A frequency
-        
         ' Initialize frame attributes
         mov             csl,    #0              ' Initialize upscale tracking register
-        mov             attptr, par             ' Load base variable address
-        rdlong          attptr, attptr          ' Load base attribute address
+        rdlong          attptr, par          ' Load base attribute address
         add             attptr, #4              ' Increment to point to start of attributes         
         movd            :att,   #vTilesH        ' Modify instruction @:att to load first attribute address 
         mov             natt,   #16             ' Initialize number of attributes          
@@ -74,6 +62,20 @@ vga
         add             cpbase, #8              ' Point color palette pointer to correct Main RAM register
         rdlong          tpbase, tpbase          ' Load tile palette base pointer
         rdlong          cpbase, cpbase          ' Load color palette base pointer
+
+        ' Synchronize cogs
+        mov             attptr, par             ' Load the base variable address
+        add             attptr, #4              ' Increment to point to the sync count
+        rdlong          sCnt,   attptr          ' Load the sync count          
+        waitcnt         sCnt,   delay           ' Wait for sync count and add 3 ms delay
+        mov             frqa,   sfreq           ' Set Counter A sync frequency
+        mov             vscl,   #1              ' Reload video generator on every pixel
+        mov             ctra,   CtrCfg          ' Start Counter A
+        mov             vcfg,   VidCfg          ' Start video generator
+        or              dira,   vgapin          ' Set video generator output pins        
+        waitcnt         sCnt,   #0              ' Wait 3 ms for PLL to settle
+        mov             vscl,   #257            ' Set video scale for sync
+        mov             frqa,   pllfreq         ' Set Counter A video frequency                
         
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
@@ -168,9 +170,9 @@ vpPixel       long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       
 hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       ' HVSync pixels
 
 ' Video attributes
-numFP         long      10      ' Number of vertical front porch lines                        
-numVS         long      2       ' Number of vertical sync lines                        
-numBP         long      33      ' Number of vertical back porch lines
+numFP         long      0       ' Number of vertical front porch lines                        
+numVS         long      0       ' Number of vertical sync lines                        
+numBP         long      0       ' Number of vertical back porch lines
 
 ' Frame pointers
 tptr          res       1       ' Current tile being rendered
@@ -215,6 +217,8 @@ lPerTile      res       1       ' Scan lines per tile
 cPerFrame     res       1       ' Pixel clocks per pixel
 cPerPixel     res       1       ' Pixel clocks per frame
 vSclVal       res       1       ' vscl register value for visible pixels
+
+' Line buffers
 pixBuffSize   res       160     ' Size of line pixel buffer in longs
 colBuffSize   res       160     ' Size of line color buffer in longs
 

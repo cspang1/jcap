@@ -12,7 +12,10 @@ CON
   ' Constants defining screen dimensions
   sResH = 640   ' Horizontal screen resolution
   sResV = 480   ' Vertical screen resolution
-
+  linesFP = 10  ' Number of vertical front porch lines                        
+  linesVS = 2   ' Number of vertical sync lines                        
+  linesBP = 33  ' Number of vertical back porch lines
+                                
   ' Enumeration of video modes
   #0
   VGA_mode      ' VGA video mode                                                                      
@@ -73,7 +76,7 @@ PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileS
 PUB start
   ' Start specified video driver
   case video_mode_
-    VGA_mode : return vga.start(@graphics_addr_base_)   ' Initialize cog running VGA driver with reference to start of variable registers
+    VGA_mode : return vga.start(@graphics_addr_base_, linesFP, linesVS, linesBP)                        ' Initialize cog running VGA driver
     RGBS_mode : return FALSE                            ' Initialize cog running RGBS driver with reference to start of variable registers
     NTSC_mode : return FALSE                            ' Initialize cog running NTSC driver with reference to start of variable registers
     other : abort FALSE                                 ' Invalid driver specified; abort
