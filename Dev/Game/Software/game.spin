@@ -13,8 +13,8 @@ CON
   _xinfreq = 5_000_000          ' 5 MHz clock for x16 = 80 MHz
 
   ' Constants defining screen dimensions
-  vTilesH = 1  ' Number of visible tiles horizontally                                          
-  vTilesV = 1  ' Number of visible tiles vertically
+  vTilesH = 10  ' Number of visible tiles horizontally                                          
+  vTilesV = 10  ' Number of visible tiles vertically
 
   ' Constants defining memory tile palette
   tSizeH = 16   ' Width of tiles in pixels 
