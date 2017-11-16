@@ -26,7 +26,7 @@ PUB start(graphics_addr_base, num_FP, num_VS, num_BP) : vidstatus | nCogs, cInde
       ifnot cog_[cIndex] := cognew(@vga, @graphics_addr_base_) + 1              ' Initialize cog running "vga" routine with reference to start of variable registers
         stop                                                                    ' Stop all cogs if insufficient number available
         abort FALSE                                                             ' Abort returning FALSE
-    waitcnt($8000 + cnt)                                                        ' Wait for cogs to finish initializing 
+      waitcnt(8192 + cnt)                                                       ' Wait for cogs to finish initializing 
     return TRUE                                                                 ' Return TRUE                                                
     
 PUB stop | nCogs, cIndex                                ' Function to stop VGA driver 
@@ -81,36 +81,29 @@ vga
 screen  mov             lptr,   #240
         mov             vptr,   numVS           ' Initialize vertical sync pointer
 vsync   mov             vscl,   BVidScl         ' Set video scale for blank active video area
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, vPixel          ' Display blank active VSync video line
         mov             vscl,   HVidScl         ' Set video scale for HSync
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, hvPixel         ' Horizontal + vertical sync
         djnz            vptr,   #vsync          ' Display vertical sync lines 
 
         ' Display vertical back porch        
         mov             vptr,   numBP           ' Initialize vertical sync pointer
 bporch  mov             vscl,   BVidScl         ' Set video scale for blank active video area
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, vpPixel         ' Display blank active video line
         mov             vscl,   HVidScl         ' Set video scale for HSync
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            vptr,   #bporch         ' Display back porch lines
 
         ' Blank this cog's line
 linex2  mov             vscl,   lSclVal         ' Set video scale for entire line
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         zero,   #0              ' Output all low
 
         ' Display this cog's visible line
         mov             vscl,   tVidScl         ' Set video scale for active video
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         tColor, tPixel          ' Display test pixels
 
         ' Display horizontal sync area
         mov             vscl,   HVidScl         ' Set video scale for HSync
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, hPixel          ' Horizontal sync        
 
         ' Display all lines
@@ -119,10 +112,8 @@ linex2  mov             vscl,   lSclVal         ' Set video scale for entire lin
         ' Display vertical front porch
         mov             vptr,   numFP           ' Initialize vertical sync pointer
 fporch  mov             vscl,   BVidScl         ' Set video scale for blank active video area
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, vpPixel         ' Display blank active video line
         mov             vscl,   HVidScl         ' Set video scale for HSync
-        nop                                     ' Flush pipeline between vscl and waitvid
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            vptr,   #fporch         ' Display front porch lines           
 
