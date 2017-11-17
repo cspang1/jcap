@@ -2,35 +2,35 @@
         File:     vga.spin
         Author:   Connor Spangler
         Date:     10/26/2017
-        Version:  1.2
+        Version:  2.0
         Description: 
                   This file contains the PASM code to drive a VGA signal via the Propeller
                   Cog Video Generator.
 }}
-CON
-  numCogs = 2                   ' Number of cogs used for video generation  
-  
+
 VAR
-  long cog_[numCogs]            ' Array containing IDs of cogs generating video
-  long graphics_addr_base_      ' Base address if graphics resources
-  long sync_cnt_                ' System clock count used to synchronize video cogs
+  long  cog_[8]                 ' Array containing IDs of cogs generating video
+  long  num_cogs_               ' Number of cogs used for video generation
+  long  graphics_addr_base_     ' Base address if graphics resources
+  long  sync_cnt_               ' System clock count used to synchronize video cogs
   
-PUB start(graphics_addr_base, num_FP, num_VS, num_BP) : vidstatus | nCogs, cIndex                       ' Function to start VGA driver with pointer to Main RAM variables
+PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) : vidstatus | cIndex     ' Function to start VGA driver with pointer to Main RAM variables
+    num_cogs_ := num_cogs                                                       ' Set number video generation cogs
     stop                                                                        ' Stop driver if already running
     graphics_addr_base_ := graphics_addr_base                                   ' Set global base graphics address
-    sync_cnt_ := 240000 + cnt                                                   ' Initialize sync count which cogs will sync with 
+    sync_cnt_ := $8000 + cnt                                                    ' Initialize sync count which cogs will sync with 
     numVS := num_VS                                                             ' Set number of sync lines in cogs                        
-    repeat cIndex from 0 to numCogs-1                                           ' Loop through cogs
-      numFP := num_FP + cIndex                                                  ' Set number of front porch lines in cog
-      numBP := num_BP - cIndex                                                  ' Set number of back porch lines in cog
+    repeat cIndex from 0 to num_cogs_-1                                         ' Loop through cogs
+      numFP := num_FP + cIndex * lines_per_cog                                  ' Set number of front porch lines in cog
+      numBP := num_BP - cIndex * lines_per_cog                                  ' Set number of back porch lines in cog
       ifnot cog_[cIndex] := cognew(@vga, @graphics_addr_base_) + 1              ' Initialize cog running "vga" routine with reference to start of variable registers
         stop                                                                    ' Stop all cogs if insufficient number available
         abort FALSE                                                             ' Abort returning FALSE
-      waitcnt(8192 + cnt)                                                       ' Wait for cogs to finish initializing 
+      waitcnt($2000 + cnt)                                                       ' Wait for cog to finish initializing 
     return TRUE                                                                 ' Return TRUE                                                
     
-PUB stop | nCogs, cIndex                                ' Function to stop VGA driver 
-  repeat cIndex from 0 to numCogs-1                     ' Loop through cogs                        
+PUB stop | cIndex                                       ' Function to stop VGA driver 
+  repeat cIndex from 0 to num_cogs_-1                   ' Loop through cogs                        
     if cog_[cIndex]                                     ' If cog is running
       cogstop(cog_[cIndex]~ - 1)                        ' Stop the cog
   
@@ -97,6 +97,8 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
         ' Blank this cog's line
 linex2  mov             vscl,   lSclVal         ' Set video scale for entire line
         waitvid         zero,   #0              ' Output all low
+
+        {{ POPULATE SCAN BUFFER HERE }}
 
         ' Display this cog's visible line
         mov             vscl,   tVidScl         ' Set video scale for active video
@@ -196,6 +198,10 @@ lSclVal       res       1       ' vscl register value for entire line
 
 ' Other variables
 sCnt          res       1       ' Value used to synchronize cogs
+
+' Line buffers
+pixBuff       res       40      ' Reserve 40 longs for pixel buffer
+colBuff       res       40      ' Reserve 40 longs for color buffer 
         fit
        
 {{
