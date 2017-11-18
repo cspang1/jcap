@@ -12,16 +12,16 @@ CON
   ' Constants defining video resolution
   sResH = 640   ' Horizontal screen resolution
   sResV = 480   ' Vertical screen resolution
-  fpV = 10      ' Number of vertical front porch lines                        
-  syncV = 2     ' Number of vertical sync lines                        
-  bpV = 33      ' Number of vertical back porch lines
   fpH = 16      ' Number of horizontal front porch pixels                        
   syncH = 96    ' Number of horizontal sync pixels                        
   bpH = 48      ' Number of horizontal back porch pixels
+  fpV = 10      ' Number of vertical front porch lines                        
+  syncV = 2     ' Number of vertical sync lines                        
+  bpV = 33      ' Number of vertical back porch lines
 
   ' Video driver config values
-  nCogs = 2       ' Number of cogs used for video generation
-  linesPerCog = 1 ' Number of visible lines per cog
+  numCogs = 2     ' Number of cogs used for video generation
+  linesPerCog = 4 ' Number of visible lines per cog render iteration
                                 
   ' Enumeration of video modes
   #0
@@ -53,41 +53,45 @@ VAR
   long  l_per_tile_                                     ' Variable for scan lines per tile
   long  c_per_frame_                                    ' Variable for pixel clocks per pixel
   long  c_per_pixel_                                    ' Variable for pixel clocks per frame
+  long  l_per_cog_                                      ' Variable for lines per iteration per cog                        
+  long  r_per_cog_                                      ' Variable for render iterations per cog                        
   long  v_scl_val_                                      ' Variable for vscl register value for visible pixels
   long  l_scl_val_                                      ' Variable for vscl register value for entire line
   
   ' Graphics system attributes
   byte  video_mode_                                     ' Variable for current video mode
   
-PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize) : vidstatus                        ' Function to start vga driver with pointer to Main RAM variables    
+PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileSize, horTileMapSize, vertTileMapSize) : vidstatus                       ' Function to start vga driver with pointer to Main RAM variables    
   ' Set video mode
   video_mode_ := vidMode                                ' Initialize video mode
 
   ' Calculate video/tile attributes                    
-  graphics_addr_base_ := graphAddr                      ' Point tile_map_base to base of tile maps
-  n_att_ := 17                                          ' Set number of video attributes that follow                          
-  v_tiles_h_ := numHorTiles                             ' Set visible horizontal tiles
-  v_tiles_v_ := numVertTiles                            ' Set visible vertical tiles
-  t_size_h_ := horTileSize                              ' Set horizontal tile size 
-  t_size_v_ := vertTileSize                             ' Set vertical tile size
-  t_map_size_h_ := horTileMapSize                       ' Set horizontal tile map size
-  t_map_size_v_ := vertTileMapSize                      ' Set vertical tile map size
-  t_mem_size_h_ := t_size_h_ / 4                        ' Calculate width of tile map in bytes
-  t_size_ := t_mem_size_h_ * t_size_v_                  ' Calculate total size of tile in bytes                       
-  t_offset_ := (>| t_size_) - 1                         ' Calculate tile offset modifier
-  v_line_size_ := v_tiles_h_ * 2                        ' Calculate total visible line size in words                         
-  t_map_line_size_ := t_map_size_h_ * 2                 ' Calculate total tile map line size in words                         
-  tlsl_ratio_ := (sResV / t_size_v_) / v_tiles_v_       ' Calculate ratio of tile lines to scan lines
-  l_per_tile_ := tlsl_ratio_ * t_size_v_                ' Calculate scan lines per tile
-  c_per_frame_ := sResH / v_tiles_h_                    ' Calculate pixel clocks per pixel
-  c_per_pixel_ := c_per_frame_ / t_size_h_              ' Calculate pixel clocks per frame
-  v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_     ' Calculate vscl register value for visible pixels
-  l_scl_val_ := sResH + fpH + syncH + bpH               ' Calculate length of entire line                                                
+  graphics_addr_base_ := graphAddr                                              ' Point tile_map_base to base of tile maps
+  n_att_ := 19                                                                  ' Set number of video attributes that follow                          
+  v_tiles_h_ := numHorTiles                                                     ' Set visible horizontal tiles
+  v_tiles_v_ := numVertTiles                                                    ' Set visible vertical tiles
+  t_size_h_ := horTileSize                                                      ' Set horizontal tile size 
+  t_size_v_ := vertTileSize                                                     ' Set vertical tile size
+  t_map_size_h_ := horTileMapSize                                               ' Set horizontal tile map size
+  t_map_size_v_ := vertTileMapSize                                              ' Set vertical tile map size
+  t_mem_size_h_ := t_size_h_ / 4                                                ' Calculate width of tile map in bytes
+  t_size_ := t_mem_size_h_ * t_size_v_                                          ' Calculate total size of tile in bytes                       
+  t_offset_ := (>| t_size_) - 1                                                 ' Calculate tile offset modifier
+  v_line_size_ := v_tiles_h_ * 2                                                ' Calculate total visible line size in words                         
+  t_map_line_size_ := t_map_size_h_ * 2                                         ' Calculate total tile map line size in words                         
+  tlsl_ratio_ := (sResV / t_size_v_) / v_tiles_v_                               ' Calculate ratio of tile lines to scan lines
+  l_per_tile_ := tlsl_ratio_ * t_size_v_                                        ' Calculate scan lines per tile
+  c_per_frame_ := sResH / v_tiles_h_                                            ' Calculate pixel clocks per pixel
+  c_per_pixel_ := c_per_frame_ / t_size_h_                                      ' Calculate pixel clocks per frame
+  l_per_cog_ := linesPerCog                                                     ' Set lines per iteration per cog
+  r_per_cog_ := (sResV / linesPerCog) / numCogs                                 ' Calculate number of render iterations per cog
+  v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_                             ' Calculate vscl register value for visible pixels
+  l_scl_val_ := (sResH + fpH + syncH + bpH) * linesPerCog * (numCogs - 1)       ' Calculate length of blanked lines                                                
 
 PUB start
   ' Start specified video driver
   case video_mode_
-    VGA_mode : return vga.start(@graphics_addr_base_, nCogs, linesPerCog, fpV, syncV, bpV)              ' Initialize cog running VGA driver
+    VGA_mode : return vga.start(@graphics_addr_base_, numCogs, linesPerCog, fpV, syncV, bpV)            ' Initialize cog running VGA driver
     RGBS_mode : return FALSE                            ' Initialize cog running RGBS driver with reference to start of variable registers
     NTSC_mode : return FALSE                            ' Initialize cog running NTSC driver with reference to start of variable registers
     other : abort FALSE                                 ' Invalid driver specified; abort

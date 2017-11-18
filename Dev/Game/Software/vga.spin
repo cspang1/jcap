@@ -18,7 +18,7 @@ PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) :
     num_cogs_ := num_cogs                                                       ' Set number video generation cogs
     stop                                                                        ' Stop driver if already running
     graphics_addr_base_ := graphics_addr_base                                   ' Set global base graphics address
-    sync_cnt_ := $8000 + cnt                                                    ' Initialize sync count which cogs will sync with 
+    sync_cnt_ := $48000 + cnt                                                    ' Initialize sync count which cogs will sync with 
     numVS := num_VS                                                             ' Set number of sync lines in cogs                        
     repeat cIndex from 0 to num_cogs_-1                                         ' Loop through cogs
       numFP := num_FP + cIndex * lines_per_cog                                  ' Set number of front porch lines in cog
@@ -36,18 +36,17 @@ PUB stop | cIndex                                       ' Function to stop VGA d
   
 DAT
         org             0
-vga
-        ' Initialize frame attributes
+vga     ' Initialize frame attributes
         mov             csl,    #0              ' Initialize upscale tracking register
         rdlong          attptr, par             ' Load base attribute address
         add             attptr, #4              ' Increment to point to number of attributes
         rdlong          natt,   attptr          ' Initialize number of attributes
-        movd            :att,   #vTilesH        ' Modify instruction @:att to load first attribute address
+        movd            att,    #vTilesH        ' Modify instruction @:att to load first attribute address
         add             attptr, #4              ' Increment to point to start of attributes 
-:att    rdlong          0-0,    attptr          ' Load current attribute into current register         
+att     rdlong          0-0,    attptr          ' Load current attribute into current register         
         add             attptr, #4              ' Increment to point to next attribute                  
-        add             :att,   incDest         ' Increment to point to next register 
-        djnz            natt,   #:att           ' Iterate through all attributes                                                
+        add             att,    incDest         ' Increment to point to next register 
+        djnz            natt,   #att            ' Iterate through all attributes                                                
         mov             numTL,  vTilesH         ' Set tiles per line
         mov             numTF,  vTilesV         ' Set tiles per frame     
         mov             numLT,  lPerTile        ' Set lines per tile
@@ -62,7 +61,7 @@ vga
         add             tpbase, #4              ' Point tile palette pointer to correct Main RAM register
         add             cpbase, #8              ' Point color palette pointer to correct Main RAM register
         rdlong          tpbase, tpbase          ' Load tile palette base pointer
-        rdlong          cpbase, cpbase          ' Load color palette base pointer
+        rdlong          cpbase, cpbase          ' Load color palette base pointer        
 
         ' Synchronize cogs
         mov             attptr, par             ' Load the base variable address
@@ -78,7 +77,7 @@ vga
         mov             vscl,   vSclVal         ' Set video scale
 
         ' Display vertical sync
-screen  mov             lptr,   #240
+screen  mov             rptr,   rPerCog         ' Initialize render pointer        
         mov             vptr,   numVS           ' Initialize vertical sync pointer
 vsync   mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, vPixel          ' Display blank active VSync video line
@@ -95,21 +94,19 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
         djnz            vptr,   #bporch         ' Display back porch lines
 
         ' Blank this cog's line
-linex2  mov             vscl,   lSclVal         ' Set video scale for entire line
+blank   mov             lptr,   lPerCog         ' Initialize render iteration pointer
+        mov             vscl,   lSclVal         ' Set video scale for entire line
         waitvid         zero,   #0              ' Output all low
 
         {{ POPULATE SCAN BUFFER HERE }}
 
         ' Display this cog's visible line
-        mov             vscl,   tVidScl         ' Set video scale for active video
+visible mov             vscl,   tVidScl         ' Set video scale for active video
         waitvid         tColor, tPixel          ' Display test pixels
-
-        ' Display horizontal sync area
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync        
-
-        ' Display all lines
-        djnz            lptr,   #linex2         ' Display 240 sets of 2 lines
+        djnz            lptr,   #visible        ' Display all lines in iteration
+        djnz            rptr,   #blank          ' Display all render iterations
 
         ' Display vertical front porch
         mov             vptr,   numFP           ' Initialize vertical sync pointer
@@ -156,6 +153,7 @@ tptr          res       1       ' Current tile being rendered
 lptr          res       1       ' Current line being rendered
 fptr          res       1       ' Current frame position being rendered
 vptr          res       1       ' Current vertical sync line being rendered
+rptr          res       1       ' Current set of lines being rendered
 csl           res       1       ' Upscale tracking register
 
 ' Tile and color map pointers
@@ -193,6 +191,8 @@ tlslRatio     res       1       ' Ratio of tile lines to scan lines
 lPerTile      res       1       ' Scan lines per tile
 cPerFrame     res       1       ' Pixel clocks per pixel
 cPerPixel     res       1       ' Pixel clocks per frame
+lPerCog       res       1       ' Number of lines per iteration per cog
+rPerCog       res       1       ' Number of render iterations per cog
 vSclVal       res       1       ' vscl register value for visible pixels
 lSclVal       res       1       ' vscl register value for entire line
 

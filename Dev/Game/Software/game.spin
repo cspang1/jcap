@@ -2,7 +2,7 @@
         File:     game.spin
         Author:   Connor Spangler
         Date:     11/3/2017
-        Version:  1.0
+        Version:  2.0
         Description: 
                   This file contains the PASM code defining a test arcade game
 }}
