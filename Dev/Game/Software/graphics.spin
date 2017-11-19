@@ -55,6 +55,7 @@ VAR
   long  c_per_pixel_                                    ' Variable for pixel clocks per frame
   long  l_per_cog_                                      ' Variable for lines per iteration per cog                        
   long  r_per_cog_                                      ' Variable for render iterations per cog                        
+  long  t_per_render_                                   ' Variable for number of tiles per render
   long  v_scl_val_                                      ' Variable for vscl register value for visible pixels
   long  l_scl_val_                                      ' Variable for vscl register value for entire line
   
@@ -67,7 +68,7 @@ PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileS
 
   ' Calculate video/tile attributes                    
   graphics_addr_base_ := graphAddr                                              ' Point tile_map_base to base of tile maps
-  n_att_ := 19                                                                  ' Set number of video attributes that follow                          
+  n_att_ := 20                                                                  ' Set number of video attributes that follow                          
   v_tiles_h_ := numHorTiles                                                     ' Set visible horizontal tiles
   v_tiles_v_ := numVertTiles                                                    ' Set visible vertical tiles
   t_size_h_ := horTileSize                                                      ' Set horizontal tile size 
@@ -85,6 +86,7 @@ PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileS
   c_per_pixel_ := c_per_frame_ / t_size_h_                                      ' Calculate pixel clocks per frame
   l_per_cog_ := linesPerCog                                                     ' Set lines per iteration per cog
   r_per_cog_ := (sResV / linesPerCog) / numCogs                                 ' Calculate number of render iterations per cog
+  t_per_render_ := l_per_cog_ * numHorTiles                                     ' Calculate number of tiles per render
   v_scl_val_ := (c_per_pixel_ << 12) + c_per_frame_                             ' Calculate vscl register value for visible pixels
   l_scl_val_ := (sResH + fpH + syncH + bpH) * linesPerCog * (numCogs - 1)       ' Calculate length of blanked lines                                                
 

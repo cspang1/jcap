@@ -18,7 +18,7 @@ PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) :
     num_cogs_ := num_cogs                                                       ' Set number video generation cogs
     stop                                                                        ' Stop driver if already running
     graphics_addr_base_ := graphics_addr_base                                   ' Set global base graphics address
-    sync_cnt_ := $48000 + cnt                                                    ' Initialize sync count which cogs will sync with 
+    sync_cnt_ := $8000 + cnt                                                    ' Initialize sync count which cogs will sync with 
     numVS := num_VS                                                             ' Set number of sync lines in cogs                        
     repeat cIndex from 0 to num_cogs_-1                                         ' Loop through cogs
       numFP := num_FP + cIndex * lines_per_cog                                  ' Set number of front porch lines in cog
@@ -26,7 +26,7 @@ PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) :
       ifnot cog_[cIndex] := cognew(@vga, @graphics_addr_base_) + 1              ' Initialize cog running "vga" routine with reference to start of variable registers
         stop                                                                    ' Stop all cogs if insufficient number available
         abort FALSE                                                             ' Abort returning FALSE
-      waitcnt($2000 + cnt)                                                       ' Wait for cog to finish initializing 
+      waitcnt($2000 + cnt)                                                      ' Wait for cog to finish initializing 
     return TRUE                                                                 ' Return TRUE                                                
     
 PUB stop | cIndex                                       ' Function to stop VGA driver 
@@ -51,7 +51,7 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
         mov             numTF,  vTilesV         ' Set tiles per frame     
         mov             numLT,  lPerTile        ' Set lines per tile
         mov             slr,    tlslRatio       ' Set tile line per scanline ratio                           
-        sub             slr,    #1              ' Decrement to be used as do while loop limit                                                
+        sub             slr,    #1              ' Decrement to be used as do while loop limit
 
         ' Initialize graphics resource pointers
         rdlong          tmbase, par             ' Load base variable address
@@ -76,8 +76,11 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
         waitcnt         sCnt,   delay           ' Wait 3 ms for PLL to settle
         mov             vscl,   vSclVal         ' Set video scale
 
-        ' Display vertical sync
+        ' Start of VGA routine
 screen  mov             rptr,   rPerCog         ' Initialize render pointer        
+        rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile
+
+        ' Display vertical sync
         mov             vptr,   numVS           ' Initialize vertical sync pointer
 vsync   mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, vPixel          ' Display blank active VSync video line
@@ -93,18 +96,45 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            vptr,   #bporch         ' Display back porch lines
 
-        ' Blank this cog's line
+        ' Blank lines
 blank   mov             lptr,   lPerCog         ' Initialize render iteration pointer
         mov             vscl,   lSclVal         ' Set video scale for entire line
         waitvid         zero,   #0              ' Output all low
 
-        {{ POPULATE SCAN BUFFER HERE }}
+        ' Populate scanline buffer
+        mov             trptr,  tPerRender      ' Set number of tiles per render
+        movd            movp,   #pixBuff        ' Initialize pointer to pixel buffer
+        movd            movc,   #colBuff        ' Initialize pointer to color buffer
+popbuff rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
+        mov             ti,     cmap            ' Store current map into tile index
+        and             ti,     #255            ' Isolate tile index of current map tile
+        shr             cmap,   #8              ' Isolate color index of current map tile
+        mov             ci,     cmap            ' Store color index of current map tile        
+        shl             ti,     tOffset         ' Multiply tile index by size of tile map
+        add             ti,     tpbase          ' Increment tile index to correct line
+        add             ti,     tpptr           ' Add tile palette pointer to tile index to specify row of tile to be displayed
+        test            tMaskH, tSizeV wc       ' Check the width of the tiles
+        if_nc rdword    tile,   ti              ' Read 8-pixel-wide tile from Main RAM
+        if_c  rdlong    tile,   ti              ' Read 16-pixel-wide tile from Main RAM
+        shl             ci,     #2              ' Multiply color index by size of color palette
+        add             ci,     cpbase          ' Increment color index to correct palette
+        rdlong          colors, ci              ' Read tile from Main RAM
 
-        ' Display this cog's visible line
+'movp    mov             pbptr,  tile            ' Store tile row to pixel buffer        
+'movc    mov             cbptr,  colors          ' Store color palette to color buffer
+
+movp    mov             pbptr,  tPixel          ' Store tile row to pixel buffer        
+movc    mov             cbptr,  tColor          ' Store color palette to color buffer                
+
+        add             movp,   incDest         ' Increment tile buffer pointer
+        add             movc,   incDest         ' Increment color buffer pointer
+        djnz            trptr,  #popbuff        ' Populate buffer                        
+
+        ' Display scanline buffer
 visible mov             vscl,   tVidScl         ' Set video scale for active video
-        waitvid         tColor, tPixel          ' Display test pixels
+        waitvid         colBuff,pixBuff         ' Display test pixels
         mov             vscl,   HVidScl         ' Set video scale for HSync
-        waitvid         sColor, hPixel          ' Horizontal sync        
+        waitvid         sColor, hPixel          ' Horizontal sync
         djnz            lptr,   #visible        ' Display all lines in iteration
         djnz            rptr,   #blank          ' Display all render iterations
 
@@ -132,7 +162,7 @@ VidCfg        long      %0_01_1_0_0_000_00000000000_011_0_11111111              
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
 tMaskH        long      16                                                                              ' Mask to detect horizontal pixel width of tiles
-incDest       long      %1000000000                                                                     ' Value to increment dest field during attribute loading
+incDest       long      1 << 9                                                                          ' Value to increment dest field during attribute loading
 delay         long      240000                                                                          ' Delay value for 3 ms delay
 zero          long      0                                                                               ' Zero register
 
@@ -168,6 +198,9 @@ ti            res       1       ' Tile index
 ci            res       1       ' Color index
 tile          res       1       ' Current tile section        
 colors        res       1       ' Register containing current colors
+trptr         res       1       ' Current tile being rendered
+pbptr         res       1       ' Current tile buffer location being rendered
+cbptr         res       1       ' Current color location being rendered
 
 ' Frame attributes
 numTL         res       1       ' Number of visible tiles per scanline
@@ -193,6 +226,7 @@ cPerFrame     res       1       ' Pixel clocks per pixel
 cPerPixel     res       1       ' Pixel clocks per frame
 lPerCog       res       1       ' Number of lines per iteration per cog
 rPerCog       res       1       ' Number of render iterations per cog
+tPerRender    res       1       ' Number of tiles per render
 vSclVal       res       1       ' vscl register value for visible pixels
 lSclVal       res       1       ' vscl register value for entire line
 
@@ -200,14 +234,14 @@ lSclVal       res       1       ' vscl register value for entire line
 sCnt          res       1       ' Value used to synchronize cogs
 
 ' Line buffers
-pixBuff       res       40      ' Reserve 40 longs for pixel buffer
-colBuff       res       40      ' Reserve 40 longs for color buffer 
+pixBuff       res       160     ' Reserve 40 longs * 4 lines for pixel buffer
+colBuff       res       160     ' Reserve 40 longs * 4 lines for color buffer 
         fit
        
 {{
         ' Display screen              
 :frame  mov             fptr,   numTF           ' Initialize frame pointer
-        rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile 
+        rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile                    
                 
         ' Display active video
 :active mov             lptr,   numLT           ' Initialize line pointer
