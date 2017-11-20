@@ -51,7 +51,7 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
         mov             numTF,  vTilesV         ' Set tiles per frame     
         mov             numLT,  lPerTile        ' Set lines per tile
         mov             slr,    tlslRatio       ' Set tile line per scanline ratio                           
-        sub             slr,    #1              ' Decrement to be used as do while loop limit
+        sub             slr,    #1              ' Decrement to be used as djnz loop limit
 
         ' Initialize graphics resource pointers
         rdlong          tmbase, par             ' Load base variable address
@@ -105,7 +105,8 @@ blank   mov             lptr,   lPerCog         ' Initialize render iteration po
         mov             trptr,  tPerRender      ' Set number of tiles per render
         movd            movp,   #pixBuff        ' Initialize pointer to pixel buffer
         movd            movc,   #colBuff        ' Initialize pointer to color buffer
-popbuff rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
+popbuff 'mov             tpptr,  #0              ' Initialize tile palette pointer
+        rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
         mov             ti,     cmap            ' Store current map into tile index
         and             ti,     #255            ' Isolate tile index of current map tile
         shr             cmap,   #8              ' Isolate color index of current map tile
@@ -119,15 +120,11 @@ popbuff rdword          cmap,   tmptr           ' Read start of tile map from Ma
         shl             ci,     #2              ' Multiply color index by size of color palette
         add             ci,     cpbase          ' Increment color index to correct palette
         rdlong          colors, ci              ' Read tile from Main RAM
-
-'movp    mov             pbptr,  tile            ' Store tile row to pixel buffer        
-'movc    mov             cbptr,  colors          ' Store color palette to color buffer
-
-movp    mov             pbptr,  tPixel          ' Store tile row to pixel buffer        
-movc    mov             cbptr,  tColor          ' Store color palette to color buffer                
-
+movp    mov             pbptr,  tile            ' Store tile row to pixel buffer        
+movc    mov             cbptr,  colors          ' Store color palette to color buffer
         add             movp,   incDest         ' Increment tile buffer pointer
         add             movc,   incDest         ' Increment color buffer pointer
+        'add             tmptr,  #2              ' Increment tile map pointer to next tile in row
         djnz            trptr,  #popbuff        ' Populate buffer                        
 
         ' Display scanline buffer
@@ -234,8 +231,8 @@ lSclVal       res       1       ' vscl register value for entire line
 sCnt          res       1       ' Value used to synchronize cogs
 
 ' Line buffers
-pixBuff       res       160     ' Reserve 40 longs * 4 lines for pixel buffer
-colBuff       res       160     ' Reserve 40 longs * 4 lines for color buffer 
+pixBuff       res       40      ' Reserve 10 longs * 4 lines for pixel buffer
+colBuff       res       40      ' Reserve 10 longs * 4 lines for color buffer 
         fit
        
 {{
