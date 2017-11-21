@@ -133,8 +133,8 @@ popbuff mov             lrptr,  lPerCog         ' Set number of tiles per render
         shl             ci,     #2              ' Multiply color index by size of color palette
         add             ci,     cpbase          ' Increment color index to correct palette
         rdlong          colors, ci              ' Read tile from Main RAM
-:movp   mov             pbptr,  tile            ' Store tile row to pixel buffer        
-:movc   mov             cbptr,  colors          ' Store color palette to color buffer
+:movp   mov             0-0,    tile            ' Store tile row to pixel buffer        
+:movc   mov             0-0,    colors          ' Store color palette to color buffer
         add             :movp,  incDest         ' Increment tile buffer pointer
         add             :movc,  incDest         ' Increment color buffer pointer
         add             tmptr,  #2              ' Increment tile map pointer to next tile in row
@@ -221,8 +221,6 @@ ci            res       1       ' Color index
 tile          res       1       ' Current tile section        
 colors        res       1       ' Register containing current colors
 lrptr         res       1       ' Current render line
-pbptr         res       1       ' Current tile buffer location being rendered
-cbptr         res       1       ' Current color location being rendered
 
 ' Frame attributes
 numTL         res       1       ' Number of visible tiles per scanline
