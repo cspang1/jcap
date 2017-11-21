@@ -20,13 +20,22 @@ PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) :
     graphics_addr_base_ := graphics_addr_base                                   ' Set global base graphics address
     sync_cnt_ := $8000 + cnt                                                    ' Initialize sync count which cogs will sync with 
     numVS := num_VS                                                             ' Set number of sync lines in cogs                        
-    repeat cIndex from 0 to num_cogs_-1                                         ' Loop through cogs
-      numFP := num_FP + cIndex * lines_per_cog                                  ' Set number of front porch lines in cog
-      numBP := num_BP - cIndex * lines_per_cog                                  ' Set number of back porch lines in cog
-      ifnot cog_[cIndex] := cognew(@vga, @graphics_addr_base_) + 1              ' Initialize cog running "vga" routine with reference to start of variable registers
-        stop                                                                    ' Stop all cogs if insufficient number available
-        abort FALSE                                                             ' Abort returning FALSE
-      waitcnt($2000 + cnt)                                                      ' Wait for cog to finish initializing 
+
+    
+    numFP := num_FP                                                             ' Set number of front porch lines in cog
+    numBP := num_BP                                                             ' Set number of back porch lines in cog
+    ifnot cog_[0] := cognew(@vga, @graphics_addr_base_) + 1                     ' Initialize cog running "vga" routine with reference to start of variable registers
+      stop                                                                      ' Stop all cogs if insufficient number available
+      abort FALSE                                                               ' Abort returning FALSE
+    waitcnt($2000 + cnt)                                                        ' Wait for cog to finish initializing
+     
+    numFP := num_FP + lines_per_cog                                             ' Set number of front porch lines in cog
+    numBP := num_BP - lines_per_cog                                             ' Set number of back porch lines in cog
+    ifnot cog_[1] := cognew(@vga, @graphics_addr_base_) + 1                     ' Initialize cog running "vga" routine with reference to start of variable registers
+      stop                                                                      ' Stop all cogs if insufficient number available
+      abort FALSE                                                               ' Abort returning FALSE
+    waitcnt($2000 + cnt)                                                        ' Wait for cog to finish initializing       
+
     return TRUE                                                                 ' Return TRUE                                                
     
 PUB stop | cIndex                                       ' Function to stop VGA driver 
@@ -61,7 +70,7 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
         add             tpbase, #4              ' Point tile palette pointer to correct Main RAM register
         add             cpbase, #8              ' Point color palette pointer to correct Main RAM register
         rdlong          tpbase, tpbase          ' Load tile palette base pointer
-        rdlong          cpbase, cpbase          ' Load color palette base pointer        
+        rdlong          cpbase, cpbase          ' Load color palette base pointer
 
         ' Synchronize cogs
         mov             attptr, par             ' Load the base variable address
@@ -77,7 +86,8 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
         mov             vscl,   vSclVal         ' Set video scale
 
         ' Start of VGA routine
-screen  mov             rptr,   rPerCog         ' Initialize render pointer        
+screen  mov             rptr,   rPerCog         ' Initialize render pointer
+        mov             csl,    #0              ' Initialize current scan line register        
         rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile
 
         ' Display vertical sync
@@ -97,16 +107,19 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
         djnz            vptr,   #bporch         ' Display back porch lines
 
         ' Blank lines
-blank   mov             lptr,   lPerCog         ' Initialize render iteration pointer
-        mov             vscl,   lSclVal         ' Set video scale for entire line
-        waitvid         zero,   #0              ' Output all low
+blank   mov             vscl,   lSclVal         ' Set video scale for entire line
+        waitvid         zero,   #0              ' Output all low   
 
         ' Populate scanline buffer
-        mov             trptr,  tPerRender      ' Set number of tiles per render
-        movd            movp,   #pixBuff        ' Initialize pointer to pixel buffer
-        movd            movc,   #colBuff        ' Initialize pointer to color buffer
-popbuff 'mov             tpptr,  #0              ' Initialize tile palette pointer
-        rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
+        mov             tpptr,  #0              ' Initialize tile palette pointer
+popbuff mov             lrptr,  lPerCog         ' Set number of tiles per render
+        movd            :movp,  #pixBuff        ' Initialize pointer to start of pixel buffer
+        movd            :movc,  #colBuff        ' Initialize pointer to start of color buffer
+
+        ' Populate one scanline of buffer
+:linex4 mov             tptr,   numTL           ' Initialize tile pointer
+
+:line   rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
         mov             ti,     cmap            ' Store current map into tile index
         and             ti,     #255            ' Isolate tile index of current map tile
         shr             cmap,   #8              ' Isolate color index of current map tile
@@ -120,16 +133,27 @@ popbuff 'mov             tpptr,  #0              ' Initialize tile palette point
         shl             ci,     #2              ' Multiply color index by size of color palette
         add             ci,     cpbase          ' Increment color index to correct palette
         rdlong          colors, ci              ' Read tile from Main RAM
-movp    mov             pbptr,  tile            ' Store tile row to pixel buffer        
-movc    mov             cbptr,  colors          ' Store color palette to color buffer
-        add             movp,   incDest         ' Increment tile buffer pointer
-        add             movc,   incDest         ' Increment color buffer pointer
-        'add             tmptr,  #2              ' Increment tile map pointer to next tile in row
-        djnz            trptr,  #popbuff        ' Populate buffer                        
+:movp   mov             pbptr,  tile            ' Store tile row to pixel buffer        
+:movc   mov             cbptr,  colors          ' Store color palette to color buffer
+        add             :movp,  incDest         ' Increment tile buffer pointer
+        add             :movc,  incDest         ' Increment color buffer pointer
+        add             tmptr,  #2              ' Increment tile map pointer to next tile in row
+        djnz            tptr,   #:line          ' Generate one scanline of data
+
+        sub             tmptr,  vLineSize       ' Return tile map pointer to beginning of row
+        'cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
+        'if_z  add       tpptr,  tMemSizeH       ' Increment tile palette pointer if so        
+        'if_z  mov       csl,    #0              ' Reset scan line register if so
+        'if_nz add       csl,    #1              ' Increment scan line register otherwise
+
+        djnz            lrptr,  #:linex4        ' Generate four scanlines of data
 
         ' Display scanline buffer
-visible mov             vscl,   tVidScl         ' Set video scale for active video
-        waitvid         colBuff,pixBuff         ' Display test pixels
+        mov             lptr,   lPerCog         ' Initialize render iteration pointer
+visible mov             dptr,   vTilesH         ' Initialize display pointer
+        mov             vscl,   vSclVal         ' Set video scale for active video
+wvid    waitvid         tColor, tPixel          ' Display test pixels
+        djnz            dptr,   #wvid           ' Display full scanline
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            lptr,   #visible        ' Display all lines in iteration
@@ -181,6 +205,7 @@ lptr          res       1       ' Current line being rendered
 fptr          res       1       ' Current frame position being rendered
 vptr          res       1       ' Current vertical sync line being rendered
 rptr          res       1       ' Current set of lines being rendered
+dptr          res       1       ' Current long of buffer being displayed
 csl           res       1       ' Upscale tracking register
 
 ' Tile and color map pointers
@@ -195,7 +220,7 @@ ti            res       1       ' Tile index
 ci            res       1       ' Color index
 tile          res       1       ' Current tile section        
 colors        res       1       ' Register containing current colors
-trptr         res       1       ' Current tile being rendered
+lrptr         res       1       ' Current render line
 pbptr         res       1       ' Current tile buffer location being rendered
 cbptr         res       1       ' Current color location being rendered
 
@@ -230,7 +255,7 @@ lSclVal       res       1       ' vscl register value for entire line
 ' Other variables
 sCnt          res       1       ' Value used to synchronize cogs
 
-' Line buffers
+' Line buffers                 
 pixBuff       res       40      ' Reserve 10 longs * 4 lines for pixel buffer
 colBuff       res       40      ' Reserve 10 longs * 4 lines for color buffer 
         fit
