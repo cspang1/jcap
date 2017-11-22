@@ -59,7 +59,7 @@ PUB main | started
   graphics.start                                                                                        ' Start graphics engine
   input.start(@input_state_base_)                                                                       ' Start input system                        
   cognew(@game, @tile_map_base_)                                                                        ' Start game
-  'cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
+  cognew(@testing, cur_pos_base_)                                                                       ' Start testing routine
                                                                                                         
   started := true                                       ' Initialize video driver status
   repeat                                                ' Loop infinitely

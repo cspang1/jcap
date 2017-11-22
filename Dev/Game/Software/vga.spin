@@ -2,7 +2,7 @@
         File:     vga.spin
         Author:   Connor Spangler
         Date:     10/26/2017
-        Version:  2.0
+        Version:  3.0
         Description: 
                   This file contains the PASM code to drive a VGA signal via the Propeller
                   Cog Video Generator.
@@ -14,16 +14,16 @@ VAR
   long  graphics_addr_base_     ' Base address if graphics resources
   long  sync_cnt_               ' System clock count used to synchronize video cogs
   
-PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) : vidstatus | cIndex     ' Function to start VGA driver with pointer to Main RAM variables
-    num_cogs_ := num_cogs                                                       ' Set number video generation cogs
+PUB start(graphics_addr_base, tlsl_ratio, lines_per_cog, t_mem_size_h, num_FP, num_VS, num_BP) : vidstatus | cIndex   ' Function to start VGA driver with pointer to Main RAM variables
     stop                                                                        ' Stop driver if already running
     graphics_addr_base_ := graphics_addr_base                                   ' Set global base graphics address
     sync_cnt_ := $8000 + cnt                                                    ' Initialize sync count which cogs will sync with 
-    numVS := num_VS                                                             ' Set number of sync lines in cogs                        
-
+    numVS := num_VS                                                             ' Set number of sync lines in cogs
     
     numFP := num_FP                                                             ' Set number of front porch lines in cog
     numBP := num_BP                                                             ' Set number of back porch lines in cog
+    setptr.byte := (lines_per_cog / tlsl_ratio) * t_mem_size_h
+    setcsl.byte := lines_per_cog // tlsl_ratio
     ifnot cog_[0] := cognew(@vga, @graphics_addr_base_) + 1                     ' Initialize cog running "vga" routine with reference to start of variable registers
       stop                                                                      ' Stop all cogs if insufficient number available
       abort FALSE                                                               ' Abort returning FALSE
@@ -31,6 +31,8 @@ PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) :
      
     numFP := num_FP + lines_per_cog                                             ' Set number of front porch lines in cog
     numBP := num_BP - lines_per_cog                                             ' Set number of back porch lines in cog
+    setptr.byte := 0
+    setcsl.byte := 0
     ifnot cog_[1] := cognew(@vga, @graphics_addr_base_) + 1                     ' Initialize cog running "vga" routine with reference to start of variable registers
       stop                                                                      ' Stop all cogs if insufficient number available
       abort FALSE                                                               ' Abort returning FALSE
@@ -39,7 +41,7 @@ PUB start(graphics_addr_base, num_cogs, lines_per_cog, num_FP, num_VS, num_BP) :
     return TRUE                                                                 ' Return TRUE                                                
     
 PUB stop | cIndex                                       ' Function to stop VGA driver 
-  repeat cIndex from 0 to num_cogs_-1                   ' Loop through cogs                        
+  repeat cIndex from 0 to 1                             ' Loop through cogs                        
     if cog_[cIndex]                                     ' If cog is running
       cogstop(cog_[cIndex]~ - 1)                        ' Stop the cog
   
@@ -92,7 +94,8 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
 
         ' Start of VGA routine
 screen  mov             rptr,   rPerCog         ' Initialize render pointer
-        mov             csl,    #0              ' Initialize current scan line register        
+setptr  mov             tpptr,  #0-0            ' Initialize tile palette pointer
+setcsl  mov             csl,    #0-0            ' Initialize current scan line register
         rdlong          tmptr,  tmbase          ' Set tile map pointer to current start tile
 
         ' Display vertical sync
@@ -114,11 +117,8 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
         ' Blank lines
 blank   mov             vscl,   lSclVal         ' Set video scale for entire line
         waitvid         zero,   #0              ' Output all low
-
-        {{ COMPENSATE FOR OTHER COG UPSCALING HERE }}
     
         ' Populate scanline buffer
-        mov             tpptr,  #0              ' Initialize tile palette pointer
         mov             lrptr,  lPerCog         ' Set number of tiles per render
         movd            movp,   #pixBuff        ' Initialize pointer to start of pixel buffer
         movd            movc,   #colBuff        ' Initialize pointer to start of color buffer
@@ -130,7 +130,7 @@ line    rdbyte          ti,     tmptr           ' Read tile index of current map
         add             ti,     tpbase          ' Increment tile index to correct line
         add             ti,     tpptr           ' Add tile palette pointer to tile index to specify row of tile to be displayed
 rdtile
-movp    rdlong          0-0,    ti              ' Read 16-pixel-wide tile from Main RAM
+movp    rdlong          0-0,    ti              ' Read tile from Main RAM
         shl             ci,     #2              ' Multiply color index by size of color palette
         add             ci,     cpbase          ' Increment color index to correct palette
 movc    rdlong          0-0,    ci              ' Read tile from Main RAM
@@ -140,11 +140,8 @@ movc    rdlong          0-0,    ci              ' Read tile from Main RAM
         djnz            tptr,   #line           ' Generate one scanline of data
 
         sub             tmptr,  vLineSize       ' Return tile map pointer to beginning of row
-        cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
-        if_z  add       tpptr,  tMemSizeH       ' Increment tile palette pointer if so        
-        if_z  mov       csl,    #0              ' Reset scan line register if so
-        if_nz add       csl,    #1              ' Increment scan line register otherwise
-
+        call            #com                    ' Call compensation routine        
+        
         djnz            lrptr,  #linex4         ' Generate four scanlines of data
 
         ' Display scanline buffer
@@ -159,6 +156,12 @@ wvid    waitvid         0-0,    0-0             ' Display test pixels
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            lptr,   #visible        ' Display all lines in iteration
+
+        ' Compensate for blank lines
+        mov             lrptr,  lPerCog         ' Set number of tiles per render
+bcom    call            #com                    ' Call compensation routine
+        djnz            lrptr,  #bcom           ' Perform compensation for all blanking lines
+        
         djnz            rptr,   #blank          ' Display all render iterations
 
         ' Display vertical front porch
@@ -170,7 +173,17 @@ fporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
         djnz            vptr,   #fporch         ' Display front porch lines           
 
         ' Return to start of screen
-        jmp             #screen     
+        jmp             #screen                 ' Display another screen
+
+        ' Compensation routine
+com     cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
+        if_z  add       tpptr,  tMemSizeH       ' Increment tile palette pointer if so        
+        if_z  mov       csl,    #0              ' Reset scan line register if so
+        if_nz add       csl,    #1              ' Increment scan line register otherwise
+        cmp             tpptr,  tSize wz        ' Test if at bottom of tile palette
+        if_z  mov       tpptr,  #0              ' Reset tile palette pointer if so
+        if_z  add       tmptr,  tMapLineSize    ' Increment tile map pointer to next row of tiles if so                
+com_ret ret                                     ' Return to caller                
 
 ' TESTING
 tColor        long      %11111111_00110011_00011111_00000011                    ' Test colors

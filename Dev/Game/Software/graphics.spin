@@ -93,10 +93,10 @@ PUB config(vidMode, graphAddr, numHorTiles, numVertTiles, horTileSize, vertTileS
 PUB start
   ' Start specified video driver
   case video_mode_
-    VGA_mode : return vga.start(@graphics_addr_base_, numCogs, linesPerCog, fpV, syncV, bpV)            ' Initialize cog running VGA driver
-    RGBS_mode : return FALSE                            ' Initialize cog running RGBS driver with reference to start of variable registers
-    NTSC_mode : return FALSE                            ' Initialize cog running NTSC driver with reference to start of variable registers
-    other : abort FALSE                                 ' Invalid driver specified; abort
+    VGA_mode : return vga.start(@graphics_addr_base_, tlsl_ratio_, linesPerCog, t_mem_size_h_, fpV, syncV, bpV)                 ' Initialize cog running VGA driver
+    RGBS_mode : return FALSE                                                                                                    ' Initialize cog running RGBS driver with reference to start of variable registers
+    NTSC_mode : return FALSE                                                                                                    ' Initialize cog running NTSC driver with reference to start of variable registers
+    other : abort FALSE                                                                                                         ' Invalid driver specified; abort
       
 PUB stop
   ' Stop specified video driver
