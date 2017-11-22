@@ -115,10 +115,7 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
 blank   mov             vscl,   lSclVal         ' Set video scale for entire line
         waitvid         zero,   #0              ' Output all low
 
-        ' Compensate for upscaling
-ucomp   mov             lrptr,  lPerCog         ' Set number of tiles per render
-
-        djnz            lrptr,  ucomp           ' Repeat 
+        {{ COMPENSATE FOR OTHER COG UPSCALING HERE }}
     
         ' Populate scanline buffer
         mov             tpptr,  #0              ' Initialize tile palette pointer
