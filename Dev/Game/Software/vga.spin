@@ -50,7 +50,7 @@ vga     ' Initialize frame attributes
         rdlong          attptr, par             ' Load base attribute address
         add             attptr, #4              ' Increment to point to number of attributes
         rdlong          natt,   attptr          ' Initialize number of attributes
-        movd            att,    #vTilesH        ' Modify instruction @:att to load first attribute address
+        movd            att,    #vTilesH        ' Modify instruction @att to load first attribute address
         add             attptr, #4              ' Increment to point to start of attributes 
 att     rdlong          0-0,    attptr          ' Load current attribute into current register         
         add             attptr, #4              ' Increment to point to next attribute                  
@@ -141,18 +141,21 @@ popbuff mov             lrptr,  lPerCog         ' Set number of tiles per render
         djnz            tptr,   #:line          ' Generate one scanline of data
 
         sub             tmptr,  vLineSize       ' Return tile map pointer to beginning of row
-        'cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
-        'if_z  add       tpptr,  tMemSizeH       ' Increment tile palette pointer if so        
-        'if_z  mov       csl,    #0              ' Reset scan line register if so
-        'if_nz add       csl,    #1              ' Increment scan line register otherwise
+        cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
+        if_z  add       tpptr,  tMemSizeH       ' Increment tile palette pointer if so        
+        if_z  mov       csl,    #0              ' Reset scan line register if so
+        if_nz add       csl,    #1              ' Increment scan line register otherwise
 
         djnz            lrptr,  #:linex4        ' Generate four scanlines of data
 
         ' Display scanline buffer
         mov             lptr,   lPerCog         ' Initialize render iteration pointer
+        movd            wvid,   #colBuff        ' Initialize color buffer position
+        movs            wvid,   #pixBuff        ' Initialize pixel buffer position
 visible mov             dptr,   vTilesH         ' Initialize display pointer
         mov             vscl,   vSclVal         ' Set video scale for active video
-wvid    waitvid         tColor, tPixel          ' Display test pixels
+wvid    waitvid         0-0,    0-0             ' Display test pixels
+        add             wvid,   incDestSrc      ' Increment buffer positions
         djnz            dptr,   #wvid           ' Display full scanline
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
@@ -184,6 +187,7 @@ HVidScl       long      %000000000000_00010000_000010100000                     
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
 tMaskH        long      16                                                                              ' Mask to detect horizontal pixel width of tiles
 incDest       long      1 << 9                                                                          ' Value to increment dest field during attribute loading
+incDestSrc    long      1 << 9 + 1                                                                      ' Value to increment dest and src field during display
 delay         long      240000                                                                          ' Delay value for 3 ms delay
 zero          long      0                                                                               ' Zero register
 
