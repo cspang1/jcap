@@ -61,6 +61,11 @@ att     rdlong          0-0,    attptr          ' Load current attribute into cu
         mov             numLT,  lPerTile        ' Set lines per tile
         mov             slr,    tlslRatio       ' Set tile line per scanline ratio                           
         sub             slr,    #1              ' Decrement to be used as djnz loop limit
+        
+        ' Set correct Main RAM read instruction based on tile size
+        test            tMaskH, tSizeV wc       ' Check the width of the tiles
+        if_nc movi      rdtile, #%000001001     ' Read 8-pixel-wide tile from Main RAM
+        if_c  movi      rdtile, #%000010001     ' Read 16-pixel-wide tile from Main RAM
 
         ' Initialize graphics resource pointers
         rdlong          tmbase, par             ' Load base variable address
@@ -108,18 +113,20 @@ bporch  mov             vscl,   BVidScl         ' Set video scale for blank acti
 
         ' Blank lines
 blank   mov             vscl,   lSclVal         ' Set video scale for entire line
-        waitvid         zero,   #0              ' Output all low   
+        waitvid         zero,   #0              ' Output all low
 
+        ' Compensate for upscaling
+ucomp   mov             lrptr,  lPerCog         ' Set number of tiles per render
+
+        djnz            lrptr,  ucomp           ' Repeat 
+    
         ' Populate scanline buffer
         mov             tpptr,  #0              ' Initialize tile palette pointer
-popbuff mov             lrptr,  lPerCog         ' Set number of tiles per render
-        movd            :movp,  #pixBuff        ' Initialize pointer to start of pixel buffer
-        movd            :movc,  #colBuff        ' Initialize pointer to start of color buffer
-
-        ' Populate one scanline of buffer
-:linex4 mov             tptr,   numTL           ' Initialize tile pointer
-
-:line   rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
+        mov             lrptr,  lPerCog         ' Set number of tiles per render
+        movd            movp,   #pixBuff        ' Initialize pointer to start of pixel buffer
+        movd            movc,   #colBuff        ' Initialize pointer to start of color buffer
+linex4  mov             tptr,   numTL           ' Initialize tile pointer
+line    rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
         mov             ti,     cmap            ' Store current map into tile index
         and             ti,     #255            ' Isolate tile index of current map tile
         shr             cmap,   #8              ' Isolate color index of current map tile
@@ -127,18 +134,16 @@ popbuff mov             lrptr,  lPerCog         ' Set number of tiles per render
         shl             ti,     tOffset         ' Multiply tile index by size of tile map
         add             ti,     tpbase          ' Increment tile index to correct line
         add             ti,     tpptr           ' Add tile palette pointer to tile index to specify row of tile to be displayed
-        test            tMaskH, tSizeV wc       ' Check the width of the tiles
-        if_nc rdword    tile,   ti              ' Read 8-pixel-wide tile from Main RAM
-        if_c  rdlong    tile,   ti              ' Read 16-pixel-wide tile from Main RAM
+rdtile  rdlong          tile,   ti              ' Read 16-pixel-wide tile from Main RAM
         shl             ci,     #2              ' Multiply color index by size of color palette
         add             ci,     cpbase          ' Increment color index to correct palette
         rdlong          colors, ci              ' Read tile from Main RAM
-:movp   mov             0-0,    tile            ' Store tile row to pixel buffer        
-:movc   mov             0-0,    colors          ' Store color palette to color buffer
-        add             :movp,  incDest         ' Increment tile buffer pointer
-        add             :movc,  incDest         ' Increment color buffer pointer
+movp    mov             0-0,    tile            ' Store tile row to pixel buffer        
+movc    mov             0-0,    colors          ' Store color palette to color buffer
+        add             movp,   incDest         ' Increment tile buffer pointer
+        add             movc,   incDest         ' Increment color buffer pointer
         add             tmptr,  #2              ' Increment tile map pointer to next tile in row
-        djnz            tptr,   #:line          ' Generate one scanline of data
+        djnz            tptr,   #line           ' Generate one scanline of data
 
         sub             tmptr,  vLineSize       ' Return tile map pointer to beginning of row
         cmp             csl,    slr wz          ' Test if next line of tile palette is to be drawn   
@@ -146,7 +151,7 @@ popbuff mov             lrptr,  lPerCog         ' Set number of tiles per render
         if_z  mov       csl,    #0              ' Reset scan line register if so
         if_nz add       csl,    #1              ' Increment scan line register otherwise
 
-        djnz            lrptr,  #:linex4        ' Generate four scanlines of data
+        djnz            lrptr,  #linex4         ' Generate four scanlines of data
 
         ' Display scanline buffer
         mov             lptr,   lPerCog         ' Initialize render iteration pointer
