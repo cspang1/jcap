@@ -123,23 +123,20 @@ blank   mov             vscl,   lSclVal         ' Set video scale for entire lin
         movd            movp,   #pixBuff        ' Initialize pointer to start of pixel buffer
         movd            movc,   #colBuff        ' Initialize pointer to start of color buffer
 linex4  mov             tptr,   numTL           ' Initialize tile pointer
-line    rdword          cmap,   tmptr           ' Read start of tile map from Main RAM
-        mov             ti,     cmap            ' Store current map into tile index
-        and             ti,     #255            ' Isolate tile index of current map tile
-        shr             cmap,   #8              ' Isolate color index of current map tile
-        mov             ci,     cmap            ' Store color index of current map tile        
+line    rdbyte          ti,     tmptr           ' Read tile index of current map tile
+        add             tmptr,  #1              ' Increment tile map pointer to color index
         shl             ti,     tOffset         ' Multiply tile index by size of tile map
+        rdbyte          ci,     tmptr           ' Store color index of current map tile
         add             ti,     tpbase          ' Increment tile index to correct line
         add             ti,     tpptr           ' Add tile palette pointer to tile index to specify row of tile to be displayed
-rdtile  rdlong          tile,   ti              ' Read 16-pixel-wide tile from Main RAM
+rdtile
+movp    rdlong          0-0,    ti              ' Read 16-pixel-wide tile from Main RAM
         shl             ci,     #2              ' Multiply color index by size of color palette
         add             ci,     cpbase          ' Increment color index to correct palette
-        rdlong          colors, ci              ' Read tile from Main RAM
-movp    mov             0-0,    tile            ' Store tile row to pixel buffer        
-movc    mov             0-0,    colors          ' Store color palette to color buffer
+movc    rdlong          0-0,    ci              ' Read tile from Main RAM
         add             movp,   incDest         ' Increment tile buffer pointer
         add             movc,   incDest         ' Increment color buffer pointer
-        add             tmptr,  #2              ' Increment tile map pointer to next tile in row
+        add             tmptr,  #1              ' Increment tile map pointer to next tile in row
         djnz            tptr,   #line           ' Generate one scanline of data
 
         sub             tmptr,  vLineSize       ' Return tile map pointer to beginning of row
