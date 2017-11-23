@@ -21,7 +21,7 @@ CON
 
   ' Video driver config values
   numCogs = 2     ' Number of cogs used for video generation (CURRENTLY ONLY WORKS W/ 2)
-  linesPerCog = 1 ' Number of visible lines per cog render iteration (MAX OF 4)
+  linesPerCog = 4 ' Number of visible lines per cog render iteration (MAX OF 4)
   numAtt = 12     ' Number of video attributes                          
                                  
   ' Enumeration of video modes
