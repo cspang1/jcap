@@ -11,14 +11,14 @@
 CON
 
 VAR
-  long  graphics_addr_base_                             ' Variable for pointer to base address of graphics
+  long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   
-PUB start(graphAddrBase)        ' Function to start vga driver with pointer to Main RAM variables
+PUB start(varAddrBase)          ' Function to start vga driver with pointer to Main RAM variables
   ' Instantiate variables
-  graphics_addr_base_ := graphAddrBase                  ' Assign local base graphics address variable
+  var_addr_base_ := varAddrBase ' Assign local base variable address
 
   ' Start VGA driver
-  cognew(@vga, @graphics_addr_base_)                    ' Initialize cog running "vga" routine with reference to start of variable registers
+  cognew(@vga, var_addr_base_)  ' Initialize cog running "vga" routine with reference to start of variable registers
   
 DAT
         org             0
@@ -34,11 +34,22 @@ vga
         waitcnt         cnt,    #0              ' Allow PLL to settle
         mov             vcfg,   VidCfg          ' Start video generator
 
+        ' Initialize variables
+        mov             clptr,  par             ' Initialize pointer to current scanline
+        mov             vbptr,  par             ' Initialize pointer to video buffer
+        add             vbptr,  #4              ' Point video buffer pointer to video buffer                
+        mov             curSL,  #0              ' Initialize current scanline
+        wrlong          curSL,  clptr           ' Set initial scanline in Main RAM
+
 :active {{ DISPLAY LINE HERE }}
 
         ' Display horizontal sync area
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
+
+        {{ DISPLAY EACH LINE TWICE }}
+
+        
 
         {{ RETURN TO LINE DISPLAY }}
 
@@ -63,14 +74,12 @@ vga
         djnz            vptr,   #:bporch        ' Display back porch lines 
         jmp             #:active                ' Return to start of video frame      
 
-' Test values
-tPixel        long      %%0_0_0_0_1_1_1_1_2_2_2_2_3_3_3_3                       ' Test pixels
-
 ' Config values
 vgapin        long      |< 24 | |< 25 | |< 26 | |< 27 | |< 28 | |< 29 | |< 30 | |< 31                   ' VGA output pins
 pllfreq       long      337893130                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
 VidCfg        long      %0_01_1_0_0_000_00000000000_011_0_11111111                                      ' Video generator configuration
+VVidScl       long      %000000000000_00000010_000000001000                                             ' Video generator visible video scale register
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
 
@@ -89,9 +98,13 @@ numBP         long      33      ' Number of vertical back porch lines
 ' Frame pointers
 lptr          res       1       ' Current line being rendered
 vptr          res       1       ' Current vertical sync line being rendered
+mptr          res       1       ' Current pointer to hub RAM pixels being rendered
 
-' Other video attributes
-vSclVal       res       1       ' vscl register value for visible pixels
+' Other pointers
+clptr         res       1       ' Pointer to location of current scanline in Main RAM
+vbptr         res       1       ' Pointer to location of video buffer in Main RAM
+curSL         res       1       ' Container for current scanline
+pixels        res       1       ' Container for currently rendering pixels
 
         fit
         
