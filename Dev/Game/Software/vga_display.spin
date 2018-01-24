@@ -9,6 +9,7 @@
 }}
 
 CON
+  num_lines = 240
 
 VAR
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
@@ -38,24 +39,16 @@ vga
         mov             clptr,  par             ' Initialize pointer to current scanline
         mov             vbptr,  par             ' Initialize pointer to video buffer
         add             vbptr,  #4              ' Point video buffer pointer to video buffer                
-        mov             curSL,  #0              ' Initialize current scanline
-        wrlong          curSL,  clptr           ' Set initial scanline in Main RAM
-
-:active {{ DISPLAY LINE HERE }}
-
-        ' Display horizontal sync area
-        mov             vscl,   HVidScl         ' Set video scale for HSync
-        waitvid         sColor, hPixel          ' Horizontal sync
-
-        {{ DISPLAY EACH LINE TWICE }}
-
+        mov             cursl,  #num_lines      ' Initialize current scanline
+        wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         
-
-        {{ RETURN TO LINE DISPLAY }}
+:video  ' Signal vertical sync pin
+        or              outa,   vspin           ' Drive vertical sync signal pin high        
 
         ' Display vertical sync area
         mov             vptr,   numFP           ' Initialize vertical sync pointer        
 :fporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
+        andn            outa,   vspin           ' Drive vertical sync signal pin low
         waitvid         sColor, vpPixel         ' Display blank active video line
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
@@ -72,13 +65,37 @@ vga
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            vptr,   #:bporch        ' Display back porch lines 
-        jmp             #:active                ' Return to start of video frame      
+        jmp             #:active                ' Return to start of video frame 
+
+        mov             lptr,   #2              ' Initialize line pointer             
+:active ' Display active video
+        mov             vscl,   BVidScl         {{ TEST DISPLAY ONE FULL RED SCANLINE }}
+        waitvid         tColor, vpPixel         {{ TEST DISPLAY ONE FULL RED SCANLINE }}         
+
+        ' Display horizontal sync area
+        mov             vscl,   HVidScl         ' Set video scale for HSync
+        waitvid         sColor, hPixel          ' Horizontal sync
+        
+        djnz            lptr,   #:active        ' Display same line twice
+
+        sub             cursl,  #1              ' Decrement current scanline
+        wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
+        tjnz            cursl,  #:active        ' Continue displaying remaining scanlines 
+
+        mov             cursl,  #num_lines      ' Reset current scanline
+        wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
+
+        jmp             #:video     
+
+' Test values
+tColor        long      %11000011_00110011_00001111_11111111                    ' Test colors                                                                
 
 ' Config values
-vgapin        long      |< 24 | |< 25 | |< 26 | |< 27 | |< 28 | |< 29 | |< 30 | |< 31                   ' VGA output pins
+vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
+vspin         long      |< 24                                                                           ' VSync signal output pin
 pllfreq       long      337893130                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
-VidCfg        long      %0_01_1_0_0_000_00000000000_011_0_11111111                                      ' Video generator configuration
+VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
 VVidScl       long      %000000000000_00000010_000000001000                                             ' Video generator visible video scale register
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
@@ -103,7 +120,7 @@ mptr          res       1       ' Current pointer to hub RAM pixels being render
 ' Other pointers
 clptr         res       1       ' Pointer to location of current scanline in Main RAM
 vbptr         res       1       ' Pointer to location of video buffer in Main RAM
-curSL         res       1       ' Container for current scanline
+cursl         res       1       ' Container for current scanline
 pixels        res       1       ' Container for currently rendering pixels
 
         fit
