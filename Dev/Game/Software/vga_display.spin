@@ -2,14 +2,11 @@
         File:     vga_display.spin
         Author:   Connor Spangler
         Date:     1/23/2018
-        Version:  0.1
+        Version:  0.2
         Description: 
                   This file contains the PASM code to drive a VGA signal using video data
                   from hub RAM
 }}
-
-CON
-  num_lines = 240
 
 VAR
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
@@ -39,8 +36,9 @@ vga
         mov             clptr,  par             ' Initialize pointer to current scanline
         mov             vbptr,  par             ' Initialize pointer to video buffer
         add             vbptr,  #4              ' Point video buffer pointer to video buffer                
-        mov             cursl,  #num_lines      ' Initialize current scanline
+        mov             cursl,  numLines        ' Initialize current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
+        mov             lptr,   #2              ' Initialize line pointer             
         
 :video  ' Signal vertical sync pin
         or              outa,   vspin           ' Drive vertical sync signal pin high        
@@ -65,30 +63,29 @@ vga
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            vptr,   #:bporch        ' Display back porch lines 
-        jmp             #:active                ' Return to start of video frame 
 
-        mov             lptr,   #2              ' Initialize line pointer             
 :active ' Display active video
-        mov             vscl,   BVidScl         {{ TEST DISPLAY ONE FULL RED SCANLINE }}
-        waitvid         tColor, vpPixel         {{ TEST DISPLAY ONE FULL RED SCANLINE }}         
+        mov             vscl,   BVidScl         {{ TEST DISPLAY ONE FULL SCANLINE }}
+        waitvid         tColor, vpPixel         {{ TEST DISPLAY ONE FULL SCANLINE }}         
 
         ' Display horizontal sync area
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
         
         djnz            lptr,   #:active        ' Display same line twice
+        mov             lptr,   #2              ' Reset line pointer             
 
         sub             cursl,  #1              ' Decrement current scanline
         wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
         tjnz            cursl,  #:active        ' Continue displaying remaining scanlines 
 
-        mov             cursl,  #num_lines      ' Reset current scanline
+        mov             cursl,  numLines        ' Reset current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
 
-        jmp             #:video     
+        jmp             #:video                 ' Return to start of display
 
 ' Test values
-tColor        long      %11000011_00110011_00001111_11111111                    ' Test colors                                                                
+tColor        long      %00111111_00110011_00001111_11111111                    ' Test colors                                                                
 
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
@@ -111,6 +108,7 @@ hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       
 numFP         long      10      ' Number of vertical front porch lines                        
 numVS         long      2       ' Number of vertical sync lines                        
 numBP         long      33      ' Number of vertical back porch lines
+numLines      long      240     ' Number of rendered lines
 
 ' Frame pointers
 lptr          res       1       ' Current line being rendered
