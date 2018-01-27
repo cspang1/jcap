@@ -85,7 +85,7 @@ vga
         jmp             #:video                 ' Return to start of display
 
 ' Test values
-tColor        long      %00111111_00110011_00001111_11111111                    ' Test colors                                                                
+tColor        long      %11000011_00110011_00001111_11111111                    ' Test colors                                                                
 
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
