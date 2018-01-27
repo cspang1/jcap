@@ -27,5 +27,5 @@ PUB main
   vga_display.start(@cur_scanline_base_)                ' Start graphics engine
       
 DAT
-cur_scanline  long      0       ' Current scanline being rendered
-video_buffer  long      0[80]   ' Buffer of 320 pixels (one scanline, 80 longs of 4 8-bit pixels)
+cur_scanline  long      0                                                       ' Current scanline being rendered
+video_buffer  long      %11000011_00110011_00001111_11111111[80]                ' Buffer of 320 pixels (one scanline, 80 longs of 4 8-bit pixels)

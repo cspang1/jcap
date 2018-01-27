@@ -1,5 +1,5 @@
-PLL_Name	altpll:pll|altpll_ejp:auto_generated|pll1
-PLLJITTER	55
+PLL_Name	altpll:pll|altpll_gjp:auto_generated|pll1
+PLLJITTER	43
 PLLSPEmax	84
 PLLSPEmin	-53
 

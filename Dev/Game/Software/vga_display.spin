@@ -8,6 +8,9 @@
                   from hub RAM
 }}
 
+CON
+  segs = 80     ' Set number of line segments (320 pixels/4 pixels per waitvid)
+
 VAR
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   
@@ -16,11 +19,32 @@ PUB start(varAddrBase)          ' Function to start vga driver with pointer to M
   var_addr_base_ := varAddrBase ' Assign local base variable address
 
   ' Start VGA driver
-  cognew(@vga, var_addr_base_)  ' Initialize cog running "vga" routine with reference to start of variable registers
+  cognew(@vga, @testing)  ' Initialize cog running "vga" routine with reference to start of variable registers
   
 DAT
         org             0
 vga           
+        ' Initialize variables
+        mov             clptr,  par             ' Initialize pointer to current scanline
+        mov             vbptr,  par             ' Initialize pointer to video buffer
+        add             vbptr,  #4              ' Point video buffer pointer to video buffer
+        'rdlong          pixels, vbptr                
+        mov             cursl,  numLines        ' Initialize current scanline
+        wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
+        mov             lptr,   #2              ' Initialize line pointer
+        mov             scnptr, #segs           ' Initialize segment pointer
+
+        ' Generate scancode
+:rdlng  mov             scancode+0, i0          ' Move rdlong instruction
+:wvid   mov             scancode+1, i1          ' Move waitvid instruction
+        add             :rdlng, d1              ' Increment next rdlong instruction move
+        add             :wvid,  d1              ' Increment next waitvid instruction move 
+        'add             i0,     #4              ' Increment next memory location        
+        djnz            scnptr, #:rdlng         ' Repeat for all parts of scanline
+        mov             scancode+segs*2+0, i2   ' Move hsync vscl change instruction
+        mov             scancode+segs*2+1, i3   ' Move hsync waitvid instruction
+        mov             scancode+segs*2+2, i4   ' Move jmp instruction
+
         ' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins        
         mov             frqa,   pllfreq         ' Set Counter A frequency
@@ -30,17 +54,9 @@ vga
         shr             cnt,    #10             ' Set-up ~1ms wait
         add             cnt,    cnt             ' Add 1ms wait
         waitcnt         cnt,    #0              ' Allow PLL to settle
-        mov             vcfg,   VidCfg          ' Start video generator
-
-        ' Initialize variables
-        mov             clptr,  par             ' Initialize pointer to current scanline
-        mov             vbptr,  par             ' Initialize pointer to video buffer
-        add             vbptr,  #4              ' Point video buffer pointer to video buffer                
-        mov             cursl,  numLines        ' Initialize current scanline
-        wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
-        mov             lptr,   #2              ' Initialize line pointer             
+        mov             vcfg,   VidCfg          ' Start video generator             
         
-:video  ' Signal vertical sync pin
+video   ' Signal vertical sync pin
         or              outa,   vspin           ' Drive vertical sync signal pin high        
 
         ' Display vertical sync area
@@ -64,25 +80,22 @@ vga
         waitvid         sColor, hPixel          ' Horizontal sync
         djnz            vptr,   #:bporch        ' Display back porch lines 
 
-:active ' Display active video
-        mov             vscl,   BVidScl         {{ TEST DISPLAY ONE FULL SCANLINE }}
-        waitvid         tColor, vpPixel         {{ TEST DISPLAY ONE FULL SCANLINE }}         
-
-        ' Display horizontal sync area
-        mov             vscl,   HVidScl         ' Set video scale for HSync
-        waitvid         sColor, hPixel          ' Horizontal sync
+active
+        ' Display active video
+        mov             vscl,   VVidScl         ' Set video scale for visible video
+        jmp             #scancode               ' Display line
         
-        djnz            lptr,   #:active        ' Display same line twice
+scanret djnz            lptr,   #active        ' Display same line twice
         mov             lptr,   #2              ' Reset line pointer             
 
         sub             cursl,  #1              ' Decrement current scanline
         wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
-        tjnz            cursl,  #:active        ' Continue displaying remaining scanlines 
+        tjnz            cursl,  #active         ' Continue displaying remaining scanlines 
 
         mov             cursl,  numLines        ' Reset current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
 
-        jmp             #:video                 ' Return to start of display
+        jmp             #video                  ' Return to start of display
 
 ' Test values
 tColor        long      %11000011_00110011_00001111_11111111                    ' Test colors                                                                
@@ -110,16 +123,35 @@ numVS         long      2       ' Number of vertical sync lines
 numBP         long      33      ' Number of vertical back porch lines
 numLines      long      240     ' Number of rendered lines
 
+' Instructions used to generate scancode
+i0            rdlong    pixels, vbptr           ' Load next pixels
+'i0            nop
+i1            waitvid   pixels, #%%3210         ' Display pixels
+i2            mov       vscl,   HVidScl         ' Set video scale for HSync
+i3            waitvid   sColor, hPixel          ' Horizontal sync
+i4            jmp       #scanret                ' Return to rest of display
+
+' Other values
+d0s0          long      1 << 9 + 1              ' Value to increment source and destination registers         
+d1            long      1 << 10                 ' Value to incrememnt destination register by 2
+
+' Scancode buffer
+scancode      long      0[80*2+3]
+
 ' Frame pointers
 lptr          res       1       ' Current line being rendered
 vptr          res       1       ' Current vertical sync line being rendered
 mptr          res       1       ' Current pointer to hub RAM pixels being rendered
 
 ' Other pointers
+scnptr        res       1       ' Pointer to current scancode section being generated
 clptr         res       1       ' Pointer to location of current scanline in Main RAM
 vbptr         res       1       ' Pointer to location of video buffer in Main RAM
 cursl         res       1       ' Container for current scanline
 pixels        res       1       ' Container for currently rendering pixels
 
         fit
-        
+
+DAT
+testing       long      0
+tester        long      %11000011_00110011_00001111_11111111        
