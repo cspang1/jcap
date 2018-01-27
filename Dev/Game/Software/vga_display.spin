@@ -28,7 +28,7 @@ vga
         mov             clptr,  par             ' Initialize pointer to current scanline
         mov             vbptrs, par             ' Initialize pointer to video buffer
         add             vbptrs, #4              ' Point video buffer pointer to video buffer
-        rdlong          vbptrs, vbptrs
+        rdlong          vbptrs, vbptrs          ' Load video buffer memory location
         mov             cursl,  numLines        ' Initialize current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         mov             lptr,   #2              ' Initialize line pointer
@@ -132,7 +132,7 @@ d1            long      1 << 10                 ' Value to incrememnt destinatio
 
 ' Scancode buffer
 scancode      long      0[80*2+3]               ' Buffer containing display scancode
-vbptrs        long      0[80]                   ' Pointer to location of video buffer in Main RAM
+vbptrs        long      0[80]                   ' Buffer containing Main RAM video buffer memory locations
 
 ' Frame pointers
 lptr          res       1       ' Current line being rendered
