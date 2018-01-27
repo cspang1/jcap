@@ -23,9 +23,9 @@ variable
 	pll				: altpll with (
 						pll_type = "enhanced",
 						operation_mode = "normal",
-						inclk0_input_frequency = 40000,		-- 20000ps = 50MHz
-						clk0_multiply_by = 16,
-						clk0_divide_by = 5);
+						inclk0_input_frequency = 20000,		-- 20000ps = 50MHz
+						clk0_multiply_by = 104,
+						clk0_divide_by = 25);
 
 	clkgen			: tim;
 

@@ -10,7 +10,7 @@
 CON
   ' Clock settings
   _clkmode = xtal1 + pll16x     ' Standard clock mode w/ 16x PLL
-  _xinfreq = 5_000_000          ' 5 MHz clock for x16 = 80 MHz
+  _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
 OBJ
   vga_display   : "vga_display" ' Import VGA display system
@@ -27,5 +27,5 @@ PUB main
   vga_display.start(@cur_scanline_base_)                ' Start graphics engine
       
 DAT
-cur_scanline  long      0                                                       ' Current scanline being rendered
-video_buffer  long      %11000011_00110011_00001111_11111111[80]                ' Buffer of 320 pixels (one scanline, 80 longs of 4 8-bit pixels)
+cur_scanline  long      0                                                                                                       ' Current scanline being rendered
+video_buffer  long      %11111111_11111111_00000011_00000011[40],%11000011_11000011_00000011_00000011[40]                       ' Buffer of 320 pixels (one scanline, 80 longs of 4 8-bit pixels)
