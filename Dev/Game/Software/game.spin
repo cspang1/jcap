@@ -13,6 +13,7 @@ CON
   _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
 OBJ
+  vga_render    : "vga_render"  ' Import VGA display system
   vga_display   : "vga_display" ' Import VGA display system
   
 VAR
@@ -23,9 +24,13 @@ VAR
 PUB main
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer                        
-                           
-  vga_display.start(@cur_scanline_base_)                ' Start graphics engine
+
+  vga_render.start(@cur_scanline_base_)                 ' Start renderer
+  vga_display.start(@cur_scanline_base_)                ' Start display driver
       
 DAT
-cur_scanline  long      0                                                                                                       ' Current scanline being rendered
-video_buffer  long      %11111111_11111111_00000011_00000011[40],%11000011_11000011_00000011_00000011[40]                       ' Buffer of 320 pixels (one scanline, 80 longs of 4 8-bit pixels)
+cur_scanline  long      0                                                       ' Current scanline being rendered
+video_buffer  long      %11000011_11000011_11000011_11000011[20]                ' Buffer of 320 pixels (one scanline, 80 longs of 4 8-bit pixels)
+              long      %00110011_00110011_00110011_00110011[20]
+              long      %00001111_00001111_00001111_00001111[20]
+              long      %11111111_11111111_11111111_11111111[20]
