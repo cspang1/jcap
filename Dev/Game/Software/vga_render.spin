@@ -2,7 +2,7 @@
         File:     vga_render.spin
         Author:   Connor Spangler
         Date:     1/27/2018
-        Version:  0.1
+        Version:  0.2
         Description: 
                   This file contains the PASM code to generate video data and store it to hub RAM
                   to be displayed by the vga_display routine
@@ -18,7 +18,7 @@ VAR
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   long  start_line_             ' Variable for start of cog line rendering
   
-PUB start(varAddrBase) : vidstatus | cIndex                                     ' Function to start renderer with pointer to Main RAM variables
+PUB start(varAddrBase) : status | cIndex                                        ' Function to start renderer with pointer to Main RAM variables
   stop                                                                          ' Stop render cogs if running
 
   ' Instantiate variables
@@ -27,6 +27,7 @@ PUB start(varAddrBase) : vidstatus | cIndex                                     
   repeat cIndex from 0 to numRenderCogs - 1
     start_line_ := cIndex                                                       ' Set start line for next cog
     ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1                  ' Initialize cog running "render" routine with reference to start of variables
+      return FALSE                                                              ' Graphics system failed to initialize
     waitcnt($2000 + cnt)                                                        ' Wait for cogs to finish initializing
 
   return TRUE                                                                   ' Graphics system successfully initialized
@@ -35,6 +36,7 @@ PUB stop | cIndex                                       ' Function to stop VGA d
   repeat cIndex from 0 to numRenderCogs - 1             ' Loop through cogs
     if cog_[cIndex]                                     ' If cog is running
       cogstop(cog_[cIndex]~ - 1)                        ' Stop the cog
+
 DAT
         org             0
 render
@@ -72,7 +74,6 @@ lp      rdlong          tgtsl,  clptr
 write   wrlong          tColor, curvb
         add             curvb,  #4
         djnz            curseg, #write
-        
         subs            cursl,  #5
         cmps            cursl,  #1 wc
         if_c  mov       cursl,  initsl

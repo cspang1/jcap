@@ -2,7 +2,7 @@
         File:     vga_display.spin
         Author:   Connor Spangler
         Date:     1/23/2018
-        Version:  1.0
+        Version:  1.1
         Description: 
                   This file contains the PASM code to drive a VGA signal using video data
                   from hub RAM
@@ -12,14 +12,22 @@ CON
   segs = 80     ' Set number of scanline segments (320 pixels/4 pixels per waitvid)
 
 VAR
+  long  cog_                    ' Variable containing ID of display cog
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   
-PUB start(varAddrBase)          ' Function to start vga driver with pointer to Main RAM variables
+PUB start(varAddrBase) : status                         ' Function to start vga driver with pointer to Main RAM variables
   ' Instantiate variables
-  var_addr_base_ := varAddrBase ' Assign local base variable address
+  var_addr_base_ := varAddrBase                         ' Assign local base variable address
 
   ' Start VGA driver
-  cognew(@vga, var_addr_base_)  ' Initialize cog running "vga" routine with reference to start of variable registers
+  ifnot cog_ := cognew(@vga, var_addr_base_) + 1        ' Initialize cog running "vga" routine with reference to start of variable registers
+    return FALSE                                        ' Graphics system failed to initialize
+
+  return TRUE                                           ' Graphics system successfully initialized
+
+PUB stop                                                ' Function to stop VGA driver
+    if cog_                                             ' If cog is running
+      cogstop(cog_~ - 1)                                ' Stop the cog
   
 DAT
         org             0
