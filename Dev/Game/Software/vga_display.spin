@@ -91,7 +91,7 @@ scanret djnz            lptr,   #active         ' Display same line twice
         mov             lptr,   #2              ' Reset line pointer             
         sub             cursl,  #1              ' Decrement current scanline
         wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
-        tjnz            cursl,  #active         ' Continue displaying remaining scanlines 
+        djnz            cursl,  #active nr      ' Continue displaying remaining scanlines 
         mov             cursl,  numLines        ' Reset current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         jmp             #video                  ' Return to start of display
