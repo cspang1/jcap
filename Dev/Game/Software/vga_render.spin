@@ -9,17 +9,29 @@
 }}
 
 CON
+  ' Graphics system attributes
+  numRenderCogs = 5             ' Number of cogs used for rendering
 
 VAR
+  ' Graphics system attributes
+  long  cog_[numRenderCogs]     ' Array containing IDs of rendering cogs
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   
-PUB start(varAddrBase)          ' Function to start renderer with pointer to Main RAM variables
-  ' Instantiate variables
-  var_addr_base_ := varAddrBase ' Assign local base variable address
+PUB start(varAddrBase) : vidstatus | cIndex                                     ' Function to start renderer with pointer to Main RAM variables
+  stop                                                                          ' Stop render cogs if running
 
-  ' Start VGA driver
-  cognew(@render, var_addr_base_)  ' Initialize cog running "vga" routine with reference to start of variable registers
-  
+  ' Instantiate variables
+  var_addr_base_ := varAddrBase                                                 ' Assign local base variable address
+
+  repeat cIndex from 0 to numRenderCogs - 1
+    ifnot cog_[cIndex] := cognew(@render, var_addr_base_) + 1                   ' Initialize cog running "render" routine with reference to start of variables
+
+  return TRUE                                                                   ' Graphics system successfully initialized
+
+PUB stop | cIndex                                       ' Function to stop VGA driver
+  repeat cIndex from 0 to numRenderCogs - 1             ' Loop through cogs
+    if cog_[cIndex]                                     ' If cog is running
+      cogstop(cog_[cIndex]~ - 1)                        ' Stop the cog
 DAT
         org             0
 render           
@@ -42,7 +54,7 @@ tLine         long      120
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
-numSegs       long      80      ' Number of scanline segment
+numSegs       long      80      ' Number of scanline segments
 
 ' Other pointers
 clptr         res       1       ' Pointer to location of current scanline in Main RAM
