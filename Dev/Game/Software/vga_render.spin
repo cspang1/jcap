@@ -25,14 +25,30 @@ DAT
 render           
         ' Initialize variables
         mov             clptr,  par             ' Initialize pointer to current scanline
+        mov             vbptr,  par             ' Initialize pointer to video buffer
+        add             vbptr,  #4              ' Point video buffer pointer to video buffer
         rdlong          clptr,  clptr           ' Load current scanline memory location
-loop    jmp             #loop                   ' Loop infinitely
+        rdlong          vbptr,  vbptr           ' Load video buffer memory location
+loop    mov             curseg, numSegs
+        mov             curvb,  vbptr
+write   wrlong          tColor, curvb
+        add             curvb,  #4
+        djnz            curseg, #write
+        jmp             #loop                   ' Loop infinitely
+
+' Test values
+tColor        long      %11000011_11000011_00000011_00000011
+tLine         long      120
         
 ' Video attributes
-numLines      long      240     ' Number of rendered lines
+numLines      long      240     ' Number of rendered scanlines
+numSegs       long      80      ' Number of scanline segment
 
 ' Other pointers
 clptr         res       1       ' Pointer to location of current scanline in Main RAM
+vbptr         res       1       ' Pointer to location of video buffer in Main RAM
 cursl         res       1       ' Container for current scanline
+curvb         res       1       ' Current video buffer Main RAM location being written
+curseg        res       1       ' Current segment being written to Main RAM
 
         fit
