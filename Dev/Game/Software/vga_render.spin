@@ -102,7 +102,7 @@ numSegs       long      80      ' Number of scanline segments
 slbuff        res       80      ' Buffer containing scanline
 
 ' Other values
-d0            long      1 << 9                  ' Value to increment destination register
+d0            long      1 << 9  ' Value to increment destination register
 
 ' Other pointers
 semptr        res       1       ' Pointer to location of semaphore in Main RAM
