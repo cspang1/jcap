@@ -55,14 +55,16 @@ render
         add             semptr, #1              ' Point semaphore pointer
         add             ilptr,  #4              ' Point initial scanline pointer
 
-        ' 
+        ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
         if_c  jmp       #:lock                  ' Re-attempt to lock semaphore
         rdlong          initsl, ilptr           ' Load initial scanline
         add             initsl, #1              ' Increment initial scanline for next cog
         wrlong          initsl, ilptr           ' Write back next initial scanline
         lockclr         semptr                  ' Clear semaphore
-        
+
+
+        ' Finish initializing variables
         sub             initsl, #1              ' Re-decrement initial scanline
         neg             initsl, initsl          ' Invert initial scanline
         adds            initsl, numLines        ' Subtract initial scanline from number of scanlines
@@ -118,9 +120,7 @@ tColor0       long      %11000011_11000011_11000011_11000011
 tColor1       long      %00110011_00110011_00110011_00110011
 tColor2       long      %00001111_00001111_00001111_00001111
 tColor3       long      %11111111_11111111_11111111_11111111
-tColor4       long      %11000011_00000011_00000011_00000011
-tLine         long      120
-
+tColor4       long      %00000011_00000011_00000011_00000011
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
