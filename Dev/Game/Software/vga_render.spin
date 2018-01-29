@@ -73,33 +73,13 @@ render
         add             vbptr,  #4              ' Point video buffer pointer to video buffer
         rdlong          clptr,  clptr           ' Load current scanline memory location
         rdlong          vbptr,  vbptr           ' Load video buffer memory location
-        
-        {{ TEST CODE }}
-        
-        ' Set default colors
-        cmp             initsl, #240 wz
-        if_z  mov       tColor, tColor0
-        cmp             initsl, #239 wz
-        if_z  mov       tColor, tColor1
-        cmp             initsl, #238 wz
-        if_z  mov       tColor, tColor2
-        cmp             initsl, #237 wz
-        if_z  mov       tColor, tColor3
-        cmp             initsl, #236 wz
-        if_z  mov       tColor, tColor4
 
-        ' Load default colors into scanline buffer
-        mov             curseg, numSegs         ' Initialize current scanline segment
-wrt     mov             slbuff+0, tColor
-        add             wrt,  d0                ' Increment scanline buffer memory location
-        djnz            curseg, #wrt            ' Repeat for all scanline segments
-
-        {{ TEST CODE }}
+        {{ RENDERING CODE GOES HERE }}
 
         ' Wait for target scanline        
 slgen   mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
         mov             curseg, numSegs         ' Initialize current scanline segment
-gettsl  rdlong          tgtsl,  clptr           ' Read target scanline number from Main RAM
+gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index from Main RAM
         cmp             tgtsl,  cursl wz        ' Check if current scanline is being requested for display
         if_nz jmp       #gettsl                 ' If not, re-read target scanline
 
@@ -113,21 +93,10 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         cmps            cursl,  #1 wc           ' Check if at bottom of screen
         if_c  mov       cursl,  initsl          ' Reinitialize current scanline if so
         jmp             #slgen                  ' Generate next scanline
-
-' Test values
-tColor        long      0
-tColor0       long      %11000011_11000011_11000011_11000011
-tColor1       long      %00110011_00110011_00110011_00110011
-tColor2       long      %00001111_00001111_00001111_00001111
-tColor3       long      %11111111_11111111_11111111_11111111
-tColor4       long      %00000011_00000011_00000011_00000011
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
-
-' Other values
-d0            long      1 << 9  ' Value to increment destination register
 
 ' Scanline buffer
 slbuff        res       80      ' Buffer containing scanline

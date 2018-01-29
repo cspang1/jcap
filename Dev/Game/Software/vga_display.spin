@@ -8,9 +8,6 @@
                   from hub RAM
 }}
 
-CON
-  segs = 80     ' Set number of scanline segments (320 pixels/4 pixels per waitvid)
-
 VAR
   long  cog_                    ' Variable containing ID of display cog
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
@@ -41,7 +38,7 @@ vga
         mov             cursl,  numLines        ' Initialize current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         mov             lptr,   #2              ' Initialize line pointer
-        mov             scnptr, #segs           ' Initialize segment pointer
+        mov             scnptr, numSegs         ' Initialize segment pointer
 
         ' Generate scancode               
 :rdlng  mov             scancode+0, i0          ' Move rdlong instruction
@@ -54,9 +51,9 @@ vga
         add             :vmmov, d0s0            ' Increment next Main RAM move
         add             :vminc, d0              ' Increment next Main RAM location
         djnz            scnptr, #:rdlng         ' Repeat for all parts of scanline
-        mov             scancode+segs*2+0, i2   ' Move hsync vscl change instruction
-        mov             scancode+segs*2+1, i3   ' Move hsync waitvid instruction
-        mov             scancode+segs*2+2, i4   ' Move jmp instruction
+        mov             scancode+160+0, i2      ' Move hsync vscl change instruction
+        mov             scancode+160+1, i3      ' Move hsync waitvid instruction
+        mov             scancode+160+2, i4      ' Move jmp instruction
 
         ' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins
@@ -126,6 +123,7 @@ numFP         long      10      ' Number of vertical front porch lines
 numVS         long      2       ' Number of vertical sync lines                        
 numBP         long      33      ' Number of vertical back porch lines
 numLines      long      240     ' Number of rendered lines
+numSegs       long      80      ' Number of scanline segments
 
 ' Instructions used to generate scancode
 i0            rdlong    pixels, vbptrs+0        ' Load next pixels
