@@ -129,4 +129,5 @@ tile_box_bl   word      %%3_3_3_3_3_3_3_1                       ' tile 4
 color_palettes
               ' Color palettes
 c_palette1    long      %11000011_00110011_00011111_00000011                    ' palette 0
-c_palette2    long      %00000011_00110011_11111111_11000011                    ' palette 1              
+c_palette2    long      %00000011_00110011_11111111_11000011                    ' palette 1
+              
