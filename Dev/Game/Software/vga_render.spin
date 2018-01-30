@@ -18,7 +18,7 @@ VAR
 
   ' Graphics system attributes
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
-  byte  cog_sem_                ' Cog semaphore
+  long  cog_sem_                ' Cog semaphore
   long  start_line_             ' Variable for start of cog line rendering
   
 PUB start(varAddrBase) : status | cIndex                                        ' Function to start renderer with pointer to Main RAM variables
@@ -51,10 +51,17 @@ DAT
 render
         ' Initialize variables
         rdlong          clptr,  par             ' Initialize pointer to current scanline
-        mov             semptr, par             ' Initialize pointer to semaphore
-        mov             ilptr,  par             ' Initialize pointer to initial scanline
-        add             semptr, #1              ' Point semaphore pointer
-        add             ilptr,  #4              ' Point initial scanline pointer
+        add             semptr, par             ' Initialize pointer to semaphore
+        add             ilptr,  par             ' Initialize pointer to initial scanline
+        add             vbptr,  clptr           ' Point video buffer pointer to video buffer
+        rdlong          vbptr,  vbptr           ' Load video buffer memory location
+        add             tmptr,  clptr           ' Point tile map pointer to tile map
+        rdlong          tmptr,  tmptr           ' Load tile map memory location
+        add             tpptr,  clptr           ' Point tile palette pointer to video buffer
+        rdlong          tpptr,  tpptr           ' Load tile palette memory location
+        add             cpptr,  clptr           ' Point color palette pointer to video buffer
+        rdlong          cpptr,  cpptr           ' Load color palette memory location
+        rdlong          clptr,  clptr           ' Load current scanline memory location
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
@@ -63,27 +70,12 @@ render
         add             initsl, #1              ' Increment initial scanline for next cog
         wrlong          initsl, ilptr           ' Write back next initial scanline
         lockclr         semptr                  ' Clear semaphore
-
-        ' Finish initializing variables
         sub             initsl, #1              ' Re-decrement initial scanline
         neg             initsl, initsl          ' Invert initial scanline
         adds            initsl, numLines        ' Subtract initial scanline from number of scanlines
         mov             cursl,  initsl          ' Initialize current scanline
-        mov             vbptr,  clptr           ' Initialize pointer to video buffer
-        add             vbptr,  #4              ' Point video buffer pointer to video buffer
-        rdlong          vbptr,  vbptr           ' Load video buffer memory location
-        mov             tmptr,  clptr           ' Initialize pointer to tile map
-        add             tmptr,  #8              ' Point video buffer pointer to video buffer
-        rdlong          tmptr,  tmptr           ' Load video buffer memory location
-        mov             tpptr,  clptr           ' Initialize pointer to tile palettes
-        add             tpptr,  #12             ' Point video buffer pointer to video buffer
-        rdlong          tpptr,  tpptr           ' Load video buffer memory location
-        mov             cpptr,  clptr           ' Initialize pointer to color palettes
-        add             cpptr,  #16             ' Point video buffer pointer to video buffer
-        rdlong          cpptr,  cpptr           ' Load video buffer memory location
-        rdlong          clptr,  clptr           ' Load current scanline memory location
 
-        {{ RENDERING CODE GOES HERE }}
+        {{ RENDERING CODE GOES HERE }} 
 
         ' Load default colors into scanline buffer
 slgen
@@ -97,13 +89,13 @@ wrt     mov             slbuff+0, tColor        ' Store pixels in scanline buffe
         {{ RENDERING CODE GOES HERE }}
 
         ' Wait for target scanline
+loop    mov             curseg, numSegs         ' Initialize current scanline segment
+        mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
 gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index from Main RAM
         cmp             tgtsl,  cursl wz        ' Check if current scanline is being requested for display
         if_nz jmp       #gettsl                 ' If not, re-read target scanline
 
         ' Write scanline buffer to video buffer in Main RAM
-        mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
-        mov             curseg, numSegs         ' Initialize current scanline segment
 write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer to Main RAM video buffer
         add             write,  d0              ' Increment scanline buffer memory location
         add             curvb,  #4              ' Increment video buffer memory location
@@ -121,20 +113,20 @@ tColor        long      0
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
 
+' Main RAM pointers
+semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
+ilptr         long      8       ' Pointer to location of initial scanline in Main RAM w/ offset
+clptr         long      0       ' Pointer to location of current scanline in Main RAM w/ offset
+vbptr         long      4       ' Pointer to location of video buffer in Main RAM w/ offset
+tmptr         long      8       ' Pointer to location of tile map in Main RAM w/ offset
+tpptr         long      12      ' Pointer to location of tile palettes in Main RAM w/ offset
+cpptr         long      16      ' Pointer to location of color palettes in Main RAM w/ offset
+
 ' Other values
 d0            long      1 << 9  ' Value to increment destination register
 
 ' Scanline buffer
-slbuff        res       80      ' Buffer containing scanline
-
-' Main RAM pointers
-semptr        res       1       ' Pointer to location of semaphore in Main RAM
-ilptr         res       1       ' Pointer to location of initial scanline in Main RAM
-clptr         res       1       ' Pointer to location of current scanline in Main RAM
-vbptr         res       1       ' Pointer to location of video buffer in Main RAM
-tmptr         res       1       ' Pointer to location of tile map in Main RAM
-tpptr         res       1       ' Pointer to location of tile palettes in Main RAM
-cpptr         res       1       ' Pointer to location of color palettes in Main RAM
+slbuff        long      0[80]   ' Buffer containing scanline
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
