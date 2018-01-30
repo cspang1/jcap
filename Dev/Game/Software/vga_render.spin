@@ -34,6 +34,7 @@ PUB start(varAddrBase) : status | cIndex                                        
   
   repeat cIndex from 0 to numRenderCogs - 1
     ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1                  ' Initialize cog running "render" routine with reference to start of variables
+      stop                                                                      ' Stop render cogs if running
       return FALSE                                                              ' Graphics system failed to initialize
 
   lockret(cog_sem_)                                                             ' Release lock
