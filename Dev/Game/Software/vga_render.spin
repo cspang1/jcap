@@ -69,18 +69,18 @@ render
         adds            initsl, numLines        ' Subtract initial scanline from number of scanlines
         mov             cursl,  initsl          ' Initialize current scanline
         mov             vbptr,  clptr           ' Initialize pointer to video buffer
-        mov             tmptr,  clptr           ' Initialize pointer to tile map
-        mov             tpptr,  clptr           ' Initialize pointer to tile palettes
-        mov             cpptr,  clptr           ' Initialize pointer to color palettes
         add             vbptr,  #4              ' Point video buffer pointer to video buffer
-        add             tmptr,  #8              ' Point video buffer pointer to video buffer
-        add             tpptr,  #12             ' Point video buffer pointer to video buffer
-        add             cpptr,  #16             ' Point video buffer pointer to video buffer
-        rdlong          clptr,  clptr           ' Load current scanline memory location
         rdlong          vbptr,  vbptr           ' Load video buffer memory location
+        mov             tmptr,  clptr           ' Initialize pointer to tile map
+        add             tmptr,  #8              ' Point video buffer pointer to video buffer
         rdlong          tmptr,  tmptr           ' Load video buffer memory location
+        mov             tpptr,  clptr           ' Initialize pointer to tile palettes
+        add             tpptr,  #12             ' Point video buffer pointer to video buffer
         rdlong          tpptr,  tpptr           ' Load video buffer memory location
+        mov             cpptr,  clptr           ' Initialize pointer to color palettes
+        add             cpptr,  #16             ' Point video buffer pointer to video buffer
         rdlong          cpptr,  cpptr           ' Load video buffer memory location
+        rdlong          clptr,  clptr           ' Load current scanline memory location
 
         {{ RENDERING CODE GOES HERE }}
 
