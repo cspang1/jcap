@@ -77,14 +77,14 @@ render
 
         {{ RENDERING CODE GOES HERE }} 
 
-        ' Load default colors into scanline buffer
-slgen
-        mov             curseg, numSegs         ' Initialize current scanline segment
-        rdlong          tColor, cpptr           ' Load test color from color palette
-wrt     mov             slbuff+0, tColor        ' Store pixels in scanline buffer
-        add             wrt,    d0              ' Increment scanline buffer memory location
-        djnz            curseg, #wrt            ' Repeat for all scanline segments
-        movd            wrt,    #slbuff         ' Reset initial scanline buffer position
+slgen   'Calculate tile map line
+        mov             tmindx, cursl           ' Initialize tile map index
+        shr             tmindx, #3              ' floor(cursl/8)
+
+        ' Calculate tile palette line
+        mov             tpindx, tmindx          ' Initialize tile palette index
+        and             tpindx, #7              ' tpindx%8
+
 
         {{ RENDERING CODE GOES HERE }}
 
@@ -105,9 +105,6 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         cmps            cursl,  #1 wc           ' Check if at bottom of screen
         if_c  mov       cursl,  initsl          ' Reinitialize current scanline if so
         jmp             #slgen                  ' Generate next scanline
-
-' Test values
-tColor        long      0
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
@@ -127,6 +124,10 @@ d0            long      1 << 9  ' Value to increment destination register
 
 ' Scanline buffer
 slbuff        long      0[80]   ' Buffer containing scanline
+
+' Graphics pointers
+tmindx        res       1       ' Tile map index
+tpindx        res       1       ' Tile palette index
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
