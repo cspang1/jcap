@@ -71,11 +71,9 @@ render
         wrlong          initsl, ilptr           ' Write back next initial scanline
         lockclr         semptr                  ' Clear semaphore
         sub             initsl, #1              ' Re-decrement initial scanline
-        neg             initsl, initsl          ' Invert initial scanline
-        adds            initsl, numLines        ' Subtract initial scanline from number of scanlines
         mov             cursl,  initsl          ' Initialize current scanline
 
-        {{ RENDERING CODE GOES HERE }} 
+        {{ RENDERING CODE GOES HERE }}
 
 slgen   'Calculate tile map line memory location
         mov             tmindx, cursl           ' Initialize tile map index
@@ -86,8 +84,9 @@ slgen   'Calculate tile map line memory location
         add             tmindx, temp            ' tmindx = tmindx(64+16)
         add             tmindx, tmptr           ' tmindx += tmptr + tmindx*80
 
-        {{ START OF ITERATION THROUGH ALL TILES IN TILE MAP LINE }}
-        rdword          curmt,  tmindx          ' Load current map tile from Main RAM
+        ' Generate scanline data
+        mov             curseg, numTiles        ' Initialize number of tiles to parse
+tile    rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile to into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
         shr             cpindx, #8              ' Isolate color palette index of map tile
@@ -95,7 +94,7 @@ slgen   'Calculate tile map line memory location
         ' Calculate and load color palette memory location
         shl             cpindx, #2              ' curmt *= 4
         add             cpindx, cpptr           ' curmt += cpptr
-        rdlong          curcp,  cpindx          ' Load current map tile from Main RAM
+        rdlong          curcp,  cpindx          ' Load current color palette from Main RAM
 
         ' Calculate and load tile palette line memory location
         mov             tpindx, cursl           ' Initialize tile palette index
@@ -106,12 +105,23 @@ slgen   'Calculate tile map line memory location
         add             tpindx, tpptr           ' tpindx += tpptr
         rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
 
-        {{ PARSE CURRENT PALETTE TILE'S COLORS HERE }}
+        {{ TEST STORE COLOR PALETTE }}
+wrt0    mov             slbuff+0, curcp         ' Store current color palette into scanline buffer
+wrt1    mov             slbuff+1, curcp         ' Store current color palette into scanline buffer
+        add             wrt0,   d1              ' Increment scanline buffer memory location
+        add             wrt1,   d1              ' Increment scanline buffer memory location
+
+        add             tmindx, #2              ' Increment pointer to tile in tile map
+
+        djnz            curseg, #tile           ' Repeat for all tiles in scanline
+
+        movd            wrt0,   #slbuff+0       ' Reset wrt0
+        movd            wrt1,   #slbuff+1       ' Reset wrt1
 
         {{ RENDERING CODE GOES HERE }}
 
         ' Wait for target scanline
-loop    mov             curseg, numSegs         ' Initialize current scanline segment
+        mov             curseg, numSegs         ' Initialize current scanline segment
         mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
 gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index from Main RAM
         cmp             tgtsl,  cursl wz        ' Check if current scanline is being requested for display
@@ -123,14 +133,18 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         add             curvb,  #4              ' Increment video buffer memory location
         djnz            curseg, #write          ' Repeat for all scanline segments
         movd            write,  #slbuff         ' Reset initial scanline buffer position
-        subs            cursl,  #5              ' Decrement current scanline for next render
-        cmps            cursl,  #1 wc           ' Check if at bottom of screen
-        if_c  mov       cursl,  initsl          ' Reinitialize current scanline if so
+        add             cursl,  #5              ' Increment current scanline for next render
+        cmp             cursl,  numLines wc     ' Check if at bottom of screen
+        if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
         jmp             #slgen                  ' Generate next scanline
+
+' Test values
+d1            long      1 << 10 ' Value to increment destination register by 2
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
+numTiles      long      40      ' Number of tiles per scanline
 
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset

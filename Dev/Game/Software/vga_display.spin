@@ -35,7 +35,7 @@ vga
         add             vbptrs, #4              ' Point video buffer pointer to video buffer
         rdlong          clptr,  clptr           ' Load current scanline memory location
         rdlong          vbptrs, vbptrs          ' Load video buffer memory location
-        mov             cursl,  numLines        ' Initialize current scanline
+        mov             cursl,  #0              ' Initialize current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         mov             lptr,   #2              ' Initialize line pointer
         mov             scnptr, numSegs         ' Initialize segment pointer
@@ -94,10 +94,11 @@ active  mov             vscl,   VVidScl         ' Set video scale for visible vi
         jmp             #scancode               ' Display line
 scanret djnz            lptr,   #active         ' Display same line twice
         mov             lptr,   #2              ' Reset line pointer             
-        sub             cursl,  #1              ' Decrement current scanline
+        add             cursl,  #1              ' Increment current scanline
         wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
-        tjnz            cursl,  #active         ' Continue displaying remaining scanlines 
-        mov             cursl,  numLines        ' Reset current scanline
+        cmp             cursl,  numLines wz     ' Check if at bottom of screen
+        if_nz jmp       #active                 ' Continue displaying remaining scanlines 
+        mov             cursl,  #0              ' Reset current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         jmp             #video                  ' Return to start of display
 
