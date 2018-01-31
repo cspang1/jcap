@@ -77,14 +77,36 @@ render
 
         {{ RENDERING CODE GOES HERE }} 
 
-slgen   'Calculate tile map line
+slgen   'Calculate tile map line memory location
         mov             tmindx, cursl           ' Initialize tile map index
-        shr             tmindx, #3              ' floor(cursl/8)
+        shr             tmindx, #3              ' tmindx = floor(cursl/8)
+        mov             temp,   tmindx          ' Store tile map index into temp variable
+        shl             temp,   #6              ' tmindx *= 64
+        shl             tmindx, #4              ' tmindx *= 16
+        add             tmindx, temp            ' tmindx = tmindx(64+16)
+        add             tmindx, tmptr           ' tmindx += tmptr + tmindx*80
 
-        ' Calculate tile palette line
-        mov             tpindx, tmindx          ' Initialize tile palette index
-        and             tpindx, #7              ' tpindx%8
+        {{ START OF ITERATION THROUGH ALL TILES IN TILE MAP LINE }}
+        rdword          curmt,  tmindx          ' Load current map tile from Main RAM
+        mov             cpindx, curmt           ' Store map tile to into color palette index
+        and             curmt,  #255            ' Isolate palette tile index of map tile
+        shr             cpindx, #8              ' Isolate color palette index of map tile
 
+        ' Calculate and load color palette memory location
+        shl             cpindx, #2              ' curmt *= 4
+        add             cpindx, cpptr           ' curmt += cpptr
+        rdlong          curcp,  cpindx          ' Load current map tile from Main RAM
+
+        ' Calculate and load tile palette line memory location
+        mov             tpindx, cursl           ' Initialize tile palette index
+        and             tpindx, #7              ' tpindx %= 8
+        shl             tpindx, #2              ' tpindx *= 2
+        shl             curmt,  #4              ' tilePaletteIndex *= 16
+        add             tpindx, curmt           ' tpindx += paletteTileIndex
+        add             tpindx, tpptr           ' tpindx += tpptr
+        rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
+
+        {{ PARSE CURRENT PALETTE TILE'S COLORS HERE }}
 
         {{ RENDERING CODE GOES HERE }}
 
@@ -128,6 +150,10 @@ slbuff        long      0[80]   ' Buffer containing scanline
 ' Graphics pointers
 tmindx        res       1       ' Tile map index
 tpindx        res       1       ' Tile palette index
+cpindx        res       1       ' Color palette index
+curmt         res       1       ' Current map tile
+curpt         res       1       ' Current palette tile
+curcp         res       1       ' Current color palette
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
@@ -135,5 +161,6 @@ cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline
 curvb         res       1       ' Container for current video buffer Main RAM location being written
 curseg        res       1       ' Container for current segment being written to Main RAM
+temp          res       1       ' Container for temporary variables
 
         fit
