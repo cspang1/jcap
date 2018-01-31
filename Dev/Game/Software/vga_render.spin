@@ -53,6 +53,7 @@ render
         rdlong          clptr,  par             ' Initialize pointer to current scanline
         add             semptr, par             ' Initialize pointer to semaphore
         add             ilptr,  par             ' Initialize pointer to initial scanline
+        rdbyte          semptr, semptr          ' Get semaphore ID
         add             vbptr,  clptr           ' Point video buffer pointer to video buffer
         rdlong          vbptr,  vbptr           ' Load video buffer memory location
         add             tmptr,  clptr           ' Point tile map pointer to tile map
