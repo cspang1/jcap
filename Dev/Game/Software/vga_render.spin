@@ -108,13 +108,11 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         mov             ftindx, #2              ' Initialize full tile index
 ftile   mov             htindx, #4              ' Initialize half tile index
 htile   mov             temp,   curpt           ' Load current palette tile into temp variable
-        and             temp,   ptmask          ' Mask highest 2 bits
-        shl             curpt,  #2              ' Shift current palette tile left 2 bits
-        shr             temp,   #14
+        shl             curpt,  #2              ' Shift palette tile left 2 bits
+        shr             temp,   #14             ' LSB align palette
         mov             tmpcol, curcp           ' Store current color palette into temp color
         shl             temp,   #3              ' Multiply palette tile color palette bits by 8
         shr             tmpcol, temp            ' Shift to specified color        
-        and             tmpcol, #255            ' Mask color
         shl             tmpcol, #24             ' Align color to MSB
 shbuf   shr             slbuff+0, #8            ' Allocate space for color
 orbuf   or              slbuff+0, tmpcol        ' Store color in scanline buffer
@@ -168,7 +166,6 @@ cpptr         long      16      ' Pointer to location of color palettes in Main 
 
 ' Other values
 d0            long      1 << 9  ' Value to increment destination register
-ptmask        long      $C000   ' Value to mask MSBs of current palette tile
 
 ' Scanline buffer
 slbuff        long      0[80]   ' Buffer containing scanline
