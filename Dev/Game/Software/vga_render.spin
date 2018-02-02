@@ -36,7 +36,7 @@ PUB start(varAddrBase) : status | cIndex                                        
     ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1                  ' Initialize cog running "render" routine with reference to start of variables
       stop                                                                      ' Stop render cogs if running
       return FALSE                                                              ' Graphics system failed to initialize
-
+  
   lockret(cog_sem_)                                                             ' Release lock
   
   return TRUE                                                                   ' Graphics system successfully initialized
@@ -92,32 +92,46 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         and             curmt,  #255            ' Isolate palette tile index of map tile
         shr             cpindx, #8              ' Isolate color palette index of map tile
 
-        ' Calculate and load color palette memory location
+        ' Calculate and load color palette colors
         shl             cpindx, #2              ' curmt *= 4
         add             cpindx, cpptr           ' curmt += cpptr
         rdlong          curcp,  cpindx          ' Load current color palette from Main RAM
 
-        ' Calculate and load tile palette line memory location
+        ' Calculate and load palette tile
         mov             tpindx, cursl           ' Initialize tile palette index
         and             tpindx, #7              ' tpindx %= 8
-        shl             tpindx, #2              ' tpindx *= 2
+        shl             tpindx, #1              ' tpindx *= 2
         shl             curmt,  #4              ' tilePaletteIndex *= 16
         add             tpindx, curmt           ' tpindx += paletteTileIndex
         add             tpindx, tpptr           ' tpindx += tpptr
-        rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
+        rdword          curpt,  tpindx          ' Load current palette tile from Main RAM
 
-        {{ TEST STORE COLOR PALETTE }}
-wrt0    mov             slbuff+0, curcp         ' Store current color palette into scanline buffer
-wrt1    mov             slbuff+1, curcp         ' Store current color palette into scanline buffer
-        add             wrt0,   d1              ' Increment scanline buffer memory location
-        add             wrt1,   d1              ' Increment scanline buffer memory location
+        ' Parse palette tile
+        mov             ftindx, #2              ' Initialize full tile index
+ftile   mov             htindx, #4              ' Initialize half tile index
+htile   mov             temp,   curpt           ' Load current palette tile into temp variable
+        and             temp,   #3              ' Mask lowest 2 bits
+        shr             curpt,  #2              ' Shift current palette tile right 2 bits
+        mov             tmpcol, curcp           ' Store current color palette into temp color
+        shl             temp,   #3              ' Multiply palette tile color palette bits by 8
+        shr             tmpcol, temp            ' Shift to specified color        
+        and             tmpcol, #255            ' Mask specified color
+shbuf   shl             slbuff+0, #8            ' Allocate space for color
+orbuf   or              slbuff+0, tmpcol        ' Enter color into scanline buffer
+
+        djnz            htindx, #htile          ' Repeat for half of tile
+
+        add             shbuf,  d0              ' Increment scanline buffer OR position
+        add             orbuf,  d0              ' Increment scanline buffer shift position
+
+        djnz            ftindx, #ftile          ' Repeat for second half of tile
 
         add             tmindx, #2              ' Increment pointer to tile in tile map
 
         djnz            curseg, #tile           ' Repeat for all tiles in scanline
 
-        movd            wrt0,   #slbuff+0       ' Reset wrt0
-        movd            wrt1,   #slbuff+1       ' Reset wrt1
+        movd            shbuf,  #slbuff+0       ' Reset shbuf
+        movd            orbuf,  #slbuff+0       ' Reset orbuf
 
         {{ RENDERING CODE GOES HERE }}
 
@@ -141,6 +155,7 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
 
 ' Test values
 d1            long      1 << 10 ' Value to increment destination register by 2
+tColor        long      0
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
@@ -176,6 +191,10 @@ cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline
 curvb         res       1       ' Container for current video buffer Main RAM location being written
 curseg        res       1       ' Container for current segment being written to Main RAM
+htbuff        res       1       ' Container for half-tile buffer
+htindx        res       1       ' Container for half tile index
+ftindx        res       1       ' Container for full tile index
+tmpcol        res       1       ' Container for temporary color
 temp          res       1       ' Container for temporary variables
 
         fit
