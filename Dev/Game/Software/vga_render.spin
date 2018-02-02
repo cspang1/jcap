@@ -74,8 +74,6 @@ render
         sub             initsl, #1              ' Re-decrement initial scanline
         mov             cursl,  initsl          ' Initialize current scanline
 
-        {{ RENDERING CODE GOES HERE }}
-
 slgen   'Calculate tile map line memory location
         mov             tmindx, cursl           ' Initialize tile map index
         shr             tmindx, #3              ' tmindx = floor(cursl/8)
@@ -110,30 +108,27 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         mov             ftindx, #2              ' Initialize full tile index
 ftile   mov             htindx, #4              ' Initialize half tile index
 htile   mov             temp,   curpt           ' Load current palette tile into temp variable
-        and             temp,   #3              ' Mask lowest 2 bits
-        shr             curpt,  #2              ' Shift current palette tile right 2 bits
+        and             temp,   ptmask          ' Mask highest 2 bits
+        shl             curpt,  #2              ' Shift current palette tile left 2 bits
+        shr             temp,   #14
         mov             tmpcol, curcp           ' Store current color palette into temp color
         shl             temp,   #3              ' Multiply palette tile color palette bits by 8
         shr             tmpcol, temp            ' Shift to specified color        
-        and             tmpcol, #255            ' Mask specified color
-shbuf   shl             slbuff+0, #8            ' Allocate space for color
-orbuf   or              slbuff+0, tmpcol        ' Enter color into scanline buffer
-
+        and             tmpcol, #255            ' Mask color
+        shl             tmpcol, #24             ' Align color to MSB
+shbuf   shr             slbuff+0, #8            ' Allocate space for color
+orbuf   or              slbuff+0, tmpcol        ' Store color in scanline buffer
         djnz            htindx, #htile          ' Repeat for half of tile
 
         add             shbuf,  d0              ' Increment scanline buffer OR position
         add             orbuf,  d0              ' Increment scanline buffer shift position
-
         djnz            ftindx, #ftile          ' Repeat for second half of tile
 
         add             tmindx, #2              ' Increment pointer to tile in tile map
-
         djnz            curseg, #tile           ' Repeat for all tiles in scanline
 
-        movd            shbuf,  #slbuff+0       ' Reset shbuf
-        movd            orbuf,  #slbuff+0       ' Reset orbuf
-
-        {{ RENDERING CODE GOES HERE }}
+        movd            shbuf,  #slbuff+0       ' Reset shbuf destination address
+        movd            orbuf,  #slbuff+0       ' Reset orbuf destination address
 
         ' Wait for target scanline
         mov             curseg, numSegs         ' Initialize current scanline segment
@@ -173,6 +168,7 @@ cpptr         long      16      ' Pointer to location of color palettes in Main 
 
 ' Other values
 d0            long      1 << 9  ' Value to increment destination register
+ptmask        long      $C000   ' Value to mask MSBs of current palette tile
 
 ' Scanline buffer
 slbuff        long      0[80]   ' Buffer containing scanline
