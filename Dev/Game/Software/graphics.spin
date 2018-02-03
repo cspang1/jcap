@@ -32,7 +32,7 @@ PUB main
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
   tile_map_base_ := @tile_maps                          ' Point tile map base to base of tile maps
   tile_palette_base_ := @tile_palettes                  ' Point tile palette base to base of tile palettes
-  color_palette_base_ := @color_palettes                ' Point color palette base to base of color palettes
+  color_palette_base_ := @tile_color_palettes           ' Point color palette base to base of color palettes
 
   ' Start VGA routines
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
@@ -77,7 +77,7 @@ tile_map0     word      $00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,
 
 tile_palettes
               ' Empty tile
-tile_blank    word      %%0_0_0_0_0_0_0_0                       ' tile 0
+tile_blank    word      %%0_0_0_0_0_0_0_0       ' tile 0
               word      %%0_0_0_0_0_0_0_0
               word      %%0_0_0_0_0_0_0_0
               word      %%0_0_0_0_0_0_0_0
@@ -87,7 +87,7 @@ tile_blank    word      %%0_0_0_0_0_0_0_0                       ' tile 0
               word      %%0_0_0_0_0_0_0_0
                          
               ' Upper left corner of box
-tile_box_tl   word      %%1_1_1_1_1_1_1_1                       ' tile 1
+tile_box_tl   word      %%1_1_1_1_1_1_1_1       ' tile 1
               word      %%1_3_3_3_3_3_3_3
               word      %%1_3_3_3_3_3_3_3
               word      %%1_3_3_3_3_3_3_3
@@ -97,7 +97,7 @@ tile_box_tl   word      %%1_1_1_1_1_1_1_1                       ' tile 1
               word      %%1_3_3_3_3_3_3_3
 
               ' Upper right corner of box
-tile_box_tr   word      %%1_1_1_1_1_1_1_1                       ' tile 2
+tile_box_tr   word      %%1_1_1_1_1_1_1_1       ' tile 2
               word      %%3_3_3_3_3_3_3_1
               word      %%3_3_3_3_3_3_3_1
               word      %%3_3_3_3_3_3_3_1
@@ -107,7 +107,7 @@ tile_box_tr   word      %%1_1_1_1_1_1_1_1                       ' tile 2
               word      %%3_3_3_3_3_3_3_1
 
               ' Bottom right corner of box
-tile_box_br   word      %%3_3_3_3_3_3_3_1                       ' tile 3
+tile_box_br   word      %%3_3_3_3_3_3_3_1       ' tile 3
               word      %%3_3_3_3_3_3_3_1
               word      %%3_3_3_3_3_3_3_1
               word      %%3_3_3_3_3_3_3_1
@@ -117,7 +117,7 @@ tile_box_br   word      %%3_3_3_3_3_3_3_1                       ' tile 3
               word      %%1_1_1_1_1_1_1_1
 
               ' Bottom left corner of box
-tile_box_bl   word      %%1_3_3_3_3_3_3_3                       ' tile 4
+tile_box_bl   word      %%1_3_3_3_3_3_3_3       ' tile 4
               word      %%1_3_3_3_3_3_3_3
               word      %%1_3_3_3_3_3_3_3
               word      %%1_3_3_3_3_3_3_3
@@ -126,7 +126,7 @@ tile_box_bl   word      %%1_3_3_3_3_3_3_3                       ' tile 4
               word      %%1_3_3_3_3_3_3_3
               word      %%1_1_1_1_1_1_1_1              
 
-color_palettes
+tile_color_palettes
               ' Color palettes
-c_palette1    long      %11000011_00110011_00001111_00000011                    ' palette 0
-c_palette2    long      %00000011_00110011_11111111_11000011                    ' palette 1
+c_palette1    long      %11000011_00110011_00001111_00000011                    ' tile color palette 0
+c_palette2    long      %00000011_00110011_11111111_11000011                    ' tile color palette 1
