@@ -38,7 +38,7 @@ db/
 incremental_db/
 .qsys_edit/
 
-# Generated Files #
+# Generated files #
 *.ammdb
 *.cdb
 *.done
@@ -58,3 +58,14 @@ incremental_db/
 *.rpt
 *.smsg
 *.summary
+
+
+###########
+# LTSpice #
+###########
+
+# Generated files
+*.log
+*.raw
+*.net
+*.fft
