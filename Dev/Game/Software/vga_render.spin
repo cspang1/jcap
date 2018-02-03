@@ -109,9 +109,9 @@ ftile   mov             htindx, #4              ' Initialize half tile index
 htile   mov             temp,   curpt           ' Load current palette tile into temp variable
         shl             curpt,  #4              ' Shift palette tile left 4 bits
         shr             temp,   #28             ' LSB align palette index
-        mov             tmpcol, cpindx          ' Store color palette index into temp variable
-        add             tmpcol, temp            ' Point color
-        rdbyte          curcp,  tmpcol          ' Load color
+        mov             curcp,  cpindx          ' Store color palette index into temp variable
+        add             curcp,  temp            ' Point color
+        rdbyte          curcp,  curcp           ' Load color
         shl             curcp,  #24             ' Align color to MSB
 
         ' Store pixels
@@ -186,5 +186,5 @@ htbuff        res       1       ' Container for half-tile buffer
 htindx        res       1       ' Container for half tile index
 ftindx        res       1       ' Container for full tile index
 temp          res       1       ' Container for temporary variables
-tmpcol        res       1       ' Container for temporary color
+
         fit
