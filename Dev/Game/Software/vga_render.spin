@@ -106,25 +106,23 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         ' Parse palette tile pixels
         mov             ftindx, #2              ' Initialize full tile index
 ftile   mov             htindx, #4              ' Initialize half tile index
+        mov             htbuff, #0              ' Initialize half-tile pixel buffer
 htile   mov             temp,   curpt           ' Load current palette tile into temp variable
-        shl             curpt,  #4              ' Shift palette tile left 4 bits
         shr             temp,   #28             ' LSB align palette index
-        mov             curcp,  cpindx          ' Store color palette index into temp variable
-        add             curcp,  temp            ' Point color
-        rdbyte          curcp,  curcp           ' Load color
-        shl             curcp,  #24             ' Align color to MSB
+        add             temp,   cpindx          ' Calculate color palette offset
+        rdbyte          curcp,  temp            ' Load color
+        or              htbuff, curcp           ' Store color
+        ror             htbuff, #8              ' Allocate space for next color
+        shl             curpt,  #4              ' Shift palette tile left 4 bits
+        djnz            htindx, #htile          ' Repeat for half of tile
 
         ' Store pixels
-shbuf   shr             slbuff+0, #8            ' Allocate space for color
-orbuf   or              slbuff+0, curcp         ' Store color in scanline buffer
-        djnz            htindx, #htile          ' Repeat for half of tile
+shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         add             shbuf,  d0              ' Increment scanline buffer OR position
-        add             orbuf,  d0              ' Increment scanline buffer shift position
         djnz            ftindx, #ftile          ' Repeat for second half of tile
         add             tmindx, #2              ' Increment pointer to tile in tile map
         djnz            curseg, #tile           ' Repeat for all tiles in scanline
         movd            shbuf,  #slbuff+0       ' Reset shbuf destination address
-        movd            orbuf,  #slbuff+0       ' Reset orbuf destination address
 
         ' Wait for target scanline
         mov             curseg, numSegs         ' Initialize current scanline segment
@@ -183,8 +181,8 @@ tgtsl         res       1       ' Container for target scanline
 curvb         res       1       ' Container for current video buffer Main RAM location being written
 curseg        res       1       ' Container for current segment being written to Main RAM
 htbuff        res       1       ' Container for half-tile buffer
-htindx        res       1       ' Container for half tile index
-ftindx        res       1       ' Container for full tile index
+htindx        res       1       ' Container for half-tile index
+ftindx        res       1       ' Container for full-tile index
 temp          res       1       ' Container for temporary variables
 
         fit
