@@ -58,10 +58,16 @@ render
         rdlong          vbptr,  vbptr           ' Load video buffer memory location
         add             tmptr,  clptr           ' Point tile map pointer to tile map
         rdlong          tmptr,  tmptr           ' Load tile map memory location
-        add             tpptr,  clptr           ' Point tile palette pointer to video buffer
+        add             tpptr,  clptr           ' Point tile palette pointer to tile palettes
         rdlong          tpptr,  tpptr           ' Load tile palette memory location
-        add             tcpptr, clptr           ' Point color palette pointer to video buffer
+        add             tcpptr, clptr           ' Point color palette pointer to color palettes
         rdlong          tcpptr, tcpptr          ' Load color palette memory location
+        add             saptr,  clptr           ' Point sprite attribute table pointer to sprite attribute table
+        rdlong          saptr,  saptr           ' Load sprite attribute table memory location
+        add             spptr,  clptr           ' Point sprite palette pointer to sprite palettes
+        rdlong          spptr,  spptr           ' Load sprite palette memory location
+        add             scpptr, clptr           ' Point sprite color palette pointer to sprite color palettes
+        rdlong          scpptr, scpptr          ' Load sprite color palette memory location
         rdlong          clptr,  clptr           ' Load current scanline memory location
 
         ' Get initial scanline and set next cogs via semaphore
@@ -84,7 +90,7 @@ slgen   'Calculate tile map line memory location
         add             tmindx, tmptr           ' tmindx += tmptr + tmindx*80
 
         ' Generate each tile
-        mov             curseg, numTiles        ' Initialize number of tiles to parse
+        mov             index , numTiles        ' Initialize number of tiles to parse
 tile    rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile to into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
@@ -121,17 +127,49 @@ shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         add             shbuf,  d0              ' Increment scanline buffer OR position
         djnz            ftindx, #ftile          ' Repeat for second half of tile
         add             tmindx, #2              ' Increment pointer to tile in tile map
-        djnz            curseg, #tile           ' Repeat for all tiles in scanline
+        djnz            index , #tile           ' Repeat for all tiles in scanline
         movd            shbuf,  #slbuff+0       ' Reset shbuf destination address
 
         {{ RENDER SPRITES HERE }}
 
+        ' 1. Iteratively read sprite attribute table
+        ' 2. Parse each element of SAT
+        ' 3. Test visibility w/ y then x coordinates
+        ' 4. Calculate scanline buffer memory addresses
+        ' 5. Parse sprite line
+        ' 6. Replace scanline buffer memory entries
+        mov             index,  numSprts        ' Initialize size of sprite attribute table
+        mov             tmindx, saptr           ' Initialize sprite attribute table index
+sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
 
+        ' Check if sprite is on scanline
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        shr             temp,   #7              ' Shift vertical position to LSB
+        and             temp,   #255            ' Mask out vertical position
+        mov             spypos, temp            ' Store sprite y position
+        add             temp,   #8              ' Calculate sprite y position upper bound
+        and             temp,   #255            ' Re-mask to compensate for wrapped sprites
+        cmp             temp,   cursl wc        ' Check sprite upper bound
+        if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound
+        if_nc jmp       #:sprren                ' Render sprite if in bounds
+        cmp             temp,   spypos wc       ' Check if sprite is wrapped
+        if_nc jmp       #:skip                  ' If not, skip sprite
+        cmp             temp,   cursl wc        ' Check sprite upper bound
+        if_nc jmp       #:sprren                ' Render sprite if in bounds
+        cmp             cursl,  spypos wc       ' Check sprite lower bound
+        if_nc jmp       #:sprren                ' Render sprite if in bounds
+        jmp       #:skip                        ' Skip sprite
+
+        ' Render sprite
+:sprren mov             slbuff, tColor
+
+:skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
+        djnz            index,  #sprites        ' Repeat for all sprites in SAT
 
         {{ RENDER SPRITES HERE }}
 
         ' Wait for target scanline
-        mov             curseg, numSegs         ' Initialize current scanline segment
+        mov             index , numSegs         ' Initialize current scanline segment
         mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
 gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index from Main RAM
         cmp             tgtsl,  cursl wz        ' Check if current scanline is being requested for display
@@ -141,17 +179,21 @@ gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index fro
 write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer to Main RAM video buffer
         add             write,  d0              ' Increment scanline buffer memory location
         add             curvb,  #4              ' Increment video buffer memory location
-        djnz            curseg, #write          ' Repeat for all scanline segments
+        djnz            index , #write          ' Repeat for all scanline segments
         movd            write,  #slbuff         ' Reset initial scanline buffer position
         add             cursl,  #5              ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
         jmp             #slgen                  ' Generate next scanline
+
+' Test values
+tColor        long      %00000011_11000011_00001111_11111111
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
 numTiles      long      40      ' Number of tiles per scanline
+numSprts      long      8       ' Number of sprites in sprite attribute table {{ TEST VALUE OF 1 }}
 
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
@@ -171,7 +213,7 @@ d0            long      1 << 9  ' Value to increment destination register
 ' Scanline buffer
 slbuff        long      0[80]   ' Buffer containing scanline
 
-' Graphics pointers
+' Tile pointers
 tmindx        res       1       ' Tile map index
 tpindx        res       1       ' Tile palette index
 cpindx        res       1       ' Color palette index
@@ -179,15 +221,22 @@ curmt         res       1       ' Current map tile
 curpt         res       1       ' Current palette tile
 curcp         res       1       ' Current color palette
 
+' Sprite pointers
+spindx        res       1       ' Sprite palette index
+spxpos        res       1       ' Sprite horizontal position
+spypos        res       1       ' Sprite vertical position
+spcol         res       1       ' Sprite color palette index
+
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
 cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline
 curvb         res       1       ' Container for current video buffer Main RAM location being written
-curseg        res       1       ' Container for current segment being written to Main RAM
+index         res       1       ' Container for temporary index
 htbuff        res       1       ' Container for half-tile buffer
 htindx        res       1       ' Container for half-tile index
 ftindx        res       1       ' Container for full-tile index
 temp          res       1       ' Container for temporary variables
+sattmp        res       1       ' Container for intermediate sprite attribute table variables
 
         fit
