@@ -147,18 +147,15 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         shr             temp,   #7              ' Shift vertical position to LSB
         and             temp,   #255            ' Mask out vertical position
         mov             spypos, temp            ' Store sprite y position
-        add             temp,   #8              ' Calculate sprite y position upper bound
-        and             temp,   #255            ' Re-mask to compensate for wrapped sprites
-        cmp             temp,   cursl wc        ' Check sprite upper bound
-        if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound
+        add             temp,   #7              ' Calculate sprite y position upper bound
+        cmp             temp,   cursl wc        ' Check sprite upper bound (inclusive)
+        if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound (inclusive)
         if_nc jmp       #:sprren                ' Render sprite if in bounds
-        cmp             temp,   spypos wc       ' Check if sprite is wrapped
-        if_nc jmp       #:skip                  ' If not, skip sprite
-        cmp             temp,   cursl wc        ' Check sprite upper bound
-        if_nc jmp       #:sprren                ' Render sprite if in bounds
-        cmp             cursl,  spypos wc       ' Check sprite lower bound
-        if_nc jmp       #:sprren                ' Render sprite if in bounds
-        jmp       #:skip                        ' Skip sprite
+
+        ' outside or wrap
+        cmpsub          temp,   #256 wc         ' Force wrap (carry if wrapped)
+        if_c  cmpx      cursl,  temp wc         ' Re-check bounds
+        if_nc jmp       #:skip                  ' Skip sprite
 
         ' Render sprite
 :sprren mov             slbuff, tColor
@@ -237,6 +234,5 @@ htbuff        res       1       ' Container for half-tile buffer
 htindx        res       1       ' Container for half-tile index
 ftindx        res       1       ' Container for full-tile index
 temp          res       1       ' Container for temporary variables
-sattmp        res       1       ' Container for intermediate sprite attribute table variables
 
         fit
