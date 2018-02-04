@@ -24,7 +24,10 @@ VAR
   ' Graphics resource pointers
   long  tile_map_base_          ' Register pointing to base of tile maps
   long  tile_palette_base_      ' Register pointing to base of tile palettes
-  long  color_palette_base_     ' Register pointing to base of color palettes
+  long  tcolor_palette_base_    ' Register pointing to base of tile color palettes
+  long  sprite_att_base_        ' Register pointing to base of sprite attribute table
+  long  sprite_palette_base_    ' Register pointing to base of sprite palettes
+  long  scolor_palette_base_    ' Register pointing to base of sprite color palettes
 
 PUB main
   ' Initialize pointers
@@ -32,12 +35,31 @@ PUB main
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
   tile_map_base_ := @tile_maps                          ' Point tile map base to base of tile maps
   tile_palette_base_ := @tile_palettes                  ' Point tile palette base to base of tile palettes
-  color_palette_base_ := @tile_color_palettes           ' Point color palette base to base of color palettes
+  tcolor_palette_base_ := @tile_color_palettes          ' Point tile color palette base to base of tile color palettes
+  sprite_att_base_ := @sprite_atts                      ' Point sprite attribute table base to base of sprite attribute table
+  sprite_palette_base_ := @sprite_palettes              ' Point sprite palette base to base of sprite palettes
+  scolor_palette_base_ := @sprite_color_palettes        ' Point sprite color palette base to base of sprite color palettes
 
   ' Start VGA routines
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
   vga_display.start(@cur_scanline_base_)                ' Start display driver
+
+  ' Start test system
+  cognew(@tester, sprite_att_base_)
       
+DAT
+        org             0
+
+tester  wrlong          spratt, par
+loop    jmp             #loop
+
+'                            sprite         x position       y position    color v h size
+'                       |<------------->|<--------------->|<------------->|<--->|-|-|<->|
+'                        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+spratt        long      %0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0
+
+        fit
+
 DAT
 cur_scanline  long      0       ' Current scanline being rendered
 video_buffer  long      0[80]   ' Video buffer
@@ -77,7 +99,7 @@ tile_map0     word      $00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,
 
 tile_palettes
               ' Empty tile
-tile_blank    long      $0_0_0_0_0_0_0_0        ' tile 0
+tile_blank    long      $0_0_0_0_0_0_0_0        ' Tile 0
               long      $0_0_0_0_0_0_0_0
               long      $0_0_0_0_0_0_0_0
               long      $0_0_0_0_0_0_0_0
@@ -87,7 +109,7 @@ tile_blank    long      $0_0_0_0_0_0_0_0        ' tile 0
               long      $0_0_0_0_0_0_0_0
 
               ' Upper left corner of box
-tile_box_tl   long      $1_1_1_1_1_1_1_1        ' tile 1
+tile_box_tl   long      $1_1_1_1_1_1_1_1        ' Tile 1
               long      $1_2_2_2_2_2_2_2
               long      $1_2_2_2_2_2_2_2
               long      $1_2_2_2_2_2_2_2
@@ -97,7 +119,7 @@ tile_box_tl   long      $1_1_1_1_1_1_1_1        ' tile 1
               long      $1_2_2_2_2_2_2_2
 
               ' Upper right corner of box
-tile_box_tr   long      $1_1_1_1_1_1_1_1        ' tile 2
+tile_box_tr   long      $1_1_1_1_1_1_1_1        ' Tile 2
               long      $2_2_2_2_2_2_2_1
               long      $2_2_2_2_2_2_2_1
               long      $2_2_2_2_2_2_2_1
@@ -107,7 +129,7 @@ tile_box_tr   long      $1_1_1_1_1_1_1_1        ' tile 2
               long      $2_2_2_2_2_2_2_1
 
               ' Bottom right corner of box
-tile_box_br   long      $2_2_2_2_2_2_2_1        ' tile 3
+tile_box_br   long      $2_2_2_2_2_2_2_1        ' Tile 3
               long      $2_2_2_2_2_2_2_1
               long      $2_2_2_2_2_2_2_1
               long      $2_2_2_2_2_2_2_1
@@ -117,7 +139,7 @@ tile_box_br   long      $2_2_2_2_2_2_2_1        ' tile 3
               long      $1_1_1_1_1_1_1_1
 
               ' Bottom left corner of box
-tile_box_bl   long      $1_2_2_2_2_2_2_2        ' tile 4
+tile_box_bl   long      $1_2_2_2_2_2_2_2        ' Tile 4
               long      $1_2_2_2_2_2_2_2
               long      $1_2_2_2_2_2_2_2
               long      $1_2_2_2_2_2_2_2
@@ -127,12 +149,41 @@ tile_box_bl   long      $1_2_2_2_2_2_2_2        ' tile 4
               long      $1_1_1_1_1_1_1_1
 
 tile_color_palettes
-              ' Color palettes
-c_palette0    byte      %00000011,%11000011,%00001111,%11111111                    ' tile color palette 0
+              ' Tile color palettes
+t_palette0    byte      %00000011,%11000011,%00001111,%11111111                    ' Tile color palette 0
               byte      %11110011,%00111111,%11001111,%11000011
               byte      %11010011,%00110111,%01001111,%01111011
               byte      %11010111,%01110111,%01011111,%00000011
-c_palette1    byte      %00000011,%00110011,%11111111,%11000011                    ' tile color palette 1
+t_palette1    byte      %00000011,%00110011,%11111111,%11000011                    ' Tile color palette 1
+              byte      %00000011,%00110011,%11111111,%11000011
+              byte      %00000011,%00110011,%11111111,%11000011
+              byte      %00000011,%00110011,%11111111,%11000011
+
+'                  sprite         x position       y position    color v h size
+'             |<------------->|<--------------->|<------------->|<--->|-|-|<->|
+'              0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+sprite_atts
+              ' Sprite attribute table
+              long      0[8]    ' How many sprites supported?
+
+sprite_palettes
+              ' Ship sprite
+sprite_ship   long      $0_0_0_0_1_0_0_0        ' Sprite 0
+              long      $0_0_0_1_1_1_0_0
+              long      $0_0_0_0_1_0_0_0
+              long      $0_0_0_0_1_0_0_0
+              long      $0_0_0_1_1_1_0_0
+              long      $0_0_1_2_2_2_1_0
+              long      $0_1_1_3_3_3_1_1
+              long      $0_1_1_0_3_0_1_1
+
+sprite_color_palettes
+              ' Sprite color palettes
+s_palette0    byte      %00000011,%11000011,%00001111,%11111111                    ' Tile color palette 0
+              byte      %11110011,%00111111,%11001111,%11000011
+              byte      %11010011,%00110111,%01001111,%01111011
+              byte      %11010111,%01110111,%01011111,%00000011
+s_palette1    byte      %00000011,%00110011,%11111111,%11000011                    ' Tile color palette 1
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011

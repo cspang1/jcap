@@ -60,8 +60,8 @@ render
         rdlong          tmptr,  tmptr           ' Load tile map memory location
         add             tpptr,  clptr           ' Point tile palette pointer to video buffer
         rdlong          tpptr,  tpptr           ' Load tile palette memory location
-        add             cpptr,  clptr           ' Point color palette pointer to video buffer
-        rdlong          cpptr,  cpptr           ' Load color palette memory location
+        add             tcpptr, clptr           ' Point color palette pointer to video buffer
+        rdlong          tcpptr, tcpptr          ' Load color palette memory location
         rdlong          clptr,  clptr           ' Load current scanline memory location
 
         ' Get initial scanline and set next cogs via semaphore
@@ -92,7 +92,7 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
 
         ' Calculate color palette location
         shl             cpindx, #4              ' cpindx *= 16
-        add             cpindx, cpptr           ' cpindx += cpptr
+        add             cpindx, tcpptr          ' cpindx += tcpptr
 
         ' Calculate and load palette tile
         mov             tpindx, cursl           ' Initialize tile palette index
@@ -124,6 +124,12 @@ shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         djnz            curseg, #tile           ' Repeat for all tiles in scanline
         movd            shbuf,  #slbuff+0       ' Reset shbuf destination address
 
+        {{ RENDER SPRITES HERE }}
+
+
+
+        {{ RENDER SPRITES HERE }}
+
         ' Wait for target scanline
         mov             curseg, numSegs         ' Initialize current scanline segment
         mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
@@ -141,10 +147,6 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
         jmp             #slgen                  ' Generate next scanline
-
-' Test values
-d1            long      1 << 10 ' Value to increment destination register by 2
-tColor        long      0
         
 ' Video attributes
 numLines      long      240     ' Number of rendered scanlines
@@ -158,7 +160,10 @@ clptr         long      0       ' Pointer to location of current scanline in Mai
 vbptr         long      4       ' Pointer to location of video buffer in Main RAM w/ offset
 tmptr         long      8       ' Pointer to location of tile map in Main RAM w/ offset
 tpptr         long      12      ' Pointer to location of tile palettes in Main RAM w/ offset
-cpptr         long      16      ' Pointer to location of color palettes in Main RAM w/ offset
+tcpptr        long      16      ' Pointer to location of tile color palettes in Main RAM w/ offset
+saptr         long      20      ' Pointer to location of sprite attribute table in Main RAM w/ offset
+spptr         long      24      ' Pointer to location of sprite palettes in Main RAM w/ offset
+scpptr        long      28      ' Pointer to location of sprite color palettes in Main RAM w/ offset
 
 ' Other values
 d0            long      1 << 9  ' Value to increment destination register
