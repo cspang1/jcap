@@ -142,23 +142,41 @@ shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         mov             tmindx, saptr           ' Initialize sprite attribute table index
 sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
 
+        ' Get sprite size {{ CAN BE OPTIMIZED }}
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        and             temp,   #3              ' Mask out sprite size
+        mov             spxsz,  #8              ' Initialize sprite horizontal size to 8 pixels
+        mov             spysz,  #8              ' Initialize sprite vertical size to 8 pixels
+        cmp             temp,   #1 wz           ' Check sprite size #1
+        if_z  mov       spysz,  #16             ' Set vertical size to 16 pixels
+        cmp             temp,   #2 wz           ' Check sprite size #2
+        if_z  mov       spxsz,  #16             ' Set horizontal size to 16 pixels
+        cmp             temp,   #3 wz           ' Check sprite size #3
+        if_z  mov       spxsz,  #16             ' Set horizontal size to 16 pixels
+        if_z  mov       spysz,  #16             ' Set vertical size to 16 pixels
+
         ' Check if sprite is on scanline
         mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #7              ' Shift vertical position to LSB
         and             temp,   #255            ' Mask out vertical position
-        mov             spypos, temp            ' Store sprite y position
-        add             temp,   #7              ' Calculate sprite y position upper bound
+        mov             spypos, temp            ' Store sprite vertical position
+        add             temp,   spysz           ' Calculate sprite vertical position upper bound
+        sub             temp,   #1              ' Modify for inclusivity
         cmp             temp,   cursl wc        ' Check sprite upper bound (inclusive)
         if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound (inclusive)
-        if_nc jmp       #:sprren                ' Render sprite if in bounds
-
-        ' outside or wrap
+        if_nc jmp       #:cont                  ' Check sprite horizontally within scanline
         cmpsub          temp,   #256 wc         ' Force wrap (carry if wrapped)
         if_c  cmpx      cursl,  temp wc         ' Re-check bounds
         if_nc jmp       #:skip                  ' Skip sprite
 
-        ' Render sprite
-:sprren mov             slbuff, tColor
+        ' Check if sprite is within scanline
+:cont   mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        shr             temp,   #15             ' Shift horizontal position to LSB
+        and             temp,   #511            ' Mask out horizontal position
+        mov             spxpos, temp            ' Store sprite horizontal position
+
+        'cmp             
+        mov             slbuff, tColor
 
 :skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
@@ -190,7 +208,7 @@ tColor        long      %00000011_11000011_00001111_11111111
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
 numTiles      long      40      ' Number of tiles per scanline
-numSprts      long      8       ' Number of sprites in sprite attribute table {{ TEST VALUE OF 1 }}
+numSprts      long      8       ' Number of sprites in sprite attribute table
 
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
@@ -223,6 +241,8 @@ spindx        res       1       ' Sprite palette index
 spxpos        res       1       ' Sprite horizontal position
 spypos        res       1       ' Sprite vertical position
 spcol         res       1       ' Sprite color palette index
+spxsz         res       1       ' Sprite horizontal size
+spysz         res       1       ' Sprite vertical size
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
