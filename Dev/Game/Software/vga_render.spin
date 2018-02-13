@@ -155,7 +155,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         if_z  mov       spxsz,  #16             ' Set horizontal size to 16 pixels
         if_z  mov       spysz,  #16             ' Set vertical size to 16 pixels
 
-        ' Check if sprite is on scanline
+        ' Check if sprite is on scanline vertically
         mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #7              ' Shift vertical position to LSB
         and             temp,   #255            ' Mask out vertical position
@@ -164,19 +164,25 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         sub             temp,   #1              ' Modify for inclusivity
         cmp             temp,   cursl wc        ' Check sprite upper bound (inclusive)
         if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound (inclusive)
-        if_nc jmp       #:cont                  ' Check sprite horizontally within scanline
+        if_nc jmp       #:contx                 ' Check sprite horizontally within scanline
         cmpsub          temp,   #256 wc         ' Force wrap (carry if wrapped)
         if_c  cmpx      cursl,  temp wc         ' Re-check bounds
         if_nc jmp       #:skip                  ' Skip sprite
 
-        ' Check if sprite is within scanline
-:cont   mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        ' Check if sprite is within scanline horizontally
+:contx  mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #15             ' Shift horizontal position to LSB
         and             temp,   #511            ' Mask out horizontal position
         mov             spxpos, temp            ' Store sprite horizontal position
-
-        'cmp             
-        mov             slbuff, tColor
+        add             temp,   spxsz           ' Calculate sprite horizontal position upper bound
+        sub             temp,   #1              ' Modify for inclusivity
+        cmp             temp,   maxX wc         ' Check sprite upper bound (inclusive)
+        if_nc cmp       maxX,   spxpos wc       ' Check sprite lower bound (inclusive)
+        if_nc jmp       #:cont
+        cmpsub          temp,   maxHor wc       ' Force wrap (carry if wrapped)
+        if_c  cmpx      cursl,  temp wc         ' Re-check bounds
+        if_nc jmp       #:skip                  ' Skip sprite
+:cont   mov             slbuff, tColor
 
 :skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
@@ -205,10 +211,13 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
 tColor        long      %00000011_11000011_00001111_11111111
         
 ' Video attributes
+maxHor        long      512     ' Maximum zero-indexed horizontal position
+maxX          long      319     ' Maximum visible zero-indexed horizontal position
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
 numTiles      long      40      ' Number of tiles per scanline
 numSprts      long      8       ' Number of sprites in sprite attribute table
+zero          long      0       ' Zero
 
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
