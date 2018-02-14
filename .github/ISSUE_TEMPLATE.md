@@ -1,5 +1,7 @@
 # JCAP Issue Guidelines
 
+These are the guidelines that should be followed when creating a new issue for JCAP.
+
 ## Title and Content
 
 The title and content of your issue should follow the same best practices as commit messages: the title should be short and to the most direct point, and the content should be an extended description containing any supporting information necessary.
