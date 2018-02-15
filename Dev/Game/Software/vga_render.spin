@@ -69,6 +69,8 @@ render
         add             scpptr, clptr           ' Point sprite color palette pointer to sprite color palettes
         rdlong          scpptr, scpptr          ' Load sprite color palette memory location
         rdlong          clptr,  clptr           ' Load current scanline memory location
+        mov             spxsz,  #8              ' Initialize sprite horizontal size
+        mov             spysz,  #8              ' Initialize sprite vertical size
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
@@ -142,18 +144,14 @@ shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         mov             tmindx, saptr           ' Initialize sprite attribute table index
 sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
 
-        ' Get sprite size {{ CAN BE OPTIMIZED }}
+        ' Get sprite size
         mov             temp,   curmt           ' Copy sprite attributes to temp variable
-        and             temp,   #3              ' Mask out sprite size
-        mov             spxsz,  #8              ' Initialize sprite horizontal size to 8 pixels
-        mov             spysz,  #8              ' Initialize sprite vertical size to 8 pixels
-        cmp             temp,   #1 wz           ' Check sprite size #1
-        if_z  mov       spysz,  #16             ' Set vertical size to 16 pixels
-        cmp             temp,   #2 wz           ' Check sprite size #2
-        if_z  mov       spxsz,  #16             ' Set horizontal size to 16 pixels
-        cmp             temp,   #3 wz           ' Check sprite size #3
-        if_z  mov       spxsz,  #16             ' Set horizontal size to 16 pixels
-        if_z  mov       spysz,  #16             ' Set vertical size to 16 pixels
+        and             temp,   #1              ' Mask sprite vertical size attribute
+        shl             spysz,  temp            ' Convert sprite vertical size
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        shr             temp,   #1              ' Move sprite horizontal size attribute to LSB
+        and             temp,   #1              ' Mask sprite horizontal size attribute
+        shl             spxsz,  temp            ' Convert sprite horizontal size
 
         ' Check if sprite is on scanline vertically
         mov             temp,   curmt           ' Copy sprite attributes to temp variable
@@ -183,7 +181,9 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
 
 :cont   mov             slbuff, tColor
 
-:skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
+:skip   mov             spxsz,  #8              ' Re-initialize sprite horizontal size
+        mov             spysz,  #8              ' Re-initialize sprite vertical size
+        add             tmindx, #4              ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
 
         {{ RENDER SPRITES HERE }}
