@@ -162,8 +162,8 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         mov             spypos, temp            ' Store sprite vertical position
         add             temp,   spysz           ' Calculate sprite vertical position upper bound
         sub             temp,   #1              ' Modify for inclusivity
-        cmp             temp,   cursl wc        ' Check sprite upper bound (inclusive)
-        if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound (inclusive)
+        cmp             temp,   cursl wc        ' Check sprite upper bound
+        if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound
         if_nc jmp       #:contx                 ' Check sprite horizontally within scanline
         cmpsub          temp,   #256 wc         ' Force wrap (carry if wrapped)
         if_c  cmpx      cursl,  temp wc         ' Re-check bounds
@@ -176,12 +176,11 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         mov             spxpos, temp            ' Store sprite horizontal position
         add             temp,   spxsz           ' Calculate sprite horizontal position upper bound
         sub             temp,   #1              ' Modify for inclusivity
-        cmp             temp,   maxX wc         ' Check sprite upper bound (inclusive)
-        if_nc cmp       maxX,   spxpos wc       ' Check sprite lower bound (inclusive)
-        if_nc jmp       #:cont
+        cmp             maxVis, spxpos wc       ' Check sprite upper bound
+        if_nc jmp       #:cont                  ' Render sprite
         cmpsub          temp,   maxHor wc       ' Force wrap (carry if wrapped)
-        if_c  cmpx      cursl,  temp wc         ' Re-check bounds
         if_nc jmp       #:skip                  ' Skip sprite
+
 :cont   mov             slbuff, tColor
 
 :skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
@@ -211,13 +210,12 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
 tColor        long      %00000011_11000011_00001111_11111111
         
 ' Video attributes
-maxHor        long      512     ' Maximum zero-indexed horizontal position
-maxX          long      319     ' Maximum visible zero-indexed horizontal position
+maxHor        long      512     ' Maximum horizontal position
+maxVis        long      319     ' Maximum visible horizontal position
 numLines      long      240     ' Number of rendered scanlines
 numSegs       long      80      ' Number of scanline segments
 numTiles      long      40      ' Number of tiles per scanline
 numSprts      long      8       ' Number of sprites in sprite attribute table
-zero          long      0       ' Zero
 
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
