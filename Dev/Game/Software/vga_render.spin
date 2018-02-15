@@ -114,18 +114,18 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         ' Parse palette tile pixels
         mov             ftindx, #2              ' Initialize full tile index
 ftile   mov             htindx, #4              ' Initialize half tile index
-        mov             htbuff, #0              ' Initialize half-tile pixel buffer
+        mov             pxbuff, #0              ' Initialize half-tile pixel buffer
 htile   mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              htbuff, curcp           ' Store color
-        ror             htbuff, #8              ' Allocate space for next color
+        or              pxbuff, curcp           ' Store color
+        ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
         djnz            htindx, #htile          ' Repeat for half of tile
 
         ' Store tile pixels
-shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
+shbuf   mov             slbuff+0, pxbuff        ' Allocate space for color
         add             shbuf,  d0              ' Increment scanline buffer OR position
         djnz            ftindx, #ftile          ' Repeat for second half of tile
         add             tmindx, #2              ' Increment pointer to tile in tile map
@@ -160,8 +160,16 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         if_c  cmpx      cursl,  temp wc         ' Re-check bounds
         if_nc jmp       #:skip                  ' Skip sprite
 
+        ' Calculate vertical sprite pixel palette offset
+        mov             spyoff, spysz           ' Copy sprite vertical size to sprite offset
+        sub             temp,   cursl           ' Subtract current scanline from sprite lower bound
+        sub             spyoff, temp            ' Subtract vertical sprite position from vertical sprite size
+:contx  if_nc mov       spyoff, cursl           ' Store current scanline into sprite offset
+        if_nc sub       spyoff, spypos          ' Subtract vertical sprite position from sprite offset
+        shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
+
         ' Check if sprite is within scanline horizontally
-:contx  mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #15             ' Shift horizontal position to LSB
         and             temp,   #511            ' Mask out horizontal position
         mov             spxpos, temp            ' Store sprite horizontal position
@@ -176,6 +184,10 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
 :cont   mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #24             ' Align sprite pixel palette attribute to LSB
         and             temp,   #255            ' Mask out sprite pixel palette attribute
+        shl             temp,   #5              ' Calculate sprite pixel palette Main RAM location offset
+        add             temp,   spptr           ' Calculate sprite pixel palette Main RAM base location
+        add             temp,   spyoff          ' Calculate final sprite pixel palette Main RAM location
+        rdlong          pxbuff, temp            ' Load sprite pixel palette line from Main RAM
 
         {{ TEST }}
         mov             slbuff, tColor
@@ -242,12 +254,13 @@ curpt         res       1       ' Current palette tile
 curcp         res       1       ' Current color palette
 
 ' Sprite pointers
-spindx        res       1       ' Sprite palette index
+spindx        res       1       ' Sprite pixel palette index
 spxpos        res       1       ' Sprite horizontal position
 spypos        res       1       ' Sprite vertical position
 spcol         res       1       ' Sprite color palette index
 spxsz         res       1       ' Sprite horizontal size
 spysz         res       1       ' Sprite vertical size
+spyoff        res       1       ' Sprite pixel palette offset
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
@@ -255,7 +268,7 @@ cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline
 curvb         res       1       ' Container for current video buffer Main RAM location being written
 index         res       1       ' Container for temporary index
-htbuff        res       1       ' Container for half-tile buffer
+pxbuff        res       1       ' Container for temporary pixel buffer
 htindx        res       1       ' Container for half-tile index
 ftindx        res       1       ' Container for full-tile index
 temp          res       1       ' Container for temporary variables
