@@ -161,11 +161,12 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         if_nc jmp       #:skip                  ' Skip sprite
 
         ' Calculate vertical sprite pixel palette offset
-        mov             spyoff, spysz           ' Copy sprite vertical size to sprite offset
+        mov             spyoff, spysz           ' Copy sprite vertical size to sprite vertical offset
         sub             temp,   cursl           ' Subtract current scanline from sprite lower bound
         sub             spyoff, temp            ' Subtract vertical sprite position from vertical sprite size
 :contx  if_nc mov       spyoff, cursl           ' Store current scanline into sprite offset
         if_nc sub       spyoff, spypos          ' Subtract vertical sprite position from sprite offset
+        sub             spyoff, #1              ' Decrement vertical sprite pixel palette offset
         shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
 
         ' Check if sprite is within scanline horizontally
@@ -180,8 +181,15 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         cmpsub          temp,   maxHor wc       ' Force wrap (carry if wrapped)
         if_nc jmp       #:skip                  ' Skip sprite
 
+        ' Calculate horizontal scanline buffer offset
+        mov             spxoff, spxsz           ' Copy sprite horizontal size to sprite horizontal offset
+        sub             spxoff, temp            ' Subtract horizontal sprite position from horizontal sprite size
+:cont   if_nc mov       spxoff, #0              ' Start rendering the sprite at its origin
+        sub             spxoff, #1              ' Decrement horizontal sprite pixel palette offset
+        shl             spxoff, #2              ' Calculate horizontal sprite pixel palette offset
+
         ' Render current sprite
-:cont   mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #24             ' Align sprite pixel palette attribute to LSB
         and             temp,   #255            ' Mask out sprite pixel palette attribute
         shl             temp,   #5              ' Calculate sprite pixel palette Main RAM location offset
@@ -260,7 +268,8 @@ spypos        res       1       ' Sprite vertical position
 spcol         res       1       ' Sprite color palette index
 spxsz         res       1       ' Sprite horizontal size
 spysz         res       1       ' Sprite vertical size
-spyoff        res       1       ' Sprite pixel palette offset
+spxoff        res       1       ' Sprite horizontal pixel palette offset
+spyoff        res       1       ' Sprite vertical pixel palette offset
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
