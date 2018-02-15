@@ -183,9 +183,6 @@ t_palette1    byte      %00000011,%11110011,%11001111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
 
-'                  sprite         x position       y position    color v h size
-'             |<------------->|<--------------->|<------------->|<--->|-|-|<->|
-'              0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 sprite_atts
               ' Sprite attribute table
               long      0[8]    ' How many sprites supported?

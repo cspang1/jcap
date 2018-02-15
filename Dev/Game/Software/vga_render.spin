@@ -124,7 +124,7 @@ htile   mov             temp,   curpt           ' Load current palette tile into
         shl             curpt,  #4              ' Shift palette tile left 4 bits
         djnz            htindx, #htile          ' Repeat for half of tile
 
-        ' Store pixels
+        ' Store tile pixels
 shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         add             shbuf,  d0              ' Increment scanline buffer OR position
         djnz            ftindx, #ftile          ' Repeat for second half of tile
@@ -132,14 +132,7 @@ shbuf   mov             slbuff+0, htbuff        ' Allocate space for color
         djnz            index , #tile           ' Repeat for all tiles in scanline
         movd            shbuf,  #slbuff+0       ' Reset shbuf destination address
 
-        {{ RENDER SPRITES HERE }}
-
-        ' 1. Iteratively read sprite attribute table
-        ' 2. Parse each element of SAT
-        ' 3. Test visibility w/ y then x coordinates
-        ' 4. Calculate scanline buffer memory addresses
-        ' 5. Parse sprite line
-        ' 6. Replace scanline buffer memory entries
+        ' Render sprites
         mov             index,  numSprts        ' Initialize size of sprite attribute table
         mov             tmindx, saptr           ' Initialize sprite attribute table index
 sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
@@ -179,14 +172,19 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         cmpsub          temp,   maxHor wc       ' Force wrap (carry if wrapped)
         if_nc jmp       #:skip                  ' Skip sprite
 
-:cont   mov             slbuff, tColor
+        ' Render current sprite
+:cont   mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        shr             temp,   #24             ' Align sprite pixel palette attribute to LSB
+        and             temp,   #255            ' Mask out sprite pixel palette attribute
+
+        {{ TEST }}
+        mov             slbuff, tColor
+        {{ TEST }}
 
 :skip   mov             spxsz,  #8              ' Re-initialize sprite horizontal size
         mov             spysz,  #8              ' Re-initialize sprite vertical size
         add             tmindx, #4              ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
-
-        {{ RENDER SPRITES HERE }}
 
         ' Wait for target scanline
         mov             index , numSegs         ' Initialize current scanline segment
