@@ -15,6 +15,7 @@ CON
 OBJ          
   vga_render    : "vga_render"  ' Import VGA display system
   vga_display   : "vga_display" ' Import VGA display system
+  input         : "input"       ' Import input system
   
 VAR
   ' Video resource pointers
@@ -75,18 +76,66 @@ loop    mov             temp,   par
         and             temp,   #255
         add             temp,   #1
         and             temp,   #255
+        cmp             temp,   #240 wz
+        if_z  mov       temp,   #249
         shl             temp,   #7
         and             satt2,  ymask
         or              satt2,  temp
 
-        mov             temp,   satt5
+        mov             temp,   satt2
         shr             temp,   #15             ' Shift horizontal position to LSB
         and             temp,   #511            ' Mask out horizontal position
-        add             temp,   #3
+        add             temp,   #1
         and             temp,   #511
+        cmp             temp,   #320 wz
+        if_z  mov       temp,   #505
         shl             temp,   #15
-        and             satt5,  xmask
-        or              satt5,  temp
+        and             satt2,  xmask
+        or              satt2,  temp
+
+        mov             temp,   satt3
+        shr             temp,   #7
+        and             temp,   #255
+        add             temp,   #1
+        and             temp,   #255
+        cmp             temp,   #240 wz
+        if_z  mov       temp,   #249
+        shl             temp,   #7
+        and             satt3,  ymask
+        or              satt3,  temp
+
+        mov             temp,   satt3
+        shr             temp,   #15             ' Shift horizontal position to LSB
+        and             temp,   #511            ' Mask out horizontal position
+        add             temp,   #1
+        and             temp,   #511
+        cmp             temp,   #320 wz
+        if_z  mov       temp,   #505
+        shl             temp,   #15
+        and             satt3,  xmask
+        or              satt3,  temp
+
+        mov             temp,   satt4
+        shr             temp,   #7
+        and             temp,   #255
+        add             temp,   #1
+        and             temp,   #255
+        cmp             temp,   #240 wz
+        if_z  mov       temp,   #249
+        shl             temp,   #7
+        and             satt4,  ymask
+        or              satt4,  temp
+
+        mov             temp,   satt4
+        shr             temp,   #15             ' Shift horizontal position to LSB
+        and             temp,   #511            ' Mask out horizontal position
+        add             temp,   #1
+        and             temp,   #511
+        cmp             temp,   #320 wz
+        if_z  mov       temp,   #505
+        shl             temp,   #15
+        and             satt4,  xmask
+        or              satt4,  temp
 
         jmp             #loop
 
@@ -105,7 +154,7 @@ satt7         long      %0_0_0_0_0_0_0_0_0_1_0_1_1_1_1_1_1_0_0_1_1_1_1_1_1_0_0_0
 ymask         long      %1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_0_0_0_0_0_0_0_0_1_1_1_1_1_1_1
 xmask         long      %1_1_1_1_1_1_1_1_0_0_0_0_0_0_0_0_0_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1
 
-delay         long      1500000
+delay         long      2000000
 
 time          res       1
 temp          res       1

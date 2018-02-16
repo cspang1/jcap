@@ -217,6 +217,8 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         sub             temp,   #1              ' Decrement for inclusivity
         mov             slboff, temp            ' Store scanline buffer offset
         shr             slboff, #2              ' slboff /= 2
+        cmp             slboff, #80 wc
+        if_nc jmp       #:trans
         add             slboff, #slbuff         ' slboff += @slbuff
         movs            :slbget, slboff         ' Move target scanline buffer segment source
         movd            :slbput, slboff         ' Move target scanline buffer segment destination
