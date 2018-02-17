@@ -63,10 +63,10 @@ begin
 	pin[].in			= core.pin_out[];
 	pin[].oe			= core.pin_dir[];
 	
-	prop_io[]		= (pin[31..0]);
+	prop_io[]		= pin[31..0];
 
 	-- cog leds
 
-	ledg[]		= pin[23..16].out;
+	ledg[]		= pin[7..0].out;
 
 end;

@@ -33,7 +33,7 @@ VAR
   ' Game resource pointers
   long  input_state_base_       ' Register in Main RAM containing state of inputs
 
-PUB main
+PUB main | temps,times
   ' Initialize pointers
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
@@ -54,7 +54,16 @@ PUB main
 
   ' Start test system
   'cognew(@tester, sprite_att_base_)
-      
+
+  {{ TESTING }}
+
+  times := cnt + 2000000
+
+  DIRA := %00000000000000000000000011111111
+  repeat
+    temps := control_state >> 8
+    OUTA := temps
+
 DAT
         org             0
 
