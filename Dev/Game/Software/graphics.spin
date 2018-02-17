@@ -30,6 +30,9 @@ VAR
   long  sprite_palette_base_    ' Register pointing to base of sprite palettes
   long  scolor_palette_base_    ' Register pointing to base of sprite color palettes
 
+  ' Game resource pointers
+  long  input_state_base_       ' Register in Main RAM containing state of inputs
+
 PUB main
   ' Initialize pointers
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
@@ -40,13 +43,17 @@ PUB main
   sprite_att_base_ := @sprite_atts                      ' Point sprite attribute table base to base of sprite attribute table
   sprite_palette_base_ := @sprite_palettes              ' Point sprite palette base to base of sprite palettes
   scolor_palette_base_ := @sprite_color_palettes        ' Point sprite color palette base to base of sprite color palettes
+  input_state_base_ := @input_states                    ' Point input stat base to base of input states
 
-  ' Start VGA routines
+  ' Start video system
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
   vga_display.start(@cur_scanline_base_)                ' Start display driver
 
+  ' Start input system
+  input.start(@input_state_base_)                       ' Start input system
+
   ' Start test system
-  cognew(@tester, sprite_att_base_)
+  'cognew(@tester, sprite_att_base_)
       
 DAT
         org             0
@@ -285,3 +292,8 @@ s_palette1    byte      %00000000,%00110011,%11111111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
+
+input_states
+              ' Input states
+control_state word      0       ' Control states
+tilt_state    word      0       ' Tilt shift state              
