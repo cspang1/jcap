@@ -33,7 +33,7 @@ VAR
   ' Game resource pointers
   long  input_state_base_       ' Register in Main RAM containing state of inputs
 
-PUB main | temps,times
+PUB main | cont,temp,x_but,y_but,x,y
   ' Initialize pointers
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
@@ -57,125 +57,57 @@ PUB main | temps,times
 
   {{ TESTING }}
 
-  times := cnt + 2000000
-
   DIRA := %00000000000000000000000011111111
   repeat
-    temps := control_state >> 8
-    OUTA := temps
-
-DAT
-        org             0
-
-tester  mov             time,   cnt
-        add             time,   delay
-loop    mov             temp,   par
-        wrlong          satt0,  temp
-        add             temp,   #4
-        wrlong          satt1,  temp
-        add             temp,   #4
-        wrlong          satt2,  temp
-        add             temp,   #4
-        wrlong          satt3,  temp
-        add             temp,   #4
-        wrlong          satt4,  temp
-        add             temp,   #4
-        wrlong          satt5,  temp
-        add             temp,   #4
-        wrlong          satt6,  temp
-        add             temp,   #4
-        wrlong          satt7,  temp
-
-        waitcnt         time,   delay
-        mov             temp,   satt2
-        shr             temp,   #7
-        and             temp,   #255
-        add             temp,   #1
-        and             temp,   #255
-        cmp             temp,   #240 wz
-        if_z  mov       temp,   #249
-        shl             temp,   #7
-        and             satt2,  ymask
-        or              satt2,  temp
-
-        mov             temp,   satt2
-        shr             temp,   #15             ' Shift horizontal position to LSB
-        and             temp,   #511            ' Mask out horizontal position
-        add             temp,   #1
-        and             temp,   #511
-        cmp             temp,   #320 wz
-        if_z  mov       temp,   #505
-        shl             temp,   #15
-        and             satt2,  xmask
-        or              satt2,  temp
-
-        mov             temp,   satt3
-        shr             temp,   #7
-        and             temp,   #255
-        add             temp,   #1
-        and             temp,   #255
-        cmp             temp,   #240 wz
-        if_z  mov       temp,   #249
-        shl             temp,   #7
-        and             satt3,  ymask
-        or              satt3,  temp
-
-        mov             temp,   satt3
-        shr             temp,   #15             ' Shift horizontal position to LSB
-        and             temp,   #511            ' Mask out horizontal position
-        add             temp,   #1
-        and             temp,   #511
-        cmp             temp,   #320 wz
-        if_z  mov       temp,   #505
-        shl             temp,   #15
-        and             satt3,  xmask
-        or              satt3,  temp
-
-        mov             temp,   satt4
-        shr             temp,   #7
-        and             temp,   #255
-        add             temp,   #1
-        and             temp,   #255
-        cmp             temp,   #240 wz
-        if_z  mov       temp,   #249
-        shl             temp,   #7
-        and             satt4,  ymask
-        or              satt4,  temp
-
-        mov             temp,   satt4
-        shr             temp,   #15             ' Shift horizontal position to LSB
-        and             temp,   #511            ' Mask out horizontal position
-        add             temp,   #1
-        and             temp,   #511
-        cmp             temp,   #320 wz
-        if_z  mov       temp,   #505
-        shl             temp,   #15
-        and             satt4,  xmask
-        or              satt4,  temp
-
-        jmp             #loop
-
-'                            sprite         x position       y position    color v h size
-'                       |<------------->|<--------------->|<------------->|<--->|-|-|<->|
-'                        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-satt0         long      %0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-satt1         long      %0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_1_0_0_0_1_0_0_0_0_0_0_0_0_0_0
-satt2         long      %0_0_0_0_0_0_0_0_0_1_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-satt3         long      %0_0_0_0_0_0_0_0_0_0_0_0_1_1_0_0_0_0_1_1_1_1_0_0_0_0_0_0_0_0_0_0
-satt4         long      %0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_1_0_1_0_0_0_1_1_0_0_0_0_0_0_0
-satt5         long      %0_0_0_0_0_0_0_0_0_0_1_1_0_1_0_0_0_0_1_1_0_1_0_1_1_0_0_0_0_0_0_0
-satt6         long      %0_0_0_0_0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0_0_0_0_0
-satt7         long      %0_0_0_0_0_0_0_0_0_1_0_1_1_1_1_1_1_0_0_1_1_1_1_1_1_0_0_0_0_0_0_0
-
-ymask         long      %1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_0_0_0_0_0_0_0_0_1_1_1_1_1_1_1
-xmask         long      %1_1_1_1_1_1_1_1_0_0_0_0_0_0_0_0_0_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1
-
-delay         long      2000000
-
-time          res       1
-temp          res       1
-
-        fit
+    cont := control_state >> 8
+    x_but := cont & %01000000
+    if x_but == 0
+      longmove(@x, @sprite_atts, 1)
+      temp := x
+      x >>= 15
+      x &= %111111111
+      x += 1
+      x &= %111111111
+      x <<= 15
+      temp &= %11111111000000000111111111111111
+      temp |= x
+      longmove(@sprite_atts, @temp, 1)
+    elseif x_but := cont & %10000000 == 0
+      longmove(@x, @sprite_atts, 1)
+      temp := x
+      x >>= 15
+      x &= %111111111
+      x -= 1
+      x &= %111111111
+      x <<= 15
+      temp &= %11111111000000000111111111111111
+      temp |= x
+      longmove(@sprite_atts, @temp, 1)
+    y_but := cont & %00010000
+    if y_but == 0
+      longmove(@y, @sprite_atts, 1)
+      temp := y
+      y >>= 7
+      y &= %11111111
+      y += 1
+      y &= %11111111
+      y <<= 7
+      temp &= %11111111111111111000000001111111
+      temp |= y
+      longmove(@sprite_atts, @temp, 1)
+    elseif y_but := cont & %00100000 == 0
+      longmove(@y, @sprite_atts, 1)
+      temp := y
+      y >>= 7
+      y &= %11111111
+      y -= 1
+      y &= %11111111
+      y <<= 7
+      temp &= %11111111111111111000000001111111
+      temp |= y
+      longmove(@sprite_atts, @temp, 1)
+    waitcnt(cnt + 2000000)
+    OUTA := cont
 
 DAT
 cur_scanline  long      0       ' Current scanline being rendered
