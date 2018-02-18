@@ -167,7 +167,6 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         sub             spyoff, #1              ' Decrement offset for inclusivity
 :contx  if_nc mov       spyoff, cursl           ' Store current scanline into sprite offset
         if_nc sub       spyoff, spypos          ' Subtract vertical sprite position from sprite offset
-        shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
 
         ' Check if sprite is within scanline horizontally
         mov             temp,   curmt           ' Copy sprite attributes to temp variable
@@ -194,16 +193,6 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         and             cpindx, #112            ' Mask out color palette index * 16
         add             cpindx, scpptr          ' cpindx * 16 += scpptr
 
-        ' Retrieve sprite pixel palette line
-        mov             temp,   curmt           ' Copy sprite attributes to temp variable
-        shr             temp,   #24             ' Align sprite pixel palette attribute to LSB
-        and             temp,   #255            ' Mask out sprite pixel palette attribute
-        shl             temp,   #5              ' Calculate sprite pixel palette Main RAM location offset
-        add             temp,   spptr           ' Calculate sprite pixel palette Main RAM base location
-        add             temp,   spyoff          ' Calculate final sprite pixel palette Main RAM location
-        rdlong          curpt,  temp            ' Load sprite pixel palette line from Main RAM
-        shl             curpt,  spxoff          ' Shift sprite pixel palette line to compensate for wrapping
-
         ' Retrieve sprite mirroring attributes
         mov             spxmir, curmt           ' Copy sprite attributes to temp variable
         shr             spxmir, #2              ' Align sprite horizontal mirroring attribute to LSB
@@ -211,6 +200,21 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         mov             spymir, curmt           ' Copy sprite attributes to temp variable
         shr             spymir, #3              ' Align sprite vertical mirroring attribute to LSB
         and             spymir, #1              ' Mask out sprite vertical mirroring attribute
+
+        ' Retrieve sprite pixel palette line
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        shr             temp,   #24             ' Align sprite pixel palette attribute to LSB
+        and             temp,   #255            ' Mask out sprite pixel palette attribute
+        shl             temp,   #5              ' Calculate sprite pixel palette Main RAM location offset
+        add             temp,   spptr           ' Calculate sprite pixel palette Main RAM base location
+        cmp             spymir, #1 wz           ' Check if sprite is mirrored vertically
+        if_z  subs      spyoff, spysz           ' If so calculate inverted offset...
+        if_z  add       spyoff, #1              ' Modify for inclusivity...
+        if_z  abs       spyoff, spyoff          ' And calculate final absolute offset
+        shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
+        add             temp,   spyoff          ' Calculate final sprite pixel palette Main RAM location
+        rdlong          curpt,  temp            ' Load sprite pixel palette line from Main RAM
+        shl             curpt,  spxoff          ' Shift sprite pixel palette line to compensate for wrapping
 
         ' Parse sprite pixel palette line
         mov             findx,  spxsz           ' Store sprite horizontal size into index
@@ -224,7 +228,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         add             temp,   findx           ' Add current pixel index
         sub             temp,   #1              ' Decrement for inclusivity
         mov             slboff, temp            ' Store scanline buffer offset
-        shr             slboff, #2              ' slboff /= 2
+        shr             slboff, #2              ' slboff /= 4
         cmp             slboff, #80 wc          ' Check if pixel out of bounds
         if_nc jmp       #:trans                 ' Skip if out of bounds
         add             slboff, #slbuff         ' slboff += @slbuff
@@ -286,7 +290,7 @@ scpptr        long      28      ' Pointer to location of sprite color palettes i
 
 ' Other values
 d0            long      1 << 9                  ' Value to increment destination register
-pxmask        long      $FFFFFF00               ' Mask for sprites in scanline buffer
+pxmask        long      $FFFFFF00               ' Mask for pixels in scanline buffer
 
 ' Scanline buffer
 slbuff        long      0[80]   ' Buffer containing scanline
@@ -322,6 +326,7 @@ hindx         res       1       ' Container for half-tile index
 findx         res       1       ' Container for full-tile index
 slboff        res       1       ' Container for scanline buffer offset
 tmpslb        res       1       ' Container for temporary scanline buffer segment
+tmpmir        res       1       ' Container for temporary mirrored sprite value
 temp          res       1       ' Container for temporary variables
 
         fit
