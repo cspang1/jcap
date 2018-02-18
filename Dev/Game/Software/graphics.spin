@@ -33,6 +33,9 @@ VAR
   ' Game resource pointers
   long  input_state_base_       ' Register in Main RAM containing state of inputs
 
+  ' TEST RESOURCE POINTERS
+  long  satts[8]
+
 PUB main | cont,temp,x_but,y_but,x,y
   ' Initialize pointers
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
@@ -58,10 +61,25 @@ PUB main | cont,temp,x_but,y_but,x,y
   {{ TESTING }}
 
   DIRA := %00000000000000000000000011111111
+
+  '                sprite         x position       y position    color v h size
+  '           |<------------->|<--------------->|<------------->|<--->|-|-|<->|
+  '            0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+  satts[0] := %0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0
+  satts[1] := %0_0_0_0_0_0_0_1_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0
+  satts[2] := %0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0
+  satts[3] := %0_0_0_0_0_0_0_1_0_0_0_1_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0
+  satts[4] := %0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0
+  satts[5] := %0_0_0_0_0_0_0_1_0_0_0_0_0_1_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0
+  satts[6] := %0_0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0
+  satts[7] := %0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0
+
+  longmove(@sprite_atts, @satts, 8)
+
   repeat
     cont := control_state >> 8
-    x_but := cont & %01000000
-    if x_but == 0
+    x_but := cont & %11000000
+    if x_but == %10000000
       longmove(@x, @sprite_atts, 1)
       temp := x
       x >>= 15
@@ -72,7 +90,7 @@ PUB main | cont,temp,x_but,y_but,x,y
       temp &= %11111111000000000111111111111111
       temp |= x
       longmove(@sprite_atts, @temp, 1)
-    elseif x_but := cont & %10000000 == 0
+    elseif x_but == %01000000
       longmove(@x, @sprite_atts, 1)
       temp := x
       x >>= 15
@@ -83,8 +101,8 @@ PUB main | cont,temp,x_but,y_but,x,y
       temp &= %11111111000000000111111111111111
       temp |= x
       longmove(@sprite_atts, @temp, 1)
-    y_but := cont & %00010000
-    if y_but == 0
+    y_but := cont & %00110000
+    if y_but == %00100000
       longmove(@y, @sprite_atts, 1)
       temp := y
       y >>= 7
@@ -95,7 +113,7 @@ PUB main | cont,temp,x_but,y_but,x,y
       temp &= %11111111111111111000000001111111
       temp |= y
       longmove(@sprite_atts, @temp, 1)
-    elseif y_but := cont & %00100000 == 0
+    elseif y_but == %00010000
       longmove(@y, @sprite_atts, 1)
       temp := y
       y >>= 7
@@ -106,6 +124,9 @@ PUB main | cont,temp,x_but,y_but,x,y
       temp &= %11111111111111111000000001111111
       temp |= y
       longmove(@sprite_atts, @temp, 1)
+    cont := tilt_state
+    if tilt_state == 1
+      longfill(@sprite_atts, 0, 8)
     waitcnt(cnt + 2000000)
     OUTA := cont
 
@@ -222,6 +243,16 @@ sprite_ship   long      $0_0_0_0_1_0_0_0        ' Sprite 0
               long      $0_0_1_2_2_2_1_0
               long      $0_1_1_3_3_3_1_1
               long      $0_1_1_0_3_0_1_1
+
+              ' Rock sprite
+sprite_rock   long      $0_0_1_0_0_1_1_0        ' Sprite 1
+              long      $0_1_2_1_1_2_2_1
+              long      $0_0_1_2_2_2_1_0
+              long      $0_1_2_3_2_1_0_0
+              long      $1_2_3_4_3_2_1_0
+              long      $0_1_2_3_2_1_0_1
+              long      $1_0_1_2_1_2_1_0
+              long      $0_1_0_1_0_0_0_0
 
 sprite_color_palettes
               ' Sprite color palettes

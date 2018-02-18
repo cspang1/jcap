@@ -204,6 +204,14 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         rdlong          curpt,  temp            ' Load sprite pixel palette line from Main RAM
         shl             curpt,  spxoff          ' Shift sprite pixel palette line to compensate for wrapping
 
+        ' Retrieve sprite mirroring attributes
+        mov             spxmir, curmt           ' Copy sprite attributes to temp variable
+        shr             spxmir, #2              ' Align sprite horizontal mirroring attribute to LSB
+        and             spxmir, #1              ' Mask out sprite horizontal mirroring attribute
+        mov             spymir, curmt           ' Copy sprite attributes to temp variable
+        shr             spymir, #3              ' Align sprite vertical mirroring attribute to LSB
+        and             spymir, #1              ' Mask out sprite vertical mirroring attribute
+
         ' Parse sprite pixel palette line
         mov             findx,  spxsz           ' Store sprite horizontal size into index
 :sprite mov             temp,   curpt           ' Load current sprite pixel palette line into temp variable
@@ -231,10 +239,8 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         and             tmpslb, slboff          ' Mask away calculated pixel location
         or              tmpslb, curcp           ' Insert pixel
 :slbput mov             0-0,    tmpslb          ' Re-store target scanline buffer segment
-
 :trans  shr             curpt,  #4              ' Shift palette line right 4 bits to next pixel
         djnz            findx,  #:sprite        ' Repeat for all pixels on sprite palette line
-
 :skip   mov             spxsz,  #8              ' Re-initialize sprite horizontal size
         mov             spysz,  #8              ' Re-initialize sprite vertical size
         add             tmindx, #4              ' Increment pointer to next sprite in SAT
@@ -302,6 +308,8 @@ spxsz         res       1       ' Sprite horizontal size
 spysz         res       1       ' Sprite vertical size
 spxoff        res       1       ' Sprite horizontal pixel palette offset
 spyoff        res       1       ' Sprite vertical pixel palette offset
+spxmir        res       1       ' Sprite horizontal mirroring
+spymir        res       1       ' Sprite horizontal mirroring
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
