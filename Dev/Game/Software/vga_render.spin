@@ -214,6 +214,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
         add             temp,   spyoff          ' Calculate final sprite pixel palette Main RAM location
         rdlong          curpt,  temp            ' Load sprite pixel palette line from Main RAM
+        {{ SHL vs SHR for X mirroring here? }}
         shl             curpt,  spxoff          ' Shift sprite pixel palette line to compensate for wrapping
 
         ' Parse sprite pixel palette line
@@ -225,8 +226,14 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         cmp             curcp,  #0 wz           ' Check if pixel is transparent
         if_z  jmp       #:trans                 ' Skip pixel if so
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
-        add             temp,   findx           ' Add current pixel index
-        sub             temp,   #1              ' Decrement for inclusivity
+
+        cmp             spxmir, #1 wz
+        if_z  mov       tmpmir, #8
+        if_z  sub       tmpmir, findx
+        if_nz add       temp,   findx           ' Add current pixel index
+        if_z  add       temp,   tmpmir          ' Add current pixel index
+        if_nz sub       temp,   #1              ' Decrement for inclusivity
+
         mov             slboff, temp            ' Store scanline buffer offset
         shr             slboff, #2              ' slboff /= 4
         cmp             slboff, #80 wc          ' Check if pixel out of bounds
@@ -326,7 +333,7 @@ hindx         res       1       ' Container for half-tile index
 findx         res       1       ' Container for full-tile index
 slboff        res       1       ' Container for scanline buffer offset
 tmpslb        res       1       ' Container for temporary scanline buffer segment
-tmpmir        res       1       ' Container for temporary mirrored sprite value
+tmpmir        res       1       ' Container for temporary sprite mirror value
 temp          res       1       ' Container for temporary variables
 
         fit

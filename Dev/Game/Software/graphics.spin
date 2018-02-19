@@ -36,7 +36,7 @@ VAR
   ' TEST RESOURCE POINTERS
   long  satts[8]
 
-PUB main | cont,temp,x_but,y_but,x,y
+PUB main | cont
   ' Initialize pointers
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
@@ -65,7 +65,7 @@ PUB main | cont,temp,x_but,y_but,x,y
   '                sprite         x position       y position    color v h size
   '           |<------------->|<--------------->|<------------->|<--->|-|-|<->|
   '            0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-  satts[0] := %0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_1_0_0_0
+  satts[0] := %0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_1_1_0_0
   satts[1] := %0_0_0_0_0_0_0_1_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0
   satts[2] := %0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0
   satts[3] := %0_0_0_0_0_0_0_1_0_0_0_1_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0
@@ -77,58 +77,59 @@ PUB main | cont,temp,x_but,y_but,x,y
   longmove(@sprite_atts, @satts, 8)
 
   repeat
-    cont := control_state >> 8
-    x_but := cont & %11000000
-    if x_but == %10000000
-      longmove(@x, @sprite_atts, 1)
-      temp := x
-      x >>= 15
-      x &= %111111111
-      x += 1
-      x &= %111111111
-      x <<= 15
-      temp &= %11111111000000000111111111111111
-      temp |= x
-      longmove(@sprite_atts, @temp, 1)
-    elseif x_but == %01000000
-      longmove(@x, @sprite_atts, 1)
-      temp := x
-      x >>= 15
-      x &= %111111111
-      x -= 1
-      x &= %111111111
-      x <<= 15
-      temp &= %11111111000000000111111111111111
-      temp |= x
-      longmove(@sprite_atts, @temp, 1)
-    y_but := cont & %00110000
-    if y_but == %00100000
-      longmove(@y, @sprite_atts, 1)
-      temp := y
-      y >>= 7
-      y &= %11111111
-      y += 1
-      y &= %11111111
-      y <<= 7
-      temp &= %11111111111111111000000001111111
-      temp |= y
-      longmove(@sprite_atts, @temp, 1)
-    elseif y_but == %00010000
-      longmove(@y, @sprite_atts, 1)
-      temp := y
-      y >>= 7
-      y &= %11111111
-      y -= 1
-      y &= %11111111
-      y <<= 7
-      temp &= %11111111111111111000000001111111
-      temp |= y
-      longmove(@sprite_atts, @temp, 1)
+    left_right
+    up_down
     cont := tilt_state
     if tilt_state == 1
       longfill(@sprite_atts, 0, 8)
     waitcnt(cnt + 2000000)
     OUTA := cont
+
+pri left_right | cont,x,x_but,dir,mir,temp
+    cont := control_state >> 8
+    x_but := cont & %11000000
+    if x_but == %10000000 OR x_but == %01000000
+      longmove(@x, @sprite_atts, 1)
+      temp := x
+      dir := 1
+      x >>= 15
+      x &= %111111111
+      if x_but == %10000000
+        mir := 0
+        x += 1
+      if x_but == %01000000
+        mir := 1
+        x -= 1
+      x &= %111111111
+      x <<= 15
+      mir <<= 2
+      dir <<= 24
+      temp &= %00000000000000000111111111111011
+      temp |= (x | mir | dir)
+      longmove(@sprite_atts, @temp, 1)
+
+pri up_down | cont,y,y_but,dir,mir,temp
+    cont := control_state >> 8
+    y_but := cont & %00110000
+    if y_but == %00100000 OR y_but == %00010000
+      longmove(@y, @sprite_atts, 1)
+      temp := y
+      dir := 0
+      y >>= 7
+      y &= %11111111
+      if y_but == %00100000
+        mir := 1
+        y += 1
+      if y_but == %00010000
+        mir := 0
+        y -= 1
+      y &= %11111111
+      y <<= 7
+      mir <<= 3
+      dir <<= 24
+      temp &= %00000000111111111000000001110111
+      temp |= (y | mir | dir)
+      longmove(@sprite_atts, @temp, 1)
 
 DAT
 cur_scanline  long      0       ' Current scanline being rendered
@@ -241,18 +242,18 @@ sprite_ship   long      $0_0_0_0_1_0_0_0        ' Sprite 0
               long      $0_0_0_0_1_0_0_0
               long      $0_0_0_1_1_1_0_0
               long      $0_0_1_2_2_2_1_0
-              long      $0_1_1_3_3_3_1_1
-              long      $0_1_1_0_3_0_1_1
+              long      $0_4_1_3_3_3_1_6
+              long      $0_4_1_0_3_0_1_6
 
               ' Rock sprite
-sprite_rock   long      $0_0_1_0_0_1_1_0        ' Sprite 1
-              long      $0_1_2_1_1_2_2_1
-              long      $0_0_1_2_2_2_1_0
-              long      $0_1_2_3_2_1_0_0
-              long      $1_2_3_4_3_2_1_0
-              long      $0_1_2_3_2_1_0_1
-              long      $1_0_1_2_1_2_1_0
-              long      $0_1_0_1_0_0_0_0
+sprite_rock   long      $0_0_0_0_0_0_0_0        ' Sprite 1
+              long      $4_4_0_0_0_0_0_0
+              long      $1_1_1_0_0_0_0_0
+              long      $0_3_2_1_0_0_1_0
+              long      $3_3_2_1_1_1_1_1
+              long      $0_3_2_1_0_0_1_0
+              long      $1_1_1_0_0_0_0_0
+              long      $6_6_0_0_0_0_0_0
 
 sprite_color_palettes
               ' Sprite color palettes
