@@ -10,7 +10,10 @@
 CON
   ' Clock settings
   _clkmode = xtal1 + pll16x     ' Standard clock mode w/ 16x PLL
-  _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz    
+  _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
+
+  ' Game settings
+  num_sprites = 64    
 
 OBJ          
   vga_render    : "vga_render"  ' Import VGA display system
@@ -36,7 +39,7 @@ VAR
   ' TEST RESOURCE POINTERS
   long  satts[num_sprites]
 
-PUB main | cont
+PUB main | cont,temp,temps,x,y
   ' Initialize pointers
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
   video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
@@ -62,7 +65,7 @@ PUB main | cont
 
   DIRA := %00000000000000000000000011111111
 
-  '                sprite         x position       y position    color v h size
+  '                 sprite         x position       y position    color v h size
   '            |<------------->|<--------------->|<------------->|<--->|-|-|<->|
   '             0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
   satts[0] :=  %0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
@@ -73,16 +76,22 @@ PUB main | cont
   satts[5] :=  %0_0_0_0_0_0_0_0_0_0_0_1_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
   satts[6] :=  %0_0_0_0_0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
   satts[7] :=  %0_0_0_0_0_0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[8] :=  %0_0_0_0_0_0_0_0_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[9] :=  %0_0_0_0_0_0_0_0_0_0_1_0_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[10] := %0_0_0_0_0_0_0_0_0_0_1_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[11] := %0_0_0_0_0_0_0_0_0_0_1_0_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[12] := %0_0_0_0_0_0_0_0_0_0_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[13] := %0_0_0_0_0_0_0_0_0_0_1_1_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[14] := %0_0_0_0_0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
-  satts[15] := %0_0_0_0_0_0_0_0_0_0_1_1_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
 
   longmove(@sprite_atts, @satts, num_sprites)
+
+  x := 0
+  y := 0
+  temp := @sprite_atts + (4*8)
+  repeat num_sprites-8
+    x += 4
+    y += 4
+    'y := 241
+    'x := 400
+    x &= %111111111
+    y &= %11111111
+    temps := (x << 15) | (y << 7)
+    longmove(temp,@temps,1)
+    temp += 4
 
   repeat
     left_right
@@ -91,64 +100,53 @@ PUB main | cont
     if tilt_state == 1
       longfill(@sprite_atts, 0, num_sprites)
     waitcnt(cnt + 1500000)
-    OUTA := cont
+    OUTA := control_state >> 8
 
 pri left_right | cont,x,x_but,dir,mir,temp
     cont := control_state >> 8
-    x_but := cont & %11000000
-    if x_but == %10000000 OR x_but == %01000000
+    x_but := cont & %10100000
+    if x_but == %10000000 OR x_but == %00100000
       longmove(@x, @sprite_atts, 1)
-      temp := x
-      dir := 1
+      temp := x & %00000000000000000111111111111011
+      dir := 1 << 24
       x >>= 15
       x &= %111111111
       if x_but == %10000000
         mir := 0
-        x += 1
-      if x_but == %01000000
-        mir := 1
-        x -= 1
-      x &= %111111111
+        x := (x + 1) & %111111111
+      if x_but == %00100000
+        mir := 1 << 2
+        x := (x - 1) & %111111111
       if x == 320
         x := 505
       elseif x == 504
         x := 319
       x <<= 15
-      mir <<= 2
-      dir <<= 24
-      temp &= %00000000000000000111111111111011
       temp |= (x | mir | dir)
       longmove(@sprite_atts, @temp, 1)
 
 pri up_down | cont,y,y_but,dir,mir,temp
     cont := control_state >> 8
-    y_but := cont & %00110000
-    if y_but == %00100000 OR y_but == %00010000
+    y_but := cont & %01010000
+    if y_but == %01000000 OR y_but == %00010000
       longmove(@y, @sprite_atts, 1)
-      temp := y
-      dir := 0
+      temp := y & %00000000111111111000000001110111
+      dir := 0 << 24
       y >>= 7
       y &= %11111111
-      if y_but == %00100000
-        mir := 1
-        y += 1
+      if y_but == %01000000
+        mir := 1 << 3
+        y := (y + 1) & %11111111
       if y_but == %00010000
         mir := 0
-        y -= 1
-      y &= %11111111
+        y := (y - 1) & %11111111
       if y == 240
         y := 249
       elseif y == 248
         y := 239
       y <<= 7
-      mir <<= 3
-      dir <<= 24
-      temp &= %00000000111111111000000001110111
       temp |= (y | mir | dir)
       longmove(@sprite_atts, @temp, 1)
-
-CON
-  num_sprites = 16
 
 DAT
 cur_scanline  long      0       ' Current scanline being rendered
