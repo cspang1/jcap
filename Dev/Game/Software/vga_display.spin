@@ -60,12 +60,11 @@ vga
         or              dira,   vspin           ' Set VSync signal output pinv        
         mov             frqa,   pllfreq         ' Set Counter A frequency
         mov             ctra,   CtrCfg          ' Set Counter A control register
-        mov             vcfg,   VidCfg          ' Set video generator config register
         rdlong          cnt,    #0              ' Retrive system clock
         shr             cnt,    #10             ' Set-up ~1ms wait
         add             cnt,    cnt             ' Add 1ms wait
         waitcnt         cnt,    #0              ' Allow PLL to settle
-        mov             vcfg,   VidCfg          ' Start video generator             
+        mov             vcfg,   VidCfg          ' Configure and start video generator
         
         ' Display vertical sync area
 video   or              outa,   vspin           ' Drive vertical sync signal pin high

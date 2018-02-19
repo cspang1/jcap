@@ -5,7 +5,6 @@
 include "altpll.inc";		-- main clock pll, outputs 160MHz
 include "tim.inc";			-- clock generator, outputs 80MHz..20KHz cog clock, plus 2x CTRA/CTRB PLL simulator clock
 include "dig.inc";			-- digital core of P8X32A
-include "ic_74HC165.inc";	-- 74HC165 shift register
 
 subdesign top
 (
@@ -34,10 +33,6 @@ variable
 	nres			: dffe;
 
 	pin		[31..0]	: tri;
-		
-	sreg1			: ic_74HC165;
-	
-	sreg2			: ic_74HC165;
 
 begin
 
@@ -68,24 +63,10 @@ begin
 	pin[].in			= core.pin_out[];
 	pin[].oe			= core.pin_dir[];
 	
-	prop_io[]		= (pin[31..14].out, sreg1.Q7_n, sreg1.Q7, pin[11..0]);
-	
-	-- 74HC165 pins
-	
-	sreg1.CP		= prop_io[0];
-	sreg2.CP		= prop_io[0];
-	sreg1.CE_n	= prop_io[1];
-	sreg2.CE_n	= prop_io[1];
-	sreg1.PL_n	= prop_io[2];
-	sreg2.PL_n	= prop_io[2];
-	sreg1.DS		= sreg2.Q7;
-	sreg2.DS		= prop_io[14];
-	sreg1.DN[]	= prop_io[11..4];	
-	sreg2.DN[]	= prop_io[11..4];	
+	prop_io[]		= pin[31..0];
 
 	-- cog leds
 
-	--ledg[]		= core.cog_led[];
-	ledg[]		= pin[23..16].out;
+	ledg[]		= pin[7..0].out;
 
 end;
