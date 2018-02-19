@@ -11,7 +11,7 @@
 CON
   ' Graphics system attributes
   numRenderCogs = 5             ' Number of cogs used for rendering
-  numSprites = 32               ' Number of sprites in the sprite attribute table
+  numSprites = 64               ' Number of sprites in the sprite attribute table
 
 VAR
   ' Cog attributes
@@ -95,7 +95,7 @@ slgen   'Calculate tile map line memory location
         ' Generate each tile
         mov             index , numTiles        ' Initialize number of tiles to parse
 tile    rdword          curmt,  tmindx          ' Load current map tile from Main RAM
-        mov             cpindx, curmt           ' Store map tile to into color palette index
+        mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
         shr             cpindx, #8              ' Isolate color palette index of map tile
 
@@ -337,7 +337,7 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         add             curvb,  #4              ' Increment video buffer memory location
         djnz            index , #write          ' Repeat for all scanline segments
         movd            write,  #slbuff         ' Reset initial scanline buffer position
-        add             cursl,  #5              ' Increment current scanline for next render
+        add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
         jmp             #slgen                  ' Generate next scanline
