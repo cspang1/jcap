@@ -90,7 +90,7 @@ PUB main | cont
     cont := tilt_state
     if tilt_state == 1
       longfill(@sprite_atts, 0, num_sprites)
-    waitcnt(cnt + 2000000)
+    waitcnt(cnt + 1500000)
     OUTA := cont
 
 pri left_right | cont,x,x_but,dir,mir,temp
@@ -109,6 +109,10 @@ pri left_right | cont,x,x_but,dir,mir,temp
         mir := 1
         x -= 1
       x &= %111111111
+      if x == 320
+        x := 505
+      elseif x == 504
+        x := 319
       x <<= 15
       mir <<= 2
       dir <<= 24
@@ -132,6 +136,10 @@ pri up_down | cont,y,y_but,dir,mir,temp
         mir := 0
         y -= 1
       y &= %11111111
+      if y == 240
+        y := 249
+      elseif y == 248
+        y := 239
       y <<= 7
       mir <<= 3
       dir <<= 24
