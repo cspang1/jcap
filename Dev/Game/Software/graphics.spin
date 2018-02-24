@@ -2,7 +2,7 @@
         File:     graphics.spin
         Author:   Connor Spangler
         Date:     11/3/2017
-        Version:  2.0
+        Version:  2.1
         Description: 
                   This file contains the PASM code defining a test arcade game
 }}
@@ -21,11 +21,10 @@ OBJ
   input         : "input"       ' Import input system
   
 VAR
-  ' Video resource pointers
+  ' Video system pointers
   long  cur_scanline_base_      ' Register in Main RAM containing current scanline being requested by the VGA Display system
   long  video_buffer_base_      ' Registers in Main RAM containing the scanline buffer
-
-  ' Graphics resource pointers
+  long  tilemap_positions_base_ ' Registers in Main RAM containing current tilemap positions
   long  tile_map_base_          ' Register pointing to base of tile maps
   long  tile_palette_base_      ' Register pointing to base of tile palettes
   long  tcolor_palette_base_    ' Register pointing to base of tile color palettes
@@ -41,15 +40,16 @@ VAR
 
 PUB main | cont,temp,temps,x,y
   ' Initialize pointers
-  cur_scanline_base_ := @cur_scanline                   ' Point current scanline to current scanline
-  video_buffer_base_ := @video_buffer                   ' Point video buffer to base of video buffer
+  cur_scanline_base_ := @cur_scanline                   ' Point current scanline base to current scanline
+  video_buffer_base_ := @video_buffer                   ' Point video buffer base to video buffer
+  tilemap_positions_base_ := @tilemap_positions         ' Point video buffer base to base of tilemap positions
   tile_map_base_ := @tile_maps                          ' Point tile map base to base of tile maps
   tile_palette_base_ := @tile_palettes                  ' Point tile palette base to base of tile palettes
   tcolor_palette_base_ := @tile_color_palettes          ' Point tile color palette base to base of tile color palettes
   sprite_att_base_ := @sprite_atts                      ' Point sprite attribute table base to base of sprite attribute table
   sprite_palette_base_ := @sprite_palettes              ' Point sprite palette base to base of sprite palettes
   scolor_palette_base_ := @sprite_color_palettes        ' Point sprite color palette base to base of sprite color palettes
-  input_state_base_ := @input_states                    ' Point input stat base to base of input states
+  input_state_base_ := @input_states                    ' Point input state base to base of input states
 
   ' Start video system
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
@@ -78,10 +78,10 @@ PUB main | cont,temp,temps,x,y
 
   x := 0
   y := 0
-  temp := @sprite_atts + (4*8)
-  repeat num_sprites-8
-    x += 4
-    y += 4
+  temp := @sprite_atts + (4*9)
+  repeat num_sprites-9
+    x += 6
+    y += 6
     'y := 241
     'x := 400
     x &= %111111111
@@ -91,12 +91,13 @@ PUB main | cont,temp,temps,x,y
     temp += 4
 
   repeat
+    waitpeq(|< 24, |< 24, 0)       'Wait for Pin to go high
     left_right
     up_down
     cont := tilt_state
     if tilt_state == 1
       longfill(@sprite_atts, 0, num_sprites)
-    waitcnt(cnt + 1500000)
+'    waitcnt(cnt + 1000000)
     OUTA := control_state >> 8
 
 pri left_right | cont,x,x_but,dir,mir,temp
@@ -148,6 +149,16 @@ pri up_down | cont,y,y_but,dir,mir,temp
 DAT
 cur_scanline  long      0       ' Current scanline being rendered
 video_buffer  long      0[80]   ' Video buffer
+
+tilemap_positions
+              ' Current tilemap positions
+tm_pos_x      long      0       ' Current horizontal tilemap positon
+tm_pos_y      long      0       ' Current vertical tilemap positon
+
+input_states
+              ' Input states
+control_state word      0       ' Control states
+tilt_state    word      0       ' Tilt shift state
 
 tile_maps
               ' Main tile map
@@ -269,7 +280,7 @@ sprite_rock   long      $0_0_0_0_0_0_0_0        ' Sprite 1
               long      $6_6_0_0_0_0_0_0
 
               ' Blank sprite
-sprite_blank  long      $2_2_2_2_2_2_2_2        ' Sprite 1
+sprite_blank  long      $5_5_5_5_5_5_5_5        ' Sprite 1
               long      $F_F_F_F_F_F_F_F
               long      $4_4_4_4_4_4_4_4
               long      $F_F_F_F_F_F_F_F
@@ -288,8 +299,4 @@ s_palette1    byte      %00000000,%00110011,%11111111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
-
-input_states
-              ' Input states
-control_state word      0       ' Control states
-tilt_state    word      0       ' Tilt shift state              
+                                                                

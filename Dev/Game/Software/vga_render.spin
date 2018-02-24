@@ -2,7 +2,7 @@
         File:     vga_render.spin
         Author:   Connor Spangler
         Date:     1/27/2018
-        Version:  0.2
+        Version:  0.9
         Description: 
                   This file contains the PASM code to generate video data and store it to hub RAM
                   to be displayed by the vga_display routine
@@ -11,7 +11,8 @@
 CON
   ' Graphics system attributes
   numRenderCogs = 5             ' Number of cogs used for rendering
-  numSprites = 64               ' Number of sprites in the sprite attribute table
+  numSprites = 44               ' Number of sprites in the sprite attribute table
+  maxSprRen = 8                 ' Maximum number of sprites rendered per scanline
 
 VAR
   ' Cog attributes
@@ -55,20 +56,13 @@ render
         add             semptr, par             ' Initialize pointer to semaphore
         add             ilptr,  par             ' Initialize pointer to initial scanline
         rdbyte          semptr, semptr          ' Get semaphore ID
-        add             vbptr,  clptr           ' Point video buffer pointer to video buffer
-        rdlong          vbptr,  vbptr           ' Load video buffer memory location
-        add             tmptr,  clptr           ' Point tile map pointer to tile map
-        rdlong          tmptr,  tmptr           ' Load tile map memory location
-        add             tpptr,  clptr           ' Point tile palette pointer to tile palettes
-        rdlong          tpptr,  tpptr           ' Load tile palette memory location
-        add             tcpptr, clptr           ' Point color palette pointer to color palettes
-        rdlong          tcpptr, tcpptr          ' Load color palette memory location
-        add             saptr,  clptr           ' Point sprite attribute table pointer to sprite attribute table
-        rdlong          saptr,  saptr           ' Load sprite attribute table memory location
-        add             spptr,  clptr           ' Point sprite palette pointer to sprite palettes
-        rdlong          spptr,  spptr           ' Load sprite palette memory location
-        add             scpptr, clptr           ' Point sprite color palette pointer to sprite color palettes
-        rdlong          scpptr, scpptr          ' Load sprite color palette memory location
+        mov             index,  #8              ' Initialize number of attributes
+att1    add             vbptr,  clptr           ' Calculate variable Main RAM offset
+att2    rdlong          vbptr,  vbptr           ' Read variable from Main RAM
+        add             att1,   d0              ' Increment local variable position for calculating offset
+        add             att2,   #1              ' Increment local variable position for reading
+        add             att2,   d0              ' Increment local variable position for storing
+        djnz            index,  #att1           ' Repeat for all variables
         rdlong          clptr,  clptr           ' Load current scanline memory location
         mov             spxsz,  #8              ' Initialize sprite horizontal size
         mov             spysz,  #8              ' Initialize sprite vertical size
@@ -93,7 +87,7 @@ slgen   'Calculate tile map line memory location
         add             tmindx, tmptr           ' tmindx += tmptr + tmindx*80
 
         ' Generate each tile
-        mov             index , numTiles        ' Initialize number of tiles to parse
+        mov             index,  numTiles        ' Initialize number of tiles to parse
 tile    rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
@@ -189,7 +183,6 @@ shbuf1  mov             slbuff+0, pxbuff        ' Allocate space for color
         rdbyte          curcp,  temp            ' Load color
         or              pxbuff, curcp           ' Store color
         ror             pxbuff, #8              ' Allocate space for next color
-        shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         ' Store second half tile pixels
 shbuf2  mov             slbuff+1, pxbuff        ' Allocate space for color
@@ -203,6 +196,7 @@ shbuf2  mov             slbuff+1, pxbuff        ' Allocate space for color
         ' Render sprites
         mov             index,  numSprts        ' Initialize size of sprite attribute table
         mov             tmindx, saptr           ' Initialize sprite attribute table index
+        mov             nrensp, #0              ' Initialize number of rendered sprites on this scanline
 sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
 
         ' Get sprite size
@@ -319,13 +313,16 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
 :slbput mov             0-0,    tmpslb          ' Re-store target scanline buffer segment
 :trans  shr             curpt,  #4              ' Shift palette line right 4 bits to next pixel
         djnz            findx,  #:sprite        ' Repeat for all pixels on sprite palette line
+        add             nrensp, #1              ' Increment rendered sprite counter
+        cmp             nrensp, #maxSprRen wz   ' Check if max rendered sprites reached
+        if_z  jmp       #maxsp                  ' If max sprites reached skip rest of sprites
 :skip   mov             spxsz,  #8              ' Re-initialize sprite horizontal size
         mov             spysz,  #8              ' Re-initialize sprite vertical size
         add             tmindx, #4              ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
-        mov             index , numSegs         ' Initialize current scanline segment
+maxsp   mov             index , numSegs         ' Initialize current scanline segment
         mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
 gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index from Main RAM
         cmp             tgtsl,  cursl wz        ' Check if current scanline is being requested for display
@@ -355,12 +352,13 @@ semptr        long      4       ' Pointer to location of semaphore in Main RAM w
 ilptr         long      8       ' Pointer to location of initial scanline in Main RAM w/ offset
 clptr         long      0       ' Pointer to location of current scanline in Main RAM w/ offset
 vbptr         long      4       ' Pointer to location of video buffer in Main RAM w/ offset
-tmptr         long      8       ' Pointer to location of tile map in Main RAM w/ offset
-tpptr         long      12      ' Pointer to location of tile palettes in Main RAM w/ offset
-tcpptr        long      16      ' Pointer to location of tile color palettes in Main RAM w/ offset
-saptr         long      20      ' Pointer to location of sprite attribute table in Main RAM w/ offset
-spptr         long      24      ' Pointer to location of sprite palettes in Main RAM w/ offset
-scpptr        long      28      ' Pointer to location of sprite color palettes in Main RAM w/ offset
+tmpptr        long      8       ' Pointer to location of tilemap positions in Main RAM w/ offset
+tmptr         long      12      ' Pointer to location of tile map in Main RAM w/ offset
+tpptr         long      16      ' Pointer to location of tile palettes in Main RAM w/ offset
+tcpptr        long      20      ' Pointer to location of tile color palettes in Main RAM w/ offset
+saptr         long      24      ' Pointer to location of sprite attribute table in Main RAM w/ offset
+spptr         long      28      ' Pointer to location of sprite palettes in Main RAM w/ offset
+scpptr        long      32      ' Pointer to location of sprite color palettes in Main RAM w/ offset
 
 ' Other values
 d0            long      1 << 9                  ' Value to increment destination register
@@ -401,6 +399,7 @@ hindx         res       1       ' Container for half-tile index
 findx         res       1       ' Container for full-tile index
 slboff        res       1       ' Container for scanline buffer offset
 tmpslb        res       1       ' Container for temporary scanline buffer segment
+nrensp        res       1       ' Container for number of rendered sprites on current scanline
 tmpmir        res       1       ' Container for temporary sprite mirror value
 temp          res       1       ' Container for temporary variables
 
