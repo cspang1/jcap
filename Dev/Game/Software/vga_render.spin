@@ -12,7 +12,10 @@ CON
   ' Graphics system attributes
   numRenderCogs = 5             ' Number of cogs used for rendering
   numSprites = 44               ' Number of sprites in the sprite attribute table
+  numAtts = 8                   ' Number of attributes from Main RAM required by the render system
   maxSprRen = 8                 ' Maximum number of sprites rendered per scanline
+  sprSzX = 8                    ' Horizontal size of sprites
+  sprSzY = 8                    ' Vertical size of sprites
 
 VAR
   ' Cog attributes
@@ -56,7 +59,7 @@ render
         add             semptr, par             ' Initialize pointer to semaphore
         add             ilptr,  par             ' Initialize pointer to initial scanline
         rdbyte          semptr, semptr          ' Get semaphore ID
-        mov             index,  #8              ' Initialize number of attributes
+        mov             index,  #numAtts        ' Initialize number of attributes
 att1    add             vbptr,  clptr           ' Calculate variable Main RAM offset
 att2    rdlong          vbptr,  vbptr           ' Read variable from Main RAM
         add             att1,   d0              ' Increment local variable position for calculating offset
@@ -64,8 +67,6 @@ att2    rdlong          vbptr,  vbptr           ' Read variable from Main RAM
         add             att2,   d0              ' Increment local variable position for storing
         djnz            index,  #att1           ' Repeat for all variables
         rdlong          clptr,  clptr           ' Load current scanline memory location
-        mov             spxsz,  #8              ' Initialize sprite horizontal size
-        mov             spysz,  #8              ' Initialize sprite vertical size
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
@@ -199,21 +200,12 @@ shbuf2  mov             slbuff+1, pxbuff        ' Allocate space for color
         mov             nrensp, #0              ' Initialize number of rendered sprites on this scanline
 sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
 
-        ' Get sprite size
-        mov             temp,   curmt           ' Copy sprite attributes to temp variable
-        and             temp,   #1              ' Mask sprite vertical size attribute
-        shl             spysz,  temp            ' Convert sprite vertical size
-        mov             temp,   curmt           ' Copy sprite attributes to temp variable
-        shr             temp,   #1              ' Move sprite horizontal size attribute to LSB
-        and             temp,   #1              ' Mask sprite horizontal size attribute
-        shl             spxsz,  temp            ' Convert sprite horizontal size
-
         ' Check if sprite is on scanline vertically
         mov             temp,   curmt           ' Copy sprite attributes to temp variable
         shr             temp,   #7              ' Shift vertical position to LSB
         and             temp,   #255            ' Mask out vertical position
         mov             spypos, temp            ' Store sprite vertical position
-        add             temp,   spysz           ' Calculate sprite vertical position upper bound
+        add             temp,   #SprSzY         ' Calculate sprite vertical position upper bound
         sub             temp,   #1              ' Modify for inclusivity
         cmp             temp,   cursl wc        ' Check sprite upper bound
         if_nc cmp       cursl,  spypos wc       ' Check sprite lower bound
@@ -223,7 +215,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         if_nc jmp       #:skip                  ' Skip sprite
 
         ' Calculate vertical sprite pixel palette offset
-        mov             spyoff, spysz           ' Copy sprite vertical size to sprite vertical offset
+        mov             spyoff, #SprSzY         ' Copy sprite vertical size to sprite vertical offset
         sub             temp,   cursl           ' Subtract current scanline from sprite lower bound
         sub             spyoff, temp            ' Subtract vertical sprite position from vertical sprite size
         sub             spyoff, #1              ' Decrement offset for inclusivity
@@ -237,13 +229,13 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         mov             spxpos, temp            ' Store sprite horizontal position
         cmp             maxVis, spxpos wc       ' Check sprite upper bound
         if_nc jmp       #:cont                  ' Render sprite
-        add             temp,   spxsz           ' Calculate sprite horizontal position upper bound
+        add             temp,   #sprSzX         ' Calculate sprite horizontal position upper bound
         sub             temp,   #1              ' Modify for inclusivity
         cmpsub          temp,   maxHor wc       ' Force wrap (carry if wrapped)
         if_nc jmp       #:skip                  ' Skip sprite
 
         ' Calculate horizontal scanline buffer offset
-        mov             spxoff, spxsz           ' Copy sprite horizontal size to sprite horizontal offset
+        mov             spxoff, #sprSzX         ' Copy sprite horizontal size to sprite horizontal offset
         sub             spxoff, temp            ' Subtract horizontal sprite position from horizontal sprite size
         sub             spxoff, #1              ' Decrement offset for inclusivity
         mov             spxpos, #0              ' Move sprite horizontal position to origin
@@ -270,7 +262,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         shl             temp,   #5              ' Calculate sprite pixel palette Main RAM location offset
         add             temp,   spptr           ' Calculate sprite pixel palette Main RAM base location
         cmp             spymir, #1 wz           ' Check if sprite is mirrored vertically
-        if_z  subs      spyoff, spysz           ' If so calculate inverted offset...
+        if_z  subs      spyoff, #SprSzY         ' If so calculate inverted offset...
         if_z  add       spyoff, #1              ' Modify for inclusivity...
         if_z  abs       spyoff, spyoff          ' And calculate final absolute offset
         shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
@@ -281,7 +273,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         if_z  shr       curpt,  spxoff          ' Shift sprite pixel palette line right to compensate for mirrored wrapping
 
         ' Parse sprite pixel palette line
-        mov             findx,  spxsz           ' Store sprite horizontal size into index
+        mov             findx,  #sprSzX         ' Store sprite horizontal size into index
 :sprite mov             temp,   curpt           ' Load current sprite pixel palette line into temp variable
         and             temp,   #15             ' Mask out current pixel
         add             temp,   cpindx          ' Calculate color palette offset
@@ -290,7 +282,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         if_z  jmp       #:trans                 ' Skip pixel if so
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
         cmp             spxmir, #1 wz           ' Check for horizontal mirroring
-        if_z  mov       tmpmir, spxsz           ' If so store sprite horizontal size into temp variable
+        if_z  mov       tmpmir, #sprSzX         ' If so store sprite horizontal size into temp variable
         if_z  sub       tmpmir, findx           ' And invert current index
         if_z  add       temp,   tmpmir          ' And add inverted pixel index
         if_nz add       temp,   findx           ' Or add current pixel index
@@ -316,9 +308,7 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         add             nrensp, #1              ' Increment rendered sprite counter
         cmp             nrensp, #maxSprRen wz   ' Check if max rendered sprites reached
         if_z  jmp       #maxsp                  ' If max sprites reached skip rest of sprites
-:skip   mov             spxsz,  #8              ' Re-initialize sprite horizontal size
-        mov             spysz,  #8              ' Re-initialize sprite vertical size
-        add             tmindx, #4              ' Increment pointer to next sprite in SAT
+:skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
@@ -381,8 +371,6 @@ spindx        res       1       ' Sprite pixel palette index
 spxpos        res       1       ' Sprite horizontal position
 spypos        res       1       ' Sprite vertical position
 spcol         res       1       ' Sprite color palette index
-spxsz         res       1       ' Sprite horizontal size
-spysz         res       1       ' Sprite vertical size
 spxoff        res       1       ' Sprite horizontal pixel palette offset
 spyoff        res       1       ' Sprite vertical pixel palette offset
 spxmir        res       1       ' Sprite horizontal mirroring
