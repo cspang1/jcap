@@ -16,7 +16,7 @@ CON
   num_sprites = 64    
 
 OBJ          
-  vga_render    : "vga_render"  ' Import VGA display system
+ :  vga_render    : "vga_render"  ' Import VGA display system
   vga_display   : "vga_display" ' Import VGA display system
   input         : "input"       ' Import input system
   
