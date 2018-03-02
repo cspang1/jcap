@@ -16,7 +16,7 @@ CON
   num_sprites = 64    
 
 OBJ          
- :  vga_render    : "vga_render"  ' Import VGA display system
+  vga_render    : "vga_render"  ' Import VGA display system
   vga_display   : "vga_display" ' Import VGA display system
   input         : "input"       ' Import input system
   
@@ -91,14 +91,13 @@ PUB main | cont,temp,temps,x,y
 
   repeat
     waitpeq(|< 24, |< 24, 0)       'Wait for Pin to go high
-    left_right(control_state >> 7)
-    up_down(control_state >> 7)
+    left_right(control_state >> 7, control_state & %10100000)
+    up_down(control_state >> 7, control_state & %01010000)
     cont := tilt_state
     if (tilt_state & 1) == 0
       longfill(@sprite_atts, 0, num_sprites)
 
-pri left_right(cont) | x,x_but,dir,mir,temp
-    x_but := cont & %10100000
+pri left_right(cont, x_but) | x,dir,mir,temp
     if x_but == %10000000 OR x_but == %00100000
       longmove(@x, @sprite_atts, 1)
       temp := x & %00000000000000000111111111111011
@@ -119,8 +118,7 @@ pri left_right(cont) | x,x_but,dir,mir,temp
       temp |= (x | mir | dir)
       longmove(@sprite_atts, @temp, 1)
 
-pri up_down(cont) | y,y_but,dir,mir,temp
-    y_but := cont & %01010000
+pri up_down(cont, y_but) | y,dir,mir,temp
     if y_but == %01000000 OR y_but == %00010000
       longmove(@y, @sprite_atts, 1)
       temp := y & %00000000111111111000000001110111
@@ -325,4 +323,3 @@ s_palette1    byte      %00000000,%00110011,%11111111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
-                                                                
