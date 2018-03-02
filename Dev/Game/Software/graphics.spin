@@ -60,8 +60,6 @@ PUB main | cont,temp,temps,x,y
 
   {{ TESTING }}
 
-  DIRA := %00000000000000000000000011111111
-
   '                 sprite         x position       y position    color v h size
   '            |<------------->|<--------------->|<------------->|<--->|-|-|<->|
   '             0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -93,16 +91,13 @@ PUB main | cont,temp,temps,x,y
 
   repeat
     waitpeq(|< 24, |< 24, 0)       'Wait for Pin to go high
-    left_right
-    up_down
+    left_right(control_state >> 7)
+    up_down(control_state >> 7)
     cont := tilt_state
-    if tilt_state == 1
+    if (tilt_state & 1) == 0
       longfill(@sprite_atts, 0, num_sprites)
-'    waitcnt(cnt + 1000000)
-    OUTA := control_state >> 8
 
-pri left_right | cont,x,x_but,dir,mir,temp
-    cont := control_state >> 8
+pri left_right(cont) | x,x_but,dir,mir,temp
     x_but := cont & %10100000
     if x_but == %10000000 OR x_but == %00100000
       longmove(@x, @sprite_atts, 1)
@@ -124,8 +119,7 @@ pri left_right | cont,x,x_but,dir,mir,temp
       temp |= (x | mir | dir)
       longmove(@sprite_atts, @temp, 1)
 
-pri up_down | cont,y,y_but,dir,mir,temp
-    cont := control_state >> 8
+pri up_down(cont) | y,y_but,dir,mir,temp
     y_but := cont & %01010000
     if y_but == %01000000 OR y_but == %00010000
       longmove(@y, @sprite_atts, 1)

@@ -29,10 +29,10 @@ input   or              dira,   Pin_outs        ' Set output pins
 {{
 The "poll" subroutine reprents the entire process of latching and then pulsing the 74HC165s
 }}
-:poll   andn            outa,   Pin_CP          ' Drive clock pin low
+:poll   mov             pcnt,   #15             ' Load number of 74HC165 polls into register
+        andn            outa,   Pin_CP          ' Drive clock pin low
         andn            outa,   Pin_PL_n        ' Drive parallel load pin low
         or              outa,   Pin_PL_n        ' Drive parallel load pin high           
-        mov             pcnt,   #16             ' Load number of 74HC165 polls into register
 {{
 The "dsin" subroutine performs the individual clock pulses to retrieve the bits from the 74HC165s
 }}
