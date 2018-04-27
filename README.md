@@ -15,7 +15,7 @@
 * Game engine
 * PCB schematic and CAD files
 
-in such a way that a user has everything they need to implement their own arcade game and have a PCB printed to build it on.
+<p>in such a way that a user has everything they need to implement their own arcade game and have a PCB printed to build it on.</p>
 
 <h1 align="center">The JAMMA Standard</h1>
 
@@ -25,16 +25,15 @@ in such a way that a user has everything they need to implement their own arcade
 
 <h1 align="center">The Propeller 1</h1>
 
-<p>The P8X32A is an impressive 8-core microcontroller programmed using either a high-level proprietary language called <a href="http://learn.parallax.com/projects/propeller-spin-language">Spin<a>, or a form of assembly called <a href="https://lamestation.atlassian.net/wiki/display/PASM/Propeller+Assembly+Manual+Home">PASM</a>. A very large array of standard programming languages are also able to be compiled for the Propeller, most notably <a href="http://learn.parallax.com/tutorials/propeller-c">C</a>. 
+<p>The P8X32A is an impressive 8-core microcontroller programmed using either a high-level proprietary language called <a href="http://learn.parallax.com/projects/propeller-spin-language">Spin<a>, or a form of assembly called <a href="https://lamestation.atlassian.net/wiki/display/PASM/Propeller+Assembly+Manual+Home">PASM</a>. A very large array of standard programming languages are also able to be compiled for the Propeller, most notably <a href="http://learn.parallax.com/tutorials/propeller-c">C</a>.
 
-The P8X32A works by implementing a round-robin exlusive resource access methodology via a rotating "hub", which switches shared resource access between each of the 8 individual processors, called "cogs":
+The P8X32A works by implementing a round-robin exlusive resource access methodology via a rotating "hub", which switches shared resource access between each of the 8 individual processors, called "cogs":</p>
 
 <p align="center"><img src="http://demin.ws/blog/english/2012/11/22/personal-mini-computer-on-parallax-propeller/propeller-block-large.jpg" alt="P8X32A" align="center"></p>
 
-The most significant benefit of using the Propeller as the backbone for JCAP is its implementation of video generation hardware within each cog. This reduces development time, and introduces a level of security and confidence in the hardware concerning the ablity to generate a VGA and/or composite TV video signal:
+<p>The most significant benefit of using the Propeller as the backbone for JCAP is its implementation of video generation hardware within each cog. This reduces development time, and introduces a level of security and confidence in the hardware concerning the ablity to generate a VGA and/or composite TV video signal:</p>
 
 <p align="center"><img src="https://i.stack.imgur.com/MErlN.jpg" align="center"></p>
-</p>
 
 <h1 align="center">Dependencies</h1>
 <p>The following items are required to develop on the JCAP framework:</p>
