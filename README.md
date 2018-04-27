@@ -58,7 +58,7 @@
 
 <ul>
   <li><a href="https://www.parallax.com/sites/default/files/downloads/P8X32A-Web-PropellerManual-v1.2.pdf">Propeller 1 (P8X32A) Manual</a></li>
-  <li>v<a href="https://cdn.sparkfun.com/datasheets/Dev/Propeller/Propeller-P8X32A-Datasheet-v1.4.0_1.pdf">Propeller 1 (P8X32A) Datasheet</a></li>
+  <li><a href="https://cdn.sparkfun.com/datasheets/Dev/Propeller/Propeller-P8X32A-Datasheet-v1.4.0_1.pdf">Propeller 1 (P8X32A) Datasheet</a></li>
   <li><a href="https://www.terasic.com.tw/cgi-bin/page/archive_download.pl?Language=English&No=593&FID=75023fa36c9bf8639384f942e65a46f3">DE0-Nano Manual</a></li>
   <li><a href="https://www.parallax.com/sites/default/files/downloads/60056-Setup-the-Propeller-1-Design-on-a-DE0-Nano-v1.2.pdf">Loading P8X32A onto DE0-Nano</a></li>
   <li><a href="https://www.parallax.com/sites/default/files/downloads/32360-Hydra-Game-Dev-Manual-v1.0.1.pdf">HYDRA Game Development Manual</a> (inspiration for majority of JCAP hardware and drivers)</li>
