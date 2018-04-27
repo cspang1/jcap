@@ -25,9 +25,9 @@
 
 <h1 align="center">The Propeller 1</h1>
 
-<p>The P8X32A is an impressive 8-core microcontroller programmed using either a high-level proprietary language called <a href="http://learn.parallax.com/projects/propeller-spin-language">Spin<a>, or a form of assembly called <a href="https://lamestation.atlassian.net/wiki/display/PASM/Propeller+Assembly+Manual+Home">PASM</a>. A very large array of standard programming languages are also able to be compiled for the Propeller, most notably <a href="http://learn.parallax.com/tutorials/propeller-c">C</a>.
+<p>The P8X32A is an impressive 8-core microcontroller programmed using either a high-level proprietary language called <a href="http://learn.parallax.com/projects/propeller-spin-language">Spin<a>, or a form of assembly called <a href="https://lamestation.atlassian.net/wiki/display/PASM/Propeller+Assembly+Manual+Home">PASM</a>. A very large array of standard programming languages are also able to be compiled for the Propeller, most notably <a href="http://learn.parallax.com/tutorials/propeller-c">C</a>.</p>
 
-The P8X32A works by implementing a round-robin exlusive resource access methodology via a rotating "hub", which switches shared resource access between each of the 8 individual processors, called "cogs":</p>
+<p>The P8X32A works by implementing a round-robin exlusive resource access methodology via a rotating "hub", which switches shared resource access between each of the 8 individual processors, called "cogs":</p>
 
 <p align="center"><img src="http://demin.ws/blog/english/2012/11/22/personal-mini-computer-on-parallax-propeller/propeller-block-large.jpg" alt="P8X32A" align="center"></p>
 
