@@ -65,7 +65,7 @@ att2    rdlong          vbptr,  vbptr           ' Read variable from Main RAM
         add             att2,   #1              ' Increment local variable position for reading
         add             att2,   d0              ' Increment local variable position for storing
         djnz            index,  #att1           ' Repeat for all variables
-        mov             tmppty, tmpptr          ' Copy tile map position pointer
+        mov             tmppty, tmpptx          ' Copy tile map position pointer
         add             tmppty, #4              ' Increment to point to y tile map position pointer
         rdlong          clptr,  clptr           ' Load current scanline memory location
 
@@ -83,7 +83,7 @@ slgen   'Calculate tile map line memory location
         rdlong          tmypos, tmppty          ' Load vertical tile map position from Main RAM
         mov             tmindx, cursl           ' Initialize tile map index
         add             tmindx, tmypos          ' Add vertical tile map position to tile map index
-        rdlong          tmxpos, tmpptr          ' Load horizontal tile map position from Main RAM
+        rdlong          tmxpos, tmpptx          ' Load horizontal tile map position from Main RAM
         shr             tmindx, #3              ' tmindx = floor(cursl/8)
         mov             temp,   tmindx          ' Store tile map index into temp variable
         shl             temp,   #6              ' tmindx *= 64
@@ -97,6 +97,8 @@ slgen   'Calculate tile map line memory location
         shr             temp,   #3              ' temp = tmxpos/8
         and             tmxpos, #7              ' tmxpos %= 8
         shl             temp,   #1              ' temp *= 2
+        add             temp,   tmindx          ' temp = floor(tmxpos/8)*2 + floor(cursl/8)*160 + tmptr
+        
 
 {{
         ' Generate each tile
@@ -340,7 +342,7 @@ semptr        long      4       ' Pointer to location of semaphore in Main RAM w
 ilptr         long      8       ' Pointer to location of initial scanline in Main RAM w/ offset
 clptr         long      0       ' Pointer to location of current scanline in Main RAM w/ offset
 vbptr         long      4       ' Pointer to location of video buffer in Main RAM w/ offset
-tmpptr        long      8       ' Pointer to location of tilemap positions in Main RAM w/ offset
+tmpptx        long      8       ' Pointer to location of tilemap positions in Main RAM w/ offset
 tmptr         long      12      ' Pointer to location of tile map in Main RAM w/ offset
 tpptr         long      16      ' Pointer to location of tile palettes in Main RAM w/ offset
 tcpptr        long      20      ' Pointer to location of tile color palettes in Main RAM w/ offset
