@@ -16,7 +16,9 @@ CON
   num_sprites = 64    
 
 OBJ          
-  vga_render    : "vga_render"  ' Import VGA display system
+  vga_tx        : "vga_tx"      ' Import graphics transmission system
+  vga_rx        : "vga_rx"      ' Import graphics reception system
+  vga_render    : "vga_render"  ' Import VGA render system
   vga_display   : "vga_display" ' Import VGA display system
   input         : "input"       ' Import input system
   
@@ -52,6 +54,8 @@ PUB main | cont,temp,temps,x,y
   input_state_base_ := @input_states                    ' Point input state base to base of input states
 
   ' Start video system
+  vga_tx.start(0)                                       ' Start graphics transmission
+  vga_rx.start(0)                                       ' Start graphics reception
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
   vga_display.start(@cur_scanline_base_)                ' Start display driver
 
