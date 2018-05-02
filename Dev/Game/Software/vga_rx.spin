@@ -29,6 +29,6 @@ PUB stop                                                ' Function to stop recep
 DAT
         org             0
         ' Start of the graphics data transmission routine
-rx      jmp             #tx     ' Loop infinitely
+rx      jmp             #rx     ' Loop infinitely
 
         fit
