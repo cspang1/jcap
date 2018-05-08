@@ -11,6 +11,7 @@
 VAR
   long  cog_                    ' Variable containing ID of transmission cog
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
+  long  cont_                   ' Variable containing control flag for transmission routine
   
 PUB start(varAddrBase) : status                         ' Function to start transmission driver with pointer to Main RAM variables
   ' Instantiate variables
