@@ -10,7 +10,6 @@
 
 CON
   BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4  ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
-  TX_PIN = 0                                    ' Pin used to transmit via
 
 VAR
   long  cog_                    ' Variable containing ID of transmission cog
@@ -46,24 +45,52 @@ tx
 
 	' Setup Counter in NCO mode
         mov             ctra,   CtrCfg 		' Set Counter A control register
-	mov		dira,	#TX_PIN		' Set output pin
+	mov		dira,	TxPin		' Set output pin
 
-	mov		bufsz,	#BUFFER_SIZE	' Instantiate graphics buffer size
+	' Transfer entire graphics buffer
+txbuff	mov		bufsz,	#BUFFER_SIZE	' Instantiate graphics buffer size
+	mov		curlng,	bufptr		' Instantiate graphics buffer location
 
 	' Wait for control flag to go high
 :wait	rdlong		temp,	cntptr wz	' Poll control flag
-	if_z	jmp	#:wait			' Loop while loer
+	if_z	jmp	#:wait			' Loop while low
 
+	' Transfer current long of graphics buffer
+:txlong	rdlong		txlong,	curlng		' Load current long
+	add		curlng,	#4		' Increment to next graphics buffer long
+	mov		txindx,	#31		' Load number of bits in long
 
-        jmp		#tx     	' Loop infinitely
+	' Setup long transmission start
+	mov		phsa,	TxStart		' Send one bit high
+	mov		phsa,	txlong		' Stage long for transfer
+
+	' Transmit bits
+:txbits	shl		phsa,	#1		' Shift next bit to transmit
+	djnz		txindx,	#:txbits	' Repeat for all bits
+
+	' Setup long transmission end
+	mov		phsa,	#0		' Pull data line low
+	djnz		bufsz,	#:txlong	' Repeat for all longs in buffer
+
+	' Wait for ACK and prepare for next transmission
+	andn		dira,	TxPin		' Set transmission pin to input for ACK
+	waitpeq		TxPin,	TxPin		' Wait for ACK
+	mov		dira,	TxPin		' Reset transmission pin for output
+	wrlong		zero,	cntptr		' Reset control flag
+        jmp		#txbuff     		' Loop infinitely
 
 TxStart	      long	-1					' Low transmission start pulse
 CtrCfg        long      %0_00100_000_00000000_000000_000_000000	' Counter A configuration
+TxPin	      long	|< 0					' Set transmission pin
+zero	      long	0					' Zero for control flag
 
 bufptr	      long	0	' Pointer to transmission buffer in main RAM w/ offset
 cntptr	      long	4	' Pointer to transmission control flag in main RAM w/ offset
 
+curlng	      res	1	' Container for current long address
 bufsiz	      res	1	' Container for size of graphics buffer
+txlong	      res	1	' Container for the currently transferring graphics buffer long
+txindx	      res	1	' Container for index of current graphics buffer long bit being transferred
 temp	      res	1	' Container for temporary variables
 
         fit
