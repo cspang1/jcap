@@ -23,7 +23,7 @@ PUB start(varAddrBase) : status                         ' Function to start tran
   cont := FALSE                                         ' Instantiate control flag
 
   ' Start transmission driver
-  ifnot cog_ := cognew(@tx, var_addr_base_) + 1         ' Initialize cog running "tx" routine with reference to start of variable registers
+  ifnot cog_ := cognew(@tx, @var_addr_base_) + 1       	' Initialize cog running "tx" routine with reference to start of variable registers
     return FALSE                                        ' Transmission system failed to initialize
 
   return TRUE                                           ' Transmission system successfully initialized
@@ -37,11 +37,33 @@ PUB transmit
     cont := TRUE        ' Set control flag to start transmission
 
 DAT
-        org             0
-        ' Start of the graphics data transmission routine
-tx      ' Initialize variables
-        
+        org	0
+tx
+	' Initialize variables
+	rdlong		bufptr,	par		' Initialize pointer to variables
+	add		cntptr,	bufptr		' Initialize pointer to control flag
+	rdlong		bufptr,	bufptr		' Initialize pointer to graphics buffer
 
-        jmp             #tx     ' Loop infinitely
+	' Setup Counter in NCO mode
+        mov             ctra,   CtrCfg 		' Set Counter A control register
+	mov		dira,	#TX_PIN		' Set output pin
+
+	mov		bufsz,	#BUFFER_SIZE	' Instantiate graphics buffer size
+
+	' Wait for control flag to go high
+:wait	rdlong		temp,	cntptr wz	' Poll control flag
+	if_z	jmp	#:wait			' Loop while loer
+
+
+        jmp		#tx     	' Loop infinitely
+
+TxStart	      long	-1					' Low transmission start pulse
+CtrCfg        long      %0_00100_000_00000000_000000_000_000000	' Counter A configuration
+
+bufptr	      long	0	' Pointer to transmission buffer in main RAM w/ offset
+cntptr	      long	4	' Pointer to transmission control flag in main RAM w/ offset
+
+bufsiz	      res	1	' Container for size of graphics buffer
+temp	      res	1	' Container for temporary variables
 
         fit
