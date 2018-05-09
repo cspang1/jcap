@@ -45,6 +45,7 @@ tx
 
 	' Setup Counter in NCO mode
         mov             ctra,   CtrCfg 		' Set Counter A control register
+	mov		frqa,	#0		' Zero Counter A frequency register
 	mov		dira,	TxPin		' Set output pin
 
 	' Transfer entire graphics buffer
@@ -52,7 +53,7 @@ txbuff	mov		bufsz,	#BUFFER_SIZE	' Instantiate graphics buffer size
 	mov		curlng,	bufptr		' Instantiate graphics buffer location
 
 	' Wait for control flag to go high
-:wait	rdlong		temp,	cntptr wz	' Poll control flag
+:wait	rdlong		poll,	cntptr wz	' Poll control flag
 	if_z	jmp	#:wait			' Loop while low
 
 	' Transfer current long of graphics buffer
@@ -75,11 +76,11 @@ txbuff	mov		bufsz,	#BUFFER_SIZE	' Instantiate graphics buffer size
 	' Wait for ACK and prepare for next transmission
 	andn		dira,	TxPin		' Set transmission pin to input for ACK
 	waitpeq		TxPin,	TxPin		' Wait for ACK
-	mov		dira,	TxPin		' Reset transmission pin for output
+	or		dira,	TxPin		' Reset transmission pin for output
 	wrlong		zero,	cntptr		' Reset control flag
         jmp		#txbuff     		' Loop infinitely
 
-TxStart	      long	-1					' Low transmission start pulse
+TxStart	      long	-1					' High transmission start pulse
 CtrCfg        long      %0_00100_000_00000000_000000_000_000000	' Counter A configuration
 TxPin	      long	|< 0					' Set transmission pin
 zero	      long	0					' Zero for control flag
@@ -91,6 +92,6 @@ curlng	      res	1	' Container for current long address
 bufsiz	      res	1	' Container for size of graphics buffer
 txlong	      res	1	' Container for the currently transferring graphics buffer long
 txindx	      res	1	' Container for index of current graphics buffer long bit being transferred
-temp	      res	1	' Container for temporary variables
+poll	      res	1	' Container for polled control flag
 
         fit
