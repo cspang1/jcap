@@ -64,6 +64,7 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
 
         ' Setup long transmission start
         mov             phsa,   TxStart         ' Send one bit high
+        nop
         mov             phsa,   txval           ' Stage long for transfer
 
         ' Transmit bits

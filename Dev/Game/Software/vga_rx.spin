@@ -33,8 +33,8 @@ PUB receive
   cont_ := FALSE
 
 PUB stop                                                ' Function to stop reception driver
-    if cog_                                             ' If cog is running
-      cogstop(cog_~ - 1)                                ' Stop the cog
+  if cog_                                             ' If cog is running
+    cogstop(cog_~ - 1)                                ' Stop the cog
   
 DAT
         org             0
@@ -45,7 +45,7 @@ rx
         rdlong          bufptr, par             ' Initialize pointer to variables
 
         ' Initialize pins
-        andn            dira,   RxPin           ' Set output pin {{ DOES THIS BREAK??? }}
+        andn            dira,   RxPin           ' Set output pin
         or              outa,   RxPin           ' Set pin high for ACK
 
         ' Receive graphics buffer
@@ -53,8 +53,7 @@ rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         mov             curlng, bufptr          ' Initialize graphics buffer location
 
         ' Receive long
-:rxlong mov             rxval,  #0              ' Zero reception long buffer {{ NECESSARY??? }}
-        waitpeq         RxPin,  RxPin           ' Wait for ACK
+:rxlong waitpeq         RxPin,  RxPin           ' Wait for ACK
 
         ' Receive bits
 :rxbits test            RxPin,  ina wc          ' Get bit
