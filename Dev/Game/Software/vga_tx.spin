@@ -2,7 +2,7 @@
         File:     vga_tx.spin
         Author:   Connor Spangler
         Date:     5/1/2018
-        Version:  0.2
+        Version:  1.0
         Description: 
                   This file contains the PASM code to transmit graphics resources from one
                   Propeller to another
@@ -17,6 +17,8 @@ VAR
   long  cont_                   ' Variable containing control flag for transmission routine
   
 PUB start(varAddrBase) : status                         ' Function to start transmission driver with pointer to Main RAM variables
+  stop                                                  ' Stop any existing transmission cogs
+
   ' Instantiate variables
   var_addr_base_ := varAddrBase                         ' Assign local base variable address
   cont_ := FALSE                                        ' Instantiate control flag
@@ -48,21 +50,21 @@ tx
         or              dira,   TxPin           ' Set output pin
 
         ' Transfer entire graphics buffer
-txbuff  mov             bufsiz, BuffSz          ' Instantiate graphics buffer size
-        mov             curlng, bufptr          ' Instantiate graphics buffer location
+txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
+        mov             curlng, bufptr          ' Initialize graphics buffer location
 
         ' Wait for control flag to go high
 :wait   rdlong          poll,   cntptr wz       ' Poll control flag
         if_z  jmp       #:wait                  ' Loop while low
 
         ' Transfer current long of graphics buffer
-:txlong rdlong          txlong, curlng          ' Load current long
+:txlong rdlong          txval,  curlng          ' Load current long
         add             curlng, #4              ' Increment to next graphics buffer long
         mov             txindx, #31             ' Load number of bits in long
 
         ' Setup long transmission start
         mov             phsa,   TxStart         ' Send one bit high
-        mov             phsa,   txlong          ' Stage long for transfer
+        mov             phsa,   txval           ' Stage long for transfer
 
         ' Transmit bits
 :txbits shl             phsa,   #1              ' Shift next bit to transmit
@@ -88,9 +90,9 @@ zero          long      0                                                       
 bufptr        long      0       ' Pointer to transmission buffer in main RAM w/ offset
 cntptr        long      4       ' Pointer to transmission control flag in main RAM w/ offset
 
-curlng        res       1       ' Container for current long address
 bufsiz        res       1       ' Container for size of graphics buffer
-txlong        res       1       ' Container for the currently transferring graphics buffer long
+curlng        res       1       ' Container for current long address
+txval         res       1       ' Container for current long
 txindx        res       1       ' Container for index of current graphics buffer long bit being transferred
 poll          res       1       ' Container for polled control flag
 
