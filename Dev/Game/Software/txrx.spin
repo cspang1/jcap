@@ -20,9 +20,14 @@ VAR
   ' Video system pointers
   long  cur_scanline_base_      ' Register in Main RAM containing current scanline being requested by the VGA Display system
 
-PUB main | cont,temp,temps,x,y
+PUB main | time
   ' Start video system
   vga_tx.start(@testing)                          ' Start graphics transmission
+  time := cnt
+
+  repeat
+    waitcnt(time += (clkfreq/60))
+    vga_tx.transmit
 
 DAT
 testing       long      %10101010_10101010_10101010_10101010[((40*30*2)+(32*16)*2+(64*4))/4]

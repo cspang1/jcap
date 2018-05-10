@@ -34,7 +34,6 @@ PUB stop                        ' Function to stop transmission driver
 PUB transmit
   repeat while cont_            ' Wait for previous transmission to complete
   cont_ := TRUE                 ' Set control flag to start transmission
-
 DAT
         org     0
 tx
@@ -42,12 +41,11 @@ tx
         mov             bufptr, par
         add             cntptr, bufptr          ' Initialize pointer to control flag
         rdlong          bufptr, par             ' Initialize pointer to variables
-        'rdlong          bufptr, bufptr          ' Initialize pointer to graphics buffer
 
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register
         mov             frqa,   #0              ' Zero Counter A frequency register
-        mov             dira,   TxPin           ' Set output pin
+        or              dira,   TxPin           ' Set output pin
 
         ' Transfer entire graphics buffer
 txbuff  mov             bufsiz, BuffSz          ' Instantiate graphics buffer size
@@ -75,9 +73,9 @@ txbuff  mov             bufsiz, BuffSz          ' Instantiate graphics buffer si
         djnz            bufsiz, #:txlong        ' Repeat for all longs in buffer
 
         ' Wait for ACK and prepare for next transmission
-        'andn            dira,   TxPin           ' Set transmission pin to input for ACK
-        'waitpeq         TxPin,  TxPin           ' Wait for ACK
-        'or              dira,   TxPin           ' Reset transmission pin for output
+        andn            dira,   TxPin           ' Set transmission pin to input for ACK
+        waitpeq         TxPin,  TxPin           ' Wait for ACK
+        or              dira,   TxPin           ' Reset transmission pin for output
         wrlong          zero,   cntptr          ' Reset control flag
         jmp             #txbuff                 ' Loop infinitely
 
