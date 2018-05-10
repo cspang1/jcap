@@ -41,8 +41,8 @@ VAR
   long  satts[num_sprites]
 
 PUB main | cont,temp,temps,x,y
-  ' Initialize pointers
-  cur_scanline_base_ := @cur_scanline                   ' Point current scanline base to current scanline
+  ' Initialize pointers 
+{{  cur_scanline_base_ := @cur_scanline                   ' Point current scanline base to current scanline
   video_buffer_base_ := @video_buffer                   ' Point video buffer base to video buffer
   tilemap_positions_base_ := @tilemap_positions         ' Point video buffer base to base of tilemap positions
   tile_map_base_ := @tile_maps                          ' Point tile map base to base of tile maps
@@ -51,18 +51,20 @@ PUB main | cont,temp,temps,x,y
   sprite_att_base_ := @sprite_atts                      ' Point sprite attribute table base to base of sprite attribute table
   sprite_palette_base_ := @sprite_palettes              ' Point sprite palette base to base of sprite palettes
   scolor_palette_base_ := @sprite_color_palettes        ' Point sprite color palette base to base of sprite color palettes
-  input_state_base_ := @input_states                    ' Point input state base to base of input states
+  input_state_base_ := @input_states                    ' Point input state base to base of input states  }}
 
   ' Start video system
-  vga_tx.start(0)                                       ' Start graphics transmission
-  vga_rx.start(0)                                       ' Start graphics reception
-  vga_render.start(@cur_scanline_base_)                 ' Start renderers
-  vga_display.start(@cur_scanline_base_)                ' Start display driver
+  vga_tx.start(tile_map_base_)                          ' Start graphics transmission
+  'vga_rx.start(0)                                       ' Start graphics reception
+  'vga_render.start(@cur_scanline_base_)                 ' Start renderers
+  'vga_display.start(@cur_scanline_base_)                ' Start display driver
 
   ' Start input system
-  input.start(@input_state_base_)                       ' Start input system
+  'input.start(@input_state_base_)                       ' Start input system
 
   {{ TESTING }}
+
+  repeat vga_tx.transmit
 
   '                 sprite         x position       y position    color v h size
   '            |<------------->|<--------------->|<------------->|<--->|-|-|<->|
@@ -157,6 +159,9 @@ input_states
 control_state word      0       ' Control states
 tilt_state    word      0       ' Tilt shift state
 
+testing       long      %10101010_10101010_10101010_10101010[((40*30*2)+(32*16)*2+(64*4))/4]
+
+{{
 tile_maps
               ' Main tile map
 tile_map0     word      $00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02                 ' row 0
@@ -214,7 +219,7 @@ s_palette1    byte      %00000000,%00110011,%11111111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
 
-              long	0[120]
+              long      0[120]
 
 sprite_atts
               ' Sprite attribute table
@@ -301,3 +306,4 @@ sprite_blank  long      $5_5_5_5_5_5_5_5        ' Sprite 2
               long      $F_F_F_F_F_F_F_F
               long      $8_8_8_8_8_8_8_8
               long      $F_F_F_F_F_F_F_F
+              }}

@@ -2,14 +2,14 @@
         File:     vga_tx.spin
         Author:   Connor Spangler
         Date:     5/1/2018
-        Version:  0.1
+        Version:  0.2
         Description: 
                   This file contains the PASM code to transmit graphics resources from one
                   Propeller to another
 }}
 
 CON
-  BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4  ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
+  BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
 
 VAR
   long  cog_                    ' Variable containing ID of transmission cog
@@ -39,9 +39,10 @@ DAT
         org     0
 tx
         ' Initialize variables
-        rdlong          bufptr, par             ' Initialize pointer to variables
+        mov             bufptr, par
         add             cntptr, bufptr          ' Initialize pointer to control flag
-        rdlong          bufptr, bufptr          ' Initialize pointer to graphics buffer
+        rdlong          bufptr, par             ' Initialize pointer to variables
+        'rdlong          bufptr, bufptr          ' Initialize pointer to graphics buffer
 
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register
@@ -74,9 +75,9 @@ txbuff  mov             bufsiz, BuffSz          ' Instantiate graphics buffer si
         djnz            bufsiz, #:txlong        ' Repeat for all longs in buffer
 
         ' Wait for ACK and prepare for next transmission
-        andn            dira,   TxPin           ' Set transmission pin to input for ACK
-        waitpeq         TxPin,  TxPin           ' Wait for ACK
-        or              dira,   TxPin           ' Reset transmission pin for output
+        'andn            dira,   TxPin           ' Set transmission pin to input for ACK
+        'waitpeq         TxPin,  TxPin           ' Wait for ACK
+        'or              dira,   TxPin           ' Reset transmission pin for output
         wrlong          zero,   cntptr          ' Reset control flag
         jmp             #txbuff                 ' Loop infinitely
 
