@@ -10,6 +10,7 @@
 
 CON
   BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
+  TX_PIN = 0                                            ' Pin used for data transmission
 
 VAR
   long  cog_                    ' Variable containing ID of transmission cog
@@ -21,9 +22,10 @@ PUB start(varAddrBase) : status                         ' Function to start tran
 
   ' Instantiate variables
   var_addr_base_ := varAddrBase                         ' Assign local base variable address
-  cont_ := FALSE                                        ' Instantiate control flag
+  cont_ := 0                                            ' Instantiate control flag
 
-  ' Start transmission driver
+  dira |= |< 2
+   ' Start transmission driver
   ifnot cog_ := cognew(@tx, @var_addr_base_) + 1        ' Initialize cog running "tx" routine with reference to start of variable registers
     return FALSE                                        ' Transmission system failed to initialize
 
@@ -34,8 +36,11 @@ PUB stop                        ' Function to stop transmission driver
     cogstop(cog_~ - 1)          ' Stop the cog
 
 PUB transmit
-  repeat while cont_            ' Wait for previous transmission to complete
-  cont_ := TRUE                 ' Set control flag to start transmission
+  outa |= |< 2
+  repeat while cont_
+  cont_ := $FFFF_FFFF
+  outa  &= !(|<2)
+
 DAT
         org     0
 tx
@@ -45,17 +50,22 @@ tx
         rdlong          bufptr, par             ' Initialize pointer to variables
 
         ' Setup Counter in NCO mode
-        mov             ctra,   CtrCfg          ' Set Counter A control register
+        mov             ctra,   CtrCfg          ' Set Counter A control register mode
         mov             frqa,   #0              ' Zero Counter A frequency register
         or              dira,   TxPin           ' Set output pin
+
+        andn            outa,   tstpin
+        or              dira,   tstpin
 
         ' Transfer entire graphics buffer
 txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
         mov             curlng, bufptr          ' Initialize graphics buffer location
 
         ' Wait for control flag to go high
+        or              outa,   tstpin
 :wait   rdlong          poll,   cntptr wz       ' Poll control flag
         if_z  jmp       #:wait                  ' Loop while low
+        andn            outa,   tstpin
 
         ' Transfer current long of graphics buffer
 :txlong rdlong          txval,  curlng          ' Load current long
@@ -63,8 +73,10 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         mov             txindx, #31             ' Load number of bits in long
 
         ' Setup long transmission start
+        nop                                     ' Compensation NOP
+        nop                                     ' Compensation NOP
+        nop                                     ' Compensation NOP
         mov             phsa,   TxStart         ' Send one bit high
-        nop
         mov             phsa,   txval           ' Stage long for transfer
 
         ' Transmit bits
@@ -77,19 +89,21 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
 
         ' Wait for ACK and prepare for next transmission
         andn            dira,   TxPin           ' Set transmission pin to input for ACK
+        or              outa,   tstpin
         waitpeq         TxPin,  TxPin           ' Wait for ACK
-        or              dira,   TxPin           ' Reset transmission pin for output
+        andn            outa,   tstpin
         wrlong          zero,   cntptr          ' Reset control flag
+        or              dira,   TxPin           ' Reset transmission pin for output
         jmp             #txbuff                 ' Loop infinitely
 
-BuffSz        long      BUFFER_SIZE                                             ' Size of graphics buffer
-TxStart       long      -1                                                      ' High transmission start pulse
-CtrCfg        long      %0_00100_000_00000000_000000_000_000000                 ' Counter A configuration
-TxPin         long      |< 0                                                    ' Set transmission pin
-zero          long      0                                                       ' Zero for control flag
-
-bufptr        long      0       ' Pointer to transmission buffer in main RAM w/ offset
-cntptr        long      4       ' Pointer to transmission control flag in main RAM w/ offset
+tstpin        long      |< 1
+BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
+TxStart       long      -1                      ' High transmission start pulse
+CtrCfg        long      (%00100 << 26) | TX_PIN ' Counter A configuration
+TxPin         long      |< TX_PIN               ' Pin used for data transmission
+zero          long      0                       ' Zero for control flag
+bufptr        long      0                       ' Pointer to transmission buffer in main RAM w/ offset
+cntptr        long      4                       ' Pointer to transmission control flag in main RAM w/ offset
 
 bufsiz        res       1       ' Container for size of graphics buffer
 curlng        res       1       ' Container for current long address

@@ -26,6 +26,8 @@ PUB main | time, indx
 
   repeat
     waitcnt(time += (clkfreq/60))
+    serial.Dec(indx)
+    serial.Tx(58)
     serial.Hex(long[@output][indx], 8)
     serial.Tx($0D)
     indx++

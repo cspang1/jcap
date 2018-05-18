@@ -14,7 +14,6 @@ CON
 VAR
   long  cog_                    ' Variable containing ID of reception cog
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
-  long  cont_                   ' Variable containing control flag for transmission routine
   
 PUB start(varAddrBase) : status                         ' Function to start reception driver with pointer to Main RAM variables
   stop                                                  ' Stop any existing reception cogs
@@ -28,10 +27,6 @@ PUB start(varAddrBase) : status                         ' Function to start rece
 
   return TRUE                                           ' Reception system successfully initialized
 
-PUB receive
-  repeat until cont_
-  cont_ := FALSE
-
 PUB stop                                                ' Function to stop reception driver
   if cog_                                             ' If cog is running
     cogstop(cog_~ - 1)                                ' Stop the cog
@@ -40,13 +35,12 @@ DAT
         org             0
 rx
         ' Initialize variables
-        mov             bufptr, par
-        add             cntptr, bufptr          ' Initialize pointer to control flag
         rdlong          bufptr, par             ' Initialize pointer to variables
 
         ' Initialize pins
-        andn            dira,   RxPin           ' Set output pin
-        or              outa,   RxPin           ' Set pin high for ACK
+        andn            dira,   RxPin           ' Set input pin
+        andn            outa,   RxPin           ' Initialize low
+        or              dira,   tstpin
 
         ' Receive graphics buffer
 rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
@@ -127,16 +121,17 @@ rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         djnz            bufsiz, #:rxlong        ' Repeat for all longs in buffer
 
         ' Prepare for next buffer reception
-        wrlong          RxCont, curlng          ' Set control flag for next reception
         or              dira,   RxPin           ' Set RX pin as output for ACK
+        or              outa,   RxPin           ' Send ACK
+        andn            outa,   RxPin           ' Complete ACK
         andn            dira,   RxPin           ' Set RX pin as input
         jmp             #rxbuff                 ' Loop infinitely
 
+tstpin        long      |< 1
 BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 bufptr        long      0                       ' Pointer to reception buffer in main RAM w/ offset
-cntptr        long      4                       ' Pointer to reception control flag in main RAM w/ offset
 RxPin         long      |< 0                    ' Set reception pin
-RxCont        long      FALSE                   ' High transmission start pulse
+RxCont        long      -1                      ' High transmission start pulse
 
 bufsiz        res       1       ' Container for size of graphics buffer
 curlng        res       1       ' Container for current long address

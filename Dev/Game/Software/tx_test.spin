@@ -17,12 +17,16 @@ OBJ
 
 PUB main | time, indx
   vga_tx.start(@input)
+
   time := cnt
+  indx := 0
 
   repeat
     waitcnt(time += (clkfreq/60))
     vga_tx.transmit
+    longfill(@input, indx, ((40*30*2)+(32*16)*2+(64*4))/4)
+    indx++
 
 DAT
 
-input         long      $ABCD_DCBA[((40*30*2)+(32*16)*2+(64*4))/4]
+input         long      0[((40*30*2)+(32*16)*2+(64*4))/4]
