@@ -15,14 +15,12 @@ CON
 OBJ
   vga_tx        : "vga_tx"      ' Import graphics transmission system
 
-PUB main | time, indx
+PUB main | indx
   vga_tx.start(@input)
 
-  time := cnt
   indx := 0
 
   repeat
-    waitcnt(time += (clkfreq/60))
     vga_tx.transmit
     longfill(@input, indx, ((40*30*2)+(32*16)*2+(64*4))/4)
     indx++

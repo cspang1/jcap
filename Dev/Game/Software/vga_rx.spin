@@ -42,6 +42,9 @@ rx
         andn            dira,   RxPin           ' Set input pin
         or              outa,   RxPin           ' Initialize low
 
+        or              dira,   tp1
+        or              dira,   tp2
+
         ' Receive graphics buffer
 rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
         mov             curlng, bufptr          ' Initialize graphics buffer location
@@ -127,6 +130,8 @@ rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         andn            dira,   RxPin           ' Set RX pin as input
         jmp             #rxbuff                 ' Loop infinitely
 
+tp1           long      |< 1
+tp2           long      |< 2
 BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 bufptr        long      0                       ' Pointer to reception buffer in main RAM w/ offset
 RxPin         long      |< RX_PIN               ' Set reception pin

@@ -16,16 +16,19 @@ VAR
   long  cog_                    ' Variable containing ID of transmission cog
   long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   long  cont_                   ' Variable containing control flag for transmission routine
+  long  watch_dog_              ' Variable containing the cycle count for the watchdog timer
   
 PUB start(varAddrBase) : status                         ' Function to start transmission driver with pointer to Main RAM variables
   stop                                                  ' Stop any existing transmission cogs
 
+  dira |= |< 1
+
   ' Instantiate variables
   var_addr_base_ := varAddrBase                         ' Assign local base variable address
-  cont_ := 0                                            ' Instantiate control flag
+  cont_ := FALSE                                        ' Instantiate control flag
+  watch_dog_ := clkfreq / 1_000 * 500                   ' Calculate time to wait
 
-  dira |= |< 2
-   ' Start transmission driver
+  ' Start transmission driver
   ifnot cog_ := cognew(@tx, @var_addr_base_) + 1        ' Initialize cog running "tx" routine with reference to start of variable registers
     return FALSE                                        ' Transmission system failed to initialize
 
@@ -35,11 +38,16 @@ PUB stop                        ' Function to stop transmission driver
   if cog_                       ' If cog is running
     cogstop(cog_~ - 1)          ' Stop the cog
 
-PUB transmit
-  outa |= |< 2
+PUB transmit | waitstart
+  waitstart := cnt                                      ' Set start time
+  outa |= |< 1
   repeat while cont_
-  cont_ := $FFFF_FFFF
-  outa  &= !(|<2)
+    if (cnt - waitstart => watch_dog_)
+      outa &= !(|< 1)
+      start(var_addr_base_)
+      return
+  outa &= !(|< 1)
+  cont_ := TRUE
 
 DAT
         org     0
