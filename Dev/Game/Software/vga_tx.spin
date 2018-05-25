@@ -54,18 +54,13 @@ tx
         mov             frqa,   #0              ' Zero Counter A frequency register
         or              dira,   TxPin           ' Set output pin
 
-        andn            outa,   tstpin
-        or              dira,   tstpin
-
         ' Transfer entire graphics buffer
 txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
         mov             curlng, bufptr          ' Initialize graphics buffer location
 
         ' Wait for control flag to go high
-        or              outa,   tstpin
 :wait   rdlong          poll,   cntptr wz       ' Poll control flag
         if_z  jmp       #:wait                  ' Loop while low
-        andn            outa,   tstpin
 
         ' Transfer current long of graphics buffer
 :txlong rdlong          txval,  curlng          ' Load current long
@@ -89,14 +84,11 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
 
         ' Wait for ACK and prepare for next transmission
         andn            dira,   TxPin           ' Set transmission pin to input for ACK
-        or              outa,   tstpin
         waitpeq         TxPin,  TxPin           ' Wait for ACK
-        andn            outa,   tstpin
         wrlong          zero,   cntptr          ' Reset control flag
         or              dira,   TxPin           ' Reset transmission pin for output
         jmp             #txbuff                 ' Loop infinitely
 
-tstpin        long      |< 1
 BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 TxStart       long      -1                      ' High transmission start pulse
 CtrCfg        long      (%00100 << 26) | TX_PIN ' Counter A configuration

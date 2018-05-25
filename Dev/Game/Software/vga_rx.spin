@@ -10,6 +10,7 @@
 
 CON
   BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
+  RX_PIN = 0
 
 VAR
   long  cog_                    ' Variable containing ID of reception cog
@@ -28,8 +29,8 @@ PUB start(varAddrBase) : status                         ' Function to start rece
   return TRUE                                           ' Reception system successfully initialized
 
 PUB stop                                                ' Function to stop reception driver
-  if cog_                                             ' If cog is running
-    cogstop(cog_~ - 1)                                ' Stop the cog
+  if cog_                                               ' If cog is running
+    cogstop(cog_~ - 1)                                  ' Stop the cog
   
 DAT
         org             0
@@ -39,8 +40,7 @@ rx
 
         ' Initialize pins
         andn            dira,   RxPin           ' Set input pin
-        andn            outa,   RxPin           ' Initialize low
-        or              dira,   tstpin
+        or              outa,   RxPin           ' Initialize low
 
         ' Receive graphics buffer
 rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
@@ -116,7 +116,7 @@ rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         rcl             rxval,  #1              ' Shift in bit
 
         ' Store long and prepare for the next
-        wrlong          rxval, curlng           ' Store current long
+        wrlong          rxval,  curlng          ' Store current long
         add             curlng, #4              ' Increment to next graphics buffer long
         djnz            bufsiz, #:rxlong        ' Repeat for all longs in buffer
 
@@ -127,10 +127,9 @@ rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         andn            dira,   RxPin           ' Set RX pin as input
         jmp             #rxbuff                 ' Loop infinitely
 
-tstpin        long      |< 1
 BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 bufptr        long      0                       ' Pointer to reception buffer in main RAM w/ offset
-RxPin         long      |< 0                    ' Set reception pin
+RxPin         long      |< RX_PIN               ' Set reception pin
 RxCont        long      -1                      ' High transmission start pulse
 
 bufsiz        res       1       ' Container for size of graphics buffer
