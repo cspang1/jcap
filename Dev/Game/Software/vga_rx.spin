@@ -10,7 +10,8 @@
 
 CON
   BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
-  RX_PIN = 0
+  RX_PIN = 0                                            ' Pin used for data reception
+  VS_PIN = 24                                           ' Pin used for VSYNC
 
 VAR
   long  cog_                    ' Variable containing ID of reception cog
@@ -40,16 +41,14 @@ rx
 
         ' Initialize pins
         andn            dira,   RxPin           ' Set input pin
-        or              outa,   RxPin           ' Initialize low
-
-        or              dira,   tp1
-        or              dira,   tp2
+        andn            dira,   VsPin           ' Set input pin
 
         ' Receive graphics buffer
 rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
         mov             curlng, bufptr          ' Initialize graphics buffer location
 
         ' Receive long
+        waitpeq         VsPin,  VsPin           ' Wait for VSYNC
 :rxlong waitpeq         RxPin,  RxPin           ' Wait for ACK
 
         ' Receive bits
@@ -130,11 +129,10 @@ rxbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         andn            dira,   RxPin           ' Set RX pin as input
         jmp             #rxbuff                 ' Loop infinitely
 
-tp1           long      |< 1
-tp2           long      |< 2
 BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 bufptr        long      0                       ' Pointer to reception buffer in main RAM w/ offset
 RxPin         long      |< RX_PIN               ' Set reception pin
+VsPin         long      |< VS_PIN               ' Set VSYNC pin
 RxCont        long      -1                      ' High transmission start pulse
 
 bufsiz        res       1       ' Container for size of graphics buffer

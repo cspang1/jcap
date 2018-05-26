@@ -11,6 +11,7 @@
 CON
   BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
   TX_PIN = 0                                            ' Pin used for data transmission
+  VS_PIN = 1                                            ' Pin used for VSYNC
 
 VAR
   long  cog_                    ' Variable containing ID of transmission cog
@@ -21,7 +22,6 @@ VAR
 PUB start(varAddrBase) : status                         ' Function to start transmission driver with pointer to Main RAM variables
   stop                                                  ' Stop any existing transmission cogs
 
-  dira |= |< 1
 
   ' Instantiate variables
   var_addr_base_ := varAddrBase                         ' Assign local base variable address
@@ -40,27 +40,38 @@ PUB stop                        ' Function to stop transmission driver
 
 PUB transmit | waitstart
   waitstart := cnt                                      ' Set start time
-  outa |= |< 1
-  repeat while cont_
-    if (cnt - waitstart => watch_dog_)
-      outa &= !(|< 1)
-      start(var_addr_base_)
-      return
-  outa &= !(|< 1)
-  cont_ := TRUE
+  repeat while cont_                                    ' Wait for previous transfer to complete
+    if (cnt - waitstart => watch_dog_)                  ' Check if time limit blown i.e. TX has hung somewhere
+      start(var_addr_base_)                             ' Restart TX routine
+      return                                            ' Exit function
+  cont_ := TRUE                                         ' Signal transfer start
 
 DAT
         org     0
 tx
+        ' Flush RX routine
+        andn            outa,   TxPin           ' Initialize output
+        or              dira,   TxPin           ' Set output pin
+        mov             bufsiz, BuffSz          ' Initialize graphics buffer size
+        waitpeq         VsPin,  VsPin           ' Wait for VSYNC
+flush   mov             temp,   #4              ' Set number of instructions per delay
+        mov             txindx, #31             ' Load number of bits in long
+        or              outa,   TxPin           ' Emulate ACK
+:fbits  xor             outa,   TxPin           ' Emulate data bit
+        djnz            txindx, #:fbits         ' Emulate one LONG of data bits
+:delay  nop                                     ' Emulate maintenance instruction
+        djnz            temp,   #:delay         ' Emulate full maintenance delay
+        djnz            bufsiz, #flush          ' Emulate entire buffer transfer
+
         ' Initialize variables
-        mov             bufptr, par
+        mov             bufptr, par             ' Initialize pointer to variables
         add             cntptr, bufptr          ' Initialize pointer to control flag
-        rdlong          bufptr, par             ' Initialize pointer to variables
+        rdlong          bufptr, par             ' Initialize pointer to buffer
 
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register mode
         mov             frqa,   #0              ' Zero Counter A frequency register
-        or              dira,   TxPin           ' Set output pin
+        andn            dira,   VsPin           ' Set input pin
 
         ' Transfer entire graphics buffer
 txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
@@ -69,6 +80,7 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         ' Wait for control flag to go high
 :wait   rdlong          poll,   cntptr wz       ' Poll control flag
         if_z  jmp       #:wait                  ' Loop while low
+        waitpeq         VsPin,  VsPin           ' Wait for VSYNC
 
         ' Transfer current long of graphics buffer
 :txlong rdlong          txval,  curlng          ' Load current long
@@ -101,6 +113,7 @@ BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 TxStart       long      -1                      ' High transmission start pulse
 CtrCfg        long      (%00100 << 26) | TX_PIN ' Counter A configuration
 TxPin         long      |< TX_PIN               ' Pin used for data transmission
+VsPin         long      |< VS_PIN               ' Pin used for data transmission
 zero          long      0                       ' Zero for control flag
 bufptr        long      0                       ' Pointer to transmission buffer in main RAM w/ offset
 cntptr        long      4                       ' Pointer to transmission control flag in main RAM w/ offset
@@ -110,5 +123,6 @@ curlng        res       1       ' Container for current long address
 txval         res       1       ' Container for current long
 txindx        res       1       ' Container for index of current graphics buffer long bit being transferred
 poll          res       1       ' Container for polled control flag
+temp          res       1       ' Container for temporary variables
 
         fit
