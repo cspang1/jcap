@@ -49,21 +49,6 @@ PUB transmit | waitstart
 DAT
         org     0
 tx
-        ' Flush RX routine
-        andn            outa,   TxPin           ' Initialize output
-        or              dira,   TxPin           ' Set output pin
-        andn            dira,   VsPin           ' Set input pin
-        mov             bufsiz, BuffSz          ' Initialize graphics buffer size
-        waitpeq         VsPin,  VsPin           ' Wait for VSYNC
-flush   mov             temp,   #4              ' Set number of instructions per delay
-        mov             txindx, #31             ' Load number of bits in long
-        or              outa,   TxPin           ' Emulate ACK
-:fbits  xor             outa,   TxPin           ' Emulate data bit
-        djnz            txindx, #:fbits         ' Emulate one LONG of data bits
-:delay  nop                                     ' Emulate maintenance instruction
-        djnz            temp,   #:delay         ' Emulate full maintenance delay
-        djnz            bufsiz, #flush          ' Emulate entire buffer transfer
-
         ' Initialize variables
         mov             bufptr, par             ' Initialize pointer to variables
         add             cntptr, bufptr          ' Initialize pointer to control flag
@@ -72,6 +57,8 @@ flush   mov             temp,   #4              ' Set number of instructions per
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register mode
         mov             frqa,   #0              ' Zero Counter A frequency register
+        or              dira,   TxPin           ' Set output pin
+        andn            dira,   VsPin           ' Set input pin
 
         ' Transfer entire graphics buffer
 txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
