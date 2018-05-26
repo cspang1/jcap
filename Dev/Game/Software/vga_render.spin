@@ -14,7 +14,7 @@ CON
   numRenderCogs = 3             ' Number of cogs used for rendering
   'numSprites = 44               ' Number of sprites in the sprite attribute table
   numSprites = 1               ' Number of sprites in the sprite attribute table
-  numAtts = 8                   ' Number of attributes from Main RAM required by the render system
+  numAtts = 7                   ' Number of attributes from Main RAM required by the render system
   maxSprRen = 8                 ' Maximum number of sprites rendered per scanline
   sprSzX = 8                    ' Horizontal size of sprites
   sprSzY = 8                    ' Vertical size of sprites
@@ -344,13 +344,12 @@ semptr        long      4       ' Pointer to location of semaphore in Main RAM w
 ilptr         long      8       ' Pointer to location of initial scanline in Main RAM w/ offset
 clptr         long      0       ' Pointer to location of current scanline in Main RAM w/ offset
 vbptr         long      4       ' Pointer to location of video buffer in Main RAM w/ offset
-tmpptr        long      8       ' Pointer to location of tilemap positions in Main RAM w/ offset
-tmptr         long      12      ' Pointer to location of tile map in Main RAM w/ offset
-tpptr         long      16      ' Pointer to location of tile palettes in Main RAM w/ offset
-tcpptr        long      20      ' Pointer to location of tile color palettes in Main RAM w/ offset
-saptr         long      24      ' Pointer to location of sprite attribute table in Main RAM w/ offset
-spptr         long      28      ' Pointer to location of sprite palettes in Main RAM w/ offset
-scpptr        long      32      ' Pointer to location of sprite color palettes in Main RAM w/ offset
+tmptr         long      8       ' Pointer to location of tile map in Main RAM w/ offset
+tpptr         long      12      ' Pointer to location of tile palettes in Main RAM w/ offset
+tcpptr        long      16      ' Pointer to location of tile color palettes in Main RAM w/ offset
+saptr         long      20      ' Pointer to location of sprite attribute table in Main RAM w/ offset
+spptr         long      24      ' Pointer to location of sprite palettes in Main RAM w/ offset
+scpptr        long      28      ' Pointer to location of sprite color palettes in Main RAM w/ offset
 
 ' Other values
 d0            long      1 << 9                  ' Value to increment destination register
