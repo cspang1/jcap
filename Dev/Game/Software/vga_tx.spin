@@ -52,6 +52,7 @@ tx
         ' Flush RX routine
         andn            outa,   TxPin           ' Initialize output
         or              dira,   TxPin           ' Set output pin
+        andn            dira,   VsPin           ' Set input pin
         mov             bufsiz, BuffSz          ' Initialize graphics buffer size
         waitpeq         VsPin,  VsPin           ' Wait for VSYNC
 flush   mov             temp,   #4              ' Set number of instructions per delay
@@ -71,7 +72,6 @@ flush   mov             temp,   #4              ' Set number of instructions per
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register mode
         mov             frqa,   #0              ' Zero Counter A frequency register
-        andn            dira,   VsPin           ' Set input pin
 
         ' Transfer entire graphics buffer
 txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
