@@ -79,7 +79,6 @@ PUB main | cont,temp,temps,x,y
   satts[7] :=  %0_0_0_0_0_0_1_0_0_0_0_1_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
 
   longmove(@sprite_atts, @satts, num_sprites)
-  longfill(@tilemap_positions, 0, 2)
 
   x := 0
   y := 0
@@ -149,11 +148,6 @@ DAT
 cur_scanline  long      0       ' Current scanline being rendered
 video_buffer  long      0[80]   ' Video buffer
 
-tilemap_positions
-              ' Current tilemap positions
-tm_pos_x      long      0       ' Current horizontal tilemap positon
-tm_pos_y      long      0       ' Current vertical tilemap positon
-
 input_states
               ' Input states
 control_state word      0       ' Control states
@@ -161,7 +155,7 @@ tilt_state    word      0       ' Tilt shift state
 
 testing       long      %10101010_10101010_10101010_10101010[((40*30*2)+(32*16)*2+(64*4))/4]
 
-{{
+
 tile_maps
               ' Main tile map
 tile_map0     word      $00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02,$00_01,$00_02                 ' row 0
@@ -306,4 +300,3 @@ sprite_blank  long      $5_5_5_5_5_5_5_5        ' Sprite 2
               long      $F_F_F_F_F_F_F_F
               long      $8_8_8_8_8_8_8_8
               long      $F_F_F_F_F_F_F_F
-              }}
