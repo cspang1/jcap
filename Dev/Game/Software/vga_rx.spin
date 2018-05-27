@@ -15,16 +15,12 @@ CON
 
 VAR
   long  cog_                    ' Variable containing ID of reception cog
-  long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
   
-PUB start(varAddrBase) : status                         ' Function to start reception driver with pointer to Main RAM variables
+PUB start(gfx_buff_base) : status                       ' Function to start reception driver with pointer to Main RAM variables
   stop                                                  ' Stop any existing reception cogs
 
-  ' Instantiate variables
-  var_addr_base_ := varAddrBase                         ' Assign local base variable address
-
   ' Start reception driver
-  ifnot cog_ := cognew(@rx, @var_addr_base_) + 1        ' Initialize cog running "rx" routine with reference to start of variable registers
+  ifnot cog_ := cognew(@rx, gfx_buff_base) + 1          ' Initialize cog running "rx" routine with reference to start of variable registers
     return FALSE                                        ' Reception system failed to initialize
 
   return TRUE                                           ' Reception system successfully initialized
@@ -37,7 +33,7 @@ DAT
         org             0
 rx
         ' Initialize variables
-        rdlong          bufptr, par             ' Initialize pointer to variables
+        mov             bufptr, par             ' Initialize pointer to variables
 
         ' Initialize pins
         andn            dira,   RxPin           ' Set input pin
