@@ -10,8 +10,10 @@
 
 CON
   ' Graphics system attributes
+  'numRenderCogs = 5             ' Number of cogs used for rendering
   numRenderCogs = 5             ' Number of cogs used for rendering
-  numSprites = 44               ' Number of sprites in the sprite attribute table
+  'numSprites = 44               ' Number of sprites in the sprite attribute table
+  numSprites = 1               ' Number of sprites in the sprite attribute table
   maxSprRen = 8                 ' Maximum number of sprites rendered per scanline
   sprSzX = 8                    ' Horizontal size of sprites
   sprSzY = 8                    ' Vertical size of sprites

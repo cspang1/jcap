@@ -20,6 +20,7 @@ OBJ
   vga_rx        : "vga_rx"      ' Import graphics reception system
   vga_render    : "vga_render"  ' Import VGA render system
   vga_display   : "vga_display" ' Import VGA display system
+  serial        : "FullDuplexSerial"
 
 VAR
   ' Video system pointers
@@ -27,7 +28,10 @@ VAR
   long  scanline_buff_base_     ' Register in Main RAM containing the scanline buffer
   long  gfx_buffer_base_        ' Register in Main RAM containing the graphics buffer
 
-PUB main
+PUB main | mask, indx, time
+  serial.Start(31, 30, %0000, 57600)
+  waitcnt(cnt + (1 * clkfreq))
+
 ' Initialize pointers 
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline base to current scanline
   scanline_buff_base_ := @scanline_buff                 ' Point video buffer base to video buffer
@@ -36,6 +40,20 @@ PUB main
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
   vga_display.start(@cur_scanline_base_)                ' Start display driver
   vga_rx.start(gfx_buffer_base_)                        ' Start video data RX driver
+
+  mask := %00000011_00000011_00000011_00000011
+  indx := 0
+  time := cnt
+
+  repeat
+    waitcnt(time += (clkfreq/60))
+    if (long[@scanline_buff][indx] & mask) <> mask
+      serial.Str(STRING("Bad: "))
+      serial.Bin(long[@scanline_buff][indx], 32)
+      serial.Tx($0D)
+    indx++
+    if indx == VID_BUFF_SIZE
+      indx := 0
 
 DAT
 
@@ -109,6 +127,16 @@ tile_box_bl   long      $1_2_2_2_2_2_2_2        ' Tile 4
 tp_fill       long      0[2008]
 
 sprite_palettes
+              ' Blank sprite
+sprite_test   long      $5_5_5_5_5_5_5_5        ' Sprite 2
+              long      $F_F_F_F_F_F_F_F
+              long      $4_4_4_4_4_4_4_4
+              long      $F_F_F_F_F_F_F_F
+              long      $6_6_6_6_6_6_6_6
+              long      $F_F_F_F_F_F_F_F
+              long      $8_8_8_8_8_8_8_8
+              long      $F_F_F_F_F_F_F_F
+
               ' Ship sprite
 sprite_ship   long      $0_0_0_0_1_0_0_0        ' Sprite 0
               long      $0_0_0_1_1_1_0_0
