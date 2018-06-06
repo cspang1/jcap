@@ -10,7 +10,6 @@
 
 CON
   ' Graphics system attributes
-  'numRenderCogs = 5             ' Number of cogs used for rendering
   numRenderCogs = 5             ' Number of cogs used for rendering
   'numSprites = 44               ' Number of sprites in the sprite attribute table
   numSprites = 1               ' Number of sprites in the sprite attribute table
@@ -70,6 +69,9 @@ render
         add             tmptr,  satptr          ' Calculate tile map memory location
         add             tpptr,  tmptr           ' Calculate tile palette memory location
         add             spptr,  tpptr           ' Calculate sprite palette memory location
+
+        ' Initialize pins
+        andn            dira,   sigpin          ' Set data ready signal input pin
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
@@ -330,6 +332,7 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
+        if_nc waitpeq   sigpin, sigpin          ' Wait for graphics data to be ready
         jmp             #slgen                  ' Generate next scanline
         
 ' Video attributes
@@ -353,6 +356,7 @@ tpptr         long      2400    ' Pointer to location of tile palettes in Main R
 spptr         long      8192    ' Pointer to location of sprite palettes in Main RAM w/ relative offset
 
 ' Other values
+sigpin        long      |< 25                   ' Data ready signal pin
 d0            long      1 << 9                  ' Value to increment destination register
 d1            long      1 << 10                 ' Value to increment destination register
 pxmask        long      $FFFFFF00               ' Mask for pixels in scanline buffer

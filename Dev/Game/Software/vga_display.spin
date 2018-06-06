@@ -57,7 +57,8 @@ vga
 
         ' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins
-        or              dira,   vspin           ' Set VSync signal output pinv        
+        or              dira,   vspin           ' Set VSync signal output pin
+        or              dira,   sigpin          ' Set data ready signal output pin
         mov             frqa,   pllfreq         ' Set Counter A frequency
         mov             ctra,   CtrCfg          ' Set Counter A control register
         rdlong          cnt,    #0              ' Retrive system clock
@@ -86,7 +87,10 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         waitvid         sColor, vpPixel         ' Display blank active video line
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
+        cmp             vptr,   dataSig wz      ' Check if graphics data ready
+        if_z  or        outa,   sigpin          ' Signal data ready
         djnz            vptr,   #:bporch        ' Display back porch lines 
+        andn            outa,   sigpin          ' Disable data ready signal
 
         ' Display active video
 active  mov             vscl,   VVidScl         ' Set video scale for visible video
@@ -104,6 +108,7 @@ scanret djnz            lptr,   #active         ' Display same line twice
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
 vspin         long      |< 24                                                                           ' VSync signal output pin
+sigpin        long      |< 25                                                                           ' Data ready signal pin
 pllfreq       long      259917792                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
 VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
@@ -124,6 +129,7 @@ numVS         long      2       ' Number of vertical sync lines
 numBP         long      33      ' Number of vertical back porch lines
 numLines      long      240     ' Number of rendered lines
 numSegs       long      80      ' Number of scanline segments
+dataSig       long      6       ' Back porch scanline to signal render cogs
 
 ' Instructions used to generate scancode
 i0            rdlong    pixels, vbptrs+0        ' Load next pixels

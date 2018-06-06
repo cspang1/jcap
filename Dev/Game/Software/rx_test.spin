@@ -20,7 +20,6 @@ OBJ
   vga_rx        : "vga_rx"      ' Import graphics reception system
   vga_render    : "vga_render"  ' Import VGA render system
   vga_display   : "vga_display" ' Import VGA display system
-  serial        : "FullDuplexSerial"
 
 VAR
   ' Video system pointers
@@ -28,10 +27,7 @@ VAR
   long  scanline_buff_base_     ' Register in Main RAM containing the scanline buffer
   long  gfx_buffer_base_        ' Register in Main RAM containing the graphics buffer
 
-PUB main | mask, indx, time
-  serial.Start(31, 30, %0000, 57600)
-  waitcnt(cnt + (1 * clkfreq))
-
+PUB main
 ' Initialize pointers 
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline base to current scanline
   scanline_buff_base_ := @scanline_buff                 ' Point video buffer base to video buffer
@@ -40,20 +36,6 @@ PUB main | mask, indx, time
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
   vga_display.start(@cur_scanline_base_)                ' Start display driver
   vga_rx.start(gfx_buffer_base_)                        ' Start video data RX driver
-
-  mask := %00000011_00000011_00000011_00000011
-  indx := 0
-  time := cnt
-
-  repeat
-    waitcnt(time += (clkfreq/60))
-    if (long[@scanline_buff][indx] & mask) <> mask
-      serial.Str(STRING("Bad: "))
-      serial.Bin(long[@scanline_buff][indx], 32)
-      serial.Tx($0D)
-    indx++
-    if indx == VID_BUFF_SIZE
-      indx := 0
 
 DAT
 

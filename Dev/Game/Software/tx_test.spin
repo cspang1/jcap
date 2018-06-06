@@ -26,7 +26,7 @@ VAR
   ' TEST RESOURCE POINTERS
   long  satts[num_sprites]
 
-PUB main | cont,temp,temps,x,y,dir,mir
+PUB main | cont,temp,temps,x,y
   ' Initialize pointers
   input_state_base_ := @input_states                    ' Point input state base to base of input states
 
@@ -62,22 +62,7 @@ PUB main | cont,temp,temps,x,y,dir,mir
   ' Main game loop
   repeat
     vga_tx.transmit                                     ' Transmit graphics resource data
-    longmove(@x, @sprite_atts, 1)
-    temp := x & %00000000000000000111111111111011
-    dir := 1 << 24
-    x >>= 15
-    x &= %111111111
-    mir := 0
-    x := (x + 5) & %111111111
-    if x == 320
-      x := 505
-    elseif x == 504
-      x := 319
-    x <<= 15
-    temp |= (x | mir | dir)
-    longmove(@sprite_atts, @temp, 1)
-
-    {{left_right((control_state >> 7) & %10100000)
+    left_right((control_state >> 7) & %10100000)
     up_down((control_state >> 7) & %01010000)
     cont := tilt_state
     if (tilt_state & 1) == 0
@@ -123,7 +108,7 @@ pri up_down(y_but) | y,dir,mir,temp
         y := 239
       y <<= 7
       temp |= (y | mir | dir)
-      longmove(@sprite_atts, @temp, 1)}}
+      longmove(@sprite_atts, @temp, 1)
 
 DAT
 input_states
