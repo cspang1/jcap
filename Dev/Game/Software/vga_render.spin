@@ -10,7 +10,7 @@
 
 CON
   ' Graphics system attributes
-  numRenderCogs = 5             ' Number of cogs used for rendering
+  numRenderCogs = 6             ' Number of cogs used for rendering
   'numSprites = 44               ' Number of sprites in the sprite attribute table
   numSprites = 1               ' Number of sprites in the sprite attribute table
   maxSprRen = 8                 ' Maximum number of sprites rendered per scanline
@@ -26,7 +26,7 @@ VAR
   long  cog_sem_                ' Cog semaphore
   long  start_line_             ' Variable for start of cog line rendering
   
-PUB start(varAddrBase) : status | cIndex                                        ' Function to start renderer with pointer to Main RAM variables
+PUB start(varAddrBase) | cIndex                                        ' Function to start renderer with pointer to Main RAM variables
   stop                                                                          ' Stop render cogs if running
 
   ' Instantiate variables
@@ -37,14 +37,12 @@ PUB start(varAddrBase) : status | cIndex                                        
   if (cog_sem_ := locknew) == -1                                                ' Create new lock
     return FALSE                                                                ' No locks available
   
-  repeat cIndex from 0 to numRenderCogs - 1
+  repeat cIndex from 0 to numRenderCogs - 2
     ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1                  ' Initialize cog running "render" routine with reference to start of variables
       stop                                                                      ' Stop render cogs if running
       return FALSE                                                              ' Graphics system failed to initialize
-  
-  lockret(cog_sem_)                                                             ' Release lock
-  
-  return TRUE                                                                   ' Graphics system successfully initialized
+
+  coginit(COGID, @render, @var_addr_base_)					' Start final render cog in cog 0
 
 PUB stop | cIndex                                       ' Function to stop VGA driver
   repeat cIndex from 0 to numRenderCogs - 1             ' Loop through cogs
@@ -82,6 +80,8 @@ render
         lockclr         semptr                  ' Clear semaphore
         sub             initsl, #1              ' Re-decrement initial scanline
         mov             cursl,  initsl          ' Initialize current scanline
+	cogid		temp wz nr		' Check if this is the final cog to be initialized
+	if_z  lockret	semptr			' Return lock handle if so
 
 slgen   'Calculate tile map line memory location
         mov             tmindx, cursl           ' Initialize tile map index
