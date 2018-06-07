@@ -33,9 +33,9 @@ PUB main
   scanline_buff_base_ := @scanline_buff                 ' Point video buffer base to video buffer
   gfx_buffer_base_ := @gfx_buff                         ' Point graphics buffer base to graphics buffer
 
-  vga_render.start(@cur_scanline_base_)                 ' Start renderers
-  vga_display.start(@cur_scanline_base_)                ' Start display driver
   vga_rx.start(gfx_buffer_base_)                        ' Start video data RX driver
+  vga_display.start(@cur_scanline_base_)                ' Start display driver
+  vga_render.start(@cur_scanline_base_)                 ' Start renderers
 
 DAT
 
@@ -109,16 +109,6 @@ tile_box_bl   long      $1_2_2_2_2_2_2_2        ' Tile 4
 tp_fill       long      0[2008]
 
 sprite_palettes
-              ' Blank sprite
-sprite_test   long      $5_5_5_5_5_5_5_5        ' Sprite 2
-              long      $F_F_F_F_F_F_F_F
-              long      $4_4_4_4_4_4_4_4
-              long      $F_F_F_F_F_F_F_F
-              long      $6_6_6_6_6_6_6_6
-              long      $F_F_F_F_F_F_F_F
-              long      $8_8_8_8_8_8_8_8
-              long      $F_F_F_F_F_F_F_F
-
               ' Ship sprite
 sprite_ship   long      $0_0_0_0_1_0_0_0        ' Sprite 0
               long      $0_0_0_1_1_1_0_0

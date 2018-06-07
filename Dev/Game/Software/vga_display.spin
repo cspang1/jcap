@@ -129,7 +129,7 @@ numVS         long      2       ' Number of vertical sync lines
 numBP         long      33      ' Number of vertical back porch lines
 numLines      long      240     ' Number of rendered lines
 numSegs       long      80      ' Number of scanline segments
-dataSig       long      6       ' Back porch scanline to signal render cogs
+dataSig       long      15      ' Back porch scanline to signal render cogs
 
 ' Instructions used to generate scancode
 i0            rdlong    pixels, vbptrs+0        ' Load next pixels
