@@ -52,22 +52,9 @@ tx
         mov             bufptr, par             ' Initialize pointer to variables
         add             cntptr, bufptr          ' Initialize pointer to control flag
         rdlong          bufptr, par             ' Initialize pointer to buffer
-        add             ncp,    bufptr          ' Calculate tile color palette amount address
-        add             ns,     bufptr          ' Calculate sprite amount address
-        rdlong          ncp,    ncp             ' Load sprite color palette amount
-        add             tms,    bufptr          ' Calculate tile map size address
-        rdlong          ns,     ns              ' Load sprite amount
-        rdlong          tms,    tms             ' Load tile map size
+        add             buffsz, bufptr          ' Calculate buffer size address
+        rdlong          buffsz, buffsz          ' Load buffer size
         rdlong          bufptr, bufptr          ' Load buffer base address
-
-        ' Calculate graphics buffer size in LONGs
-        shl             tms,    #1              ' Calculate bytes in tile map
-        shl             ncp,    #4              ' Calculate bytes in color palettes
-        shl             ns,     #2              ' Calculate bytes in sprites
-        add             tms,    ncp             ' Aggregate
-        add             tms,    ns              ' Buffer Size in BYTEs
-        shr             tms,    #2              ' BufferSize in LONGs
-        mov             buffsz, tms             ' Set buffer size
 
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register mode
@@ -118,11 +105,8 @@ VsPin         long      |< VS_PIN               ' Pin used for data transmission
 zero          long      0                       ' Zero for control flag
 bufptr        long      0                       ' Pointer to transmission buffer in main RAM w/ offset
 cntptr        long      4                       ' Pointer to transmission control flag in main RAM w/ offset
-ncp           long      4                       ' Container for number of color palettes w/ offset
-ns            long      8                       ' Container for number of sprites in SAT w/ offset
-tms           long      12                      ' Container for size of tile map w/ offset
+buffsz        long      4                       ' Pointer to buffer size in LONGs w/ offset
 
-buffsz        res       1       ' Container for buffer size in LONGs
 curbuf        res       1       ' Container for current iteration of graphics buffer
 curlng        res       1       ' Container for current long address
 txval         res       1       ' Container for current long
