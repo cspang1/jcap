@@ -9,7 +9,6 @@
 }}
 
 CON
-  BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
   TX_PIN = 0                                            ' Pin used for data transmission
   VS_PIN = 1                                            ' Pin used for VSYNC
 
@@ -53,6 +52,25 @@ tx
         mov             bufptr, par             ' Initialize pointer to variables
         add             cntptr, bufptr          ' Initialize pointer to control flag
         rdlong          bufptr, par             ' Initialize pointer to buffer
+        add             ntcp,   bufptr          ' Calculate tile color palette amount address
+        add             nscp,   bufptr          ' Calculate sprite color palette amount address
+        rdlong          ntcp,   ntcp            ' Load sprite color palette amount
+        add             ns,     bufptr          ' Calculate sprite amount address
+        add             tms,    bufptr          ' Calculate tile map size address
+        rdlong          nscp,   nscp            ' Load sprite color palette amount 
+        rdlong          ns,     ns              ' Load sprite amount
+        rdlong          tms,    tms             ' Load tile map size
+        rdlong          bufptr, bufptr          ' Load buffer base address
+
+        ' Calculate graphics buffer size in LONGs
+        shl             tms,    #1              ' Calculate bytes in tile map
+        add             ntcp,   nscp            ' Calculate total color palettes
+        shl             ntcp,   #4              ' Calculate bytes in color palettes
+        shl             ns,     #2              ' Calculate bytes in sprites
+        add             tms,    ntcp            ' Aggregate
+        add             tms,    ns              ' Buffer Size in BYTEs
+        shr             tms,    #2              ' BufferSize in LONGs
+        mov             buffsz, tms             ' Set buffer size
 
         ' Setup Counter in NCO mode
         mov             ctra,   CtrCfg          ' Set Counter A control register mode
@@ -61,7 +79,7 @@ tx
         andn            dira,   VsPin           ' Set input pin
 
         ' Transfer entire graphics buffer
-txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer size
+txbuff  mov             curbuf, buffsz          ' Initialize graphics buffer size
         mov             curlng, bufptr          ' Initialize graphics buffer location
 
         ' Wait for control flag to go high
@@ -87,7 +105,7 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
 
         ' Setup long transmission end
         mov             phsa,   #0              ' Pull data line low
-        djnz            bufsiz, #:txlong        ' Repeat for all longs in buffer
+        djnz            curbuf, #:txlong        ' Repeat for all longs in buffer
 
         ' Wait for ACK and prepare for next transmission
         andn            dira,   TxPin           ' Set transmission pin to input for ACK
@@ -96,7 +114,6 @@ txbuff  mov             bufsiz, BuffSz          ' Initialize graphics buffer siz
         or              dira,   TxPin           ' Reset transmission pin for output
         jmp             #txbuff                 ' Loop infinitely
 
-BuffSz        long      BUFFER_SIZE             ' Size of graphics buffer
 TxStart       long      -1                      ' High transmission start pulse
 CtrCfg        long      (%00100 << 26) | TX_PIN ' Counter A configuration
 TxPin         long      |< TX_PIN               ' Pin used for data transmission
@@ -104,8 +121,13 @@ VsPin         long      |< VS_PIN               ' Pin used for data transmission
 zero          long      0                       ' Zero for control flag
 bufptr        long      0                       ' Pointer to transmission buffer in main RAM w/ offset
 cntptr        long      4                       ' Pointer to transmission control flag in main RAM w/ offset
+ntcp          long      4                       ' Container for number of tile color palettes w/ offset
+nscp          long      8                       ' Container for number of sprite color palettes w/ offset
+ns            long      12                      ' Container for number of sprites in SAT w/ offset
+tms           long      16                      ' Container for size of tile map w/ offset
 
-bufsiz        res       1       ' Container for size of graphics buffer
+buffsz        res       1       ' Container for buffer size in LONGs
+curbuf        res       1       ' Container for current iteration of graphics buffer
 curlng        res       1       ' Container for current long address
 txval         res       1       ' Container for current long
 txindx        res       1       ' Container for index of current graphics buffer long bit being transferred
