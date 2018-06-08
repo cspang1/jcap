@@ -18,6 +18,7 @@ CON
   NUM_SPRITES = 64
   TILE_MAP_WIDTH = 40
   TILE_MAP_HEIGHT = 30
+  GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4
 
 OBJ
   vga_tx        : "vga_tx"      ' Import graphics transmission system
@@ -36,11 +37,10 @@ PUB main | cont,temp,temps,x,y
   ' Initialize variables
   input_state_base_ := @input_states                    ' Point input state base to base of input states
   gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
+  gfx_buffer_size_ := GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
 
-  ' Calculate graphics buffer size
-  gfx_buffer_size_ := ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4
-
-  vga_tx.start(@gfx_resources_base_)                    ' Start graphics resource transfer routine
+  ' Start subsystems
+  vga_tx.start(@gfx_resources_base_)                    ' Start graphics resource transfer system
   input.start(@input_state_base_)                       ' Start input system
 
   '                                  sprite         x position       y position    color v h size
