@@ -49,8 +49,7 @@ DAT
         org     0
 tx
         ' Initialize variables
-        mov             bufptr, par             ' Initialize pointer to variables
-        add             cntptr, bufptr          ' Initialize pointer to control flag
+        add             cntptr, par             ' Initialize pointer to control flag
         rdlong          bufptr, par             ' Initialize pointer to buffer
         add             buffsz, bufptr          ' Calculate buffer size address
         rdlong          buffsz, buffsz          ' Load buffer size

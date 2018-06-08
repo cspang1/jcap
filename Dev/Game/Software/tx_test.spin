@@ -13,12 +13,14 @@ CON
   _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
   ' Game settings
-  NUM_TILE_COLOR_PALETTES = 32
-  NUM_SPRITE_COLOR_PALETTES = 32
-  NUM_SPRITES = 64
-  TILE_MAP_WIDTH = 40
-  TILE_MAP_HEIGHT = 30
-  GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4
+  NUM_TILE_COLOR_PALETTES = 32                          ' Number of tile color palettes
+  NUM_SPRITE_COLOR_PALETTES = 32                        ' Number of sprite color palettes
+  NUM_SPRITES = 64                                      ' Number of sprites in sprite attribute table
+  TILE_MAP_WIDTH = 40                                   ' Number of horizontal tiles in tile map
+  TILE_MAP_HEIGHT = 30                                  ' Number of vertical tiles in tile map
+
+  ' GPU attributes
+  GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
 
 OBJ
   vga_tx        : "vga_tx"      ' Import graphics transmission system
@@ -28,7 +30,7 @@ VAR
   ' Game resource pointers
   long  input_state_base_       ' Register in Main RAM containing state of inputs
   long  gfx_resources_base_     ' Register in Main RAM containing base of graphics resources
-  long  gfx_buffer_size_        ' Container for graphics resource buffer size
+  long  gfx_buffer_size_        ' Container for graphics resources buffer size
 
   ' TEST RESOURCE POINTERS
   long  satts[num_sprites]
