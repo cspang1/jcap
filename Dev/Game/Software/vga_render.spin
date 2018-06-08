@@ -50,20 +50,25 @@ DAT
         org             0
 render
         ' Initialize variables
-        rdlong          clptr,  par             ' Initialize pointer to current scanline
+        rdlong          cslptr, par             ' Initialize pointer to current scanline
         add             semptr, par             ' Initialize pointer to semaphore
         add             ilptr,  par             ' Initialize pointer to initial scanline
         rdbyte          semptr, semptr          ' Get semaphore ID
-        add             vbptr,  clptr           ' Calculate video buffer memory location
-        rdlong          vbptr,  vbptr           ' Load video buffer memory location
-        add             tcpptr, clptr           ' Calculate graphics resource buffer memory location
+        add             slbptr, cslptr          ' Calculate video buffer memory location
+        rdlong          slbptr, slbptr          ' Load video buffer memory location
+        add             tcpptr, cslptr          ' Calculate graphics resource buffer memory location
         rdlong          tcpptr, tcpptr          ' Load graphics resource buffer memory location
-        rdlong          clptr,  clptr           ' Load current scanline memory location
-        add             scpptr, tcpptr          ' Calculate sprite color palette memory location
-        add             satptr, scpptr          ' Calculate sprite attribute table memory location
-        add             tmptr,  satptr          ' Calculate tile map memory location
-        add             tpptr,  tmptr           ' Calculate tile palette memory location
-        add             spptr,  tpptr           ' Calculate sprite palette memory location
+        add             scpptr, cslptr          ' Calculate sprite color palette memory location
+        rdlong          scpptr, scpptr          ' Load sprite color palette memory locations
+        add             satptr, cslptr          ' Calculate sprite attribute table memory location
+        rdlong          satptr, satptr          ' Load sprite attribute table memory location
+        add             tmptr,  cslptr          ' Calculate tile map location
+        rdlong          tmptr,  tmptr           ' Load tile map location
+        add             tpptr,  cslptr          ' Calculate tile palette location
+        rdlong          tpptr,  tpptr           ' Load tile palette location
+        add             spptr,  cslptr          ' Calculate sprite palette location
+        rdlong          spptr,  spptr           ' Load sprite palette location
+        rdlong          cslptr, cslptr          ' Load current scanline memory location
 
         ' Initialize pins
         andn            dira,   sigpin          ' Set data ready signal input pin
@@ -314,9 +319,9 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
-maxsp   mov             index , numSegs         ' Initialize current scanline segment
-        mov             curvb,  vbptr           ' Initialize Main RAM video buffer memory location
-gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index from Main RAM
+maxsp   mov             index,  numSegs         ' Initialize current scanline segment
+        mov             curvb,  slbptr          ' Initialize Main RAM video buffer memory location
+gettsl  rdlong          tgtsl,  cslptr          ' Read target scanline index from Main RAM
         cmp             tgtsl,  cursl wz        ' Check if current scanline is being requested for display
         if_nz jmp       #gettsl                 ' If not, re-read target scanline
 
@@ -324,7 +329,7 @@ gettsl  rdlong          tgtsl,  clptr           ' Read target scanline index fro
 write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer to Main RAM video buffer
         add             write,  d0              ' Increment scanline buffer memory location
         add             curvb,  #4              ' Increment video buffer memory location
-        djnz            index , #write          ' Repeat for all scanline segments
+        djnz            index,  #write          ' Repeat for all scanline segments
         movd            write,  #slbuff         ' Reset initial scanline buffer position
         add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
@@ -343,14 +348,14 @@ numSprts      long      numSprites              ' Number of sprites in sprite at
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
 ilptr         long      8       ' Pointer to location of initial scanline in Main RAM w/ offset
-clptr         long      0       ' Pointer to location of current scanline in Main RAM w/ offset
-vbptr         long      4       ' Pointer to location of video buffer in Main RAM w/ offset
+cslptr        long      0       ' Pointer to location of current scanline in Main RAM w/ offset
+slbptr        long      4       ' Pointer to location of scanline buffer in Main RAM w/ offset
 tcpptr        long      8       ' Pointer to location of tile color palettes in Main RAM w/ offset
-scpptr        long      512     ' Pointer to location of sprite color palettes in Main RAM w/ relative offset
-satptr        long      512     ' Pointer to location of sprite attribute table in Main RAM w/ relative offset
-tmptr         long      256     ' Pointer to location of tile map in Main RAM w/ relative offset
-tpptr         long      2400    ' Pointer to location of tile palettes in Main RAM w/ relative offset
-spptr         long      8192    ' Pointer to location of sprite palettes in Main RAM w/ relative offset
+scpptr        long      12      ' Pointer to location of sprite color palettes in Main RAM w/ offset
+satptr        long      16      ' Pointer to location of sprite attribute table in Main RAM w/ offset
+tmptr         long      20      ' Pointer to location of tile map in Main RAM w/ offset
+tpptr         long      24      ' Pointer to location of tile palettes in Main RAM w/ offset
+spptr         long      28      ' Pointer to location of sprite palettes in Main RAM w/ offset
 
 ' Other values
 sigpin        long      |< 25                   ' Data ready signal pin

@@ -13,13 +13,13 @@ CON
   _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
   ' Game settings
-  NUM_TILE_PALETTES = 256                               ' Number of tile palettes
-  NUM_SPRITE_PALETTES = 256                             ' Number of sprite palettes
-  NUM_TILE_COLOR_PALETTES = 32                          ' Number of tile color palettes
-  NUM_SPRITE_COLOR_PALETTES = 32                        ' Number of sprite color palettes
+  NUM_TILE_COLOR_PALETTES = 2                           ' Number of tile color palettes
+  NUM_SPRITE_COLOR_PALETTES = 2                         ' Number of sprite color palettes
   NUM_SPRITES = 64                                      ' Number of sprites in sprite attribute table
   TILE_MAP_WIDTH = 40                                   ' Number of horizontal tiles in tile map
   TILE_MAP_HEIGHT = 30                                  ' Number of vertical tiles in tile map
+  NUM_TILE_PALETTES = 5                                 ' Number of tile palettes
+  NUM_SPRITE_PALETTES = 3                               ' Number of sprite palettes
 
   ' GPU attributes
   GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
@@ -149,8 +149,6 @@ t_palette1    byte      %00000011,%11110011,%11001111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
 
-              long      0[120]
-
 sprite_color_palettes
               ' Sprite color palettes
 s_palette0    byte      %00000000,%00110011,%11000011,%11111111                    ' Tile color palette 0
@@ -161,8 +159,6 @@ s_palette1    byte      %00000000,%00110011,%11111111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
               byte      %00000011,%00110011,%11111111,%11000011
-
-              long      0[120]
 
               ' Sprite attribute table
 sprite_atts   long      0[NUM_SPRITES]

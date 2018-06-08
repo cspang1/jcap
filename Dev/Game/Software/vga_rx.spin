@@ -9,7 +9,6 @@
 }}
 
 CON
-  BUFFER_SIZE = ((40*30*2)+(32*16)*2+(64*4))/4          ' Size of transmission buffer in LONGs (tile map + color palettes + SAT)
   RX_PIN = 0                                            ' Pin used for data reception
   VS_PIN = 24                                           ' Pin used for VSYNC
 
