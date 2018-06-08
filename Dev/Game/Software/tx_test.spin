@@ -13,6 +13,8 @@ CON
   _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
   ' Game settings
+  NUM_TILE_PALETTES = 256                               ' Number of tile palettes
+  NUM_SPRITE_PALETTES = 256                             ' Number of sprite palettes
   NUM_TILE_COLOR_PALETTES = 32                          ' Number of tile color palettes
   NUM_SPRITE_COLOR_PALETTES = 32                        ' Number of sprite color palettes
   NUM_SPRITES = 64                                      ' Number of sprites in sprite attribute table
