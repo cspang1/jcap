@@ -13,8 +13,17 @@ CON
   _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
   ' Game settings
-  VID_BUFF_SIZE = 80
-  GFX_BUFF_SIZE = ((32*16)*2+(64*4)+(40*30*2))/4
+  NUM_TILE_PALETTES = 256                               ' Number of tile palettes
+  NUM_SPRITE_PALETTES = 256                             ' Number of sprite palettes
+  NUM_TILE_COLOR_PALETTES = 32                          ' Number of tile color palettes
+  NUM_SPRITE_COLOR_PALETTES = 32                        ' Number of sprite color palettes
+  NUM_SPRITES = 64                                      ' Number of sprites in sprite attribute table
+  TILE_MAP_WIDTH = 40                                   ' Number of horizontal tiles in tile map
+  TILE_MAP_HEIGHT = 30                                  ' Number of vertical tiles in tile map
+
+  ' Display system attributes
+  GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
+  VID_BUFFER_SIZE = 80                                                                                                          ' Number of scanline segments in video buffer
 
 OBJ
   vga_rx        : "vga_rx"      ' Import graphics reception system
@@ -26,34 +35,25 @@ VAR
   long  cur_scanline_base_      ' Register in Main RAM containing current scanline being requested by the VGA Display system
   long  scanline_buff_base_     ' Register in Main RAM containing the scanline buffer
   long  gfx_buffer_base_        ' Register in Main RAM containing the graphics buffer
+  long  gfx_buffer_size_        ' Size of the graphics buffer
 
 PUB main
 ' Initialize pointers 
   cur_scanline_base_ := @cur_scanline                   ' Point current scanline base to current scanline
   scanline_buff_base_ := @scanline_buff                 ' Point video buffer base to video buffer
   gfx_buffer_base_ := @gfx_buff                         ' Point graphics buffer base to graphics buffer
+  gfx_buffer_size_ := GFX_BUFFER_SIZE                   ' Set the size of the graphics resources buffer
 
-  vga_rx.start(gfx_buffer_base_)                        ' Start video data RX driver
+  ' Start subsystems
+  vga_rx.start(@gfx_buffer_base_)                       ' Start video data RX driver
   vga_display.start(@cur_scanline_base_)                ' Start display driver
   vga_render.start(@cur_scanline_base_)                 ' Start renderers
 
 DAT
 
 cur_scanline  long      0                       ' Current scanline being rendered
-scanline_buff long      0[VID_BUFF_SIZE]        ' Video buffer
-
-{{
-              Graphics Buffer Layout:
-              $0000 - $01FF     (128 LONGs/512 BYTEs)   Tile Color Palettes     }
-              $0200 - $03FF     (128 LONGs/512 BYTEs)   Sprite Color Palettes   }___ Transfered
-              $0400 - $04FF     (64 LONGs/256 BYTEs)    Sprite Attribute Table  }    from CPU
-              $0500 - $0E5F     (600 LONGs/2400 BYTEs)  Tile Map                }
-              -------------
-              $0E60 - $2E59     (2048 LONGs/8192 BYTEs) Tile Palettes           }___ Stored statically
-              $2E60 - $4E59     (2048 LONGs/8192 BYTEs) Sprite Palettes         }    within GPU
-}}
-
-gfx_buff      long      0[GFX_BUFF_SIZE]
+scanline_buff long      0[VID_BUFFER_SIZE]      ' Video buffer
+gfx_buff      long      0[GFX_BUFFER_SIZE]      ' Graphics resources buffer
 
 tile_palettes
               ' Empty tile
