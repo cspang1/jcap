@@ -1,10 +1,10 @@
 {{
-        File:     txrx.spin
+        File:     gpu.spin
         Author:   Connor Spangler
         Date:     5/9/2018
-        Version:  1.0
+        Version:  2.0
         Description: 
-                  This file contains the PASM code defining a test transmission routine
+                  This file contains the PASM code defining a JCAP GPU
 }}
 
 CON
@@ -26,7 +26,7 @@ CON
   VID_BUFFER_SIZE = 80                                                                                                          ' Number of scanline segments in video buffer
 
 OBJ
-  vga_rx        : "vga_rx"      ' Import graphics reception system
+  vga_rx        : "rx"          ' Import graphics reception system
   vga_render    : "vga_render"  ' Import VGA render system
   vga_display   : "vga_display" ' Import VGA display system
 

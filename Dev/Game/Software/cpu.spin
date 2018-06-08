@@ -1,10 +1,10 @@
 {{
-        File:     txrx.spin
+        File:     cpu.spin
         Author:   Connor Spangler
         Date:     5/9/2018
-        Version:  1.0
+        Version:  2.0
         Description: 
-                  This file contains the PASM code defining a test transmission routine
+                  This file contains the PASM code defining a JCAP CPU
 }}
 
 CON
@@ -25,7 +25,7 @@ CON
   GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
 
 OBJ
-  vga_tx        : "vga_tx"      ' Import graphics transmission system
+  vga_tx        : "tx"          ' Import graphics transmission system
   input         : "input"       ' Import input system
 
 VAR
