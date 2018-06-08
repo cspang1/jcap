@@ -27,8 +27,7 @@ VAR
   ' Game resource pointers
   long  input_state_base_       ' Register in Main RAM containing state of inputs
   long  gfx_resources_base_     ' Register in Main RAM containing base of graphics resources
-  long  num_tile_color_pals_    ' Register in Main RAM containing number of tile color palettes 
-  long  num_sprite_color_pals_  ' Register in Main RAM containing number of sprite color palettes
+  long  num_color_palettes_     ' Register in Main RAM containing number of tile color palettes 
   long  num_sprites_            ' Register in Main RAM containing number of sprites
   long  tile_map_size_          ' Register in Main RAM containing size of tile map
 
@@ -37,12 +36,11 @@ VAR
 
 PUB main | cont,temp,temps,x,y
   ' Initialize variables
-  input_state_base_ := @input_states                    ' Point input state base to base of input states
-  gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
-  num_tile_color_pals_ := NUM_TILE_COLOR_PALETTES       ' Set number of tile color palettes
-  num_sprite_color_pals_ := NUM_SPRITE_COLOR_PALETTES   ' Set number of tile color palettes
-  num_sprites_ := NUM_SPRITES                           ' Set number of sprites in sprite attribute table
-  tile_map_size_ := TILE_MAP_WIDTH * TILE_MAP_HEIGHT    ' Set size of tile map
+  input_state_base_ := @input_states                                            ' Point input state base to base of input states
+  gfx_resources_base_ := @tile_color_palettes                                   ' Set graphics resources base to start of tile color palettes
+  num_color_palettes_ := NUM_TILE_COLOR_PALETTES + NUM_SPRITE_COLOR_PALETTES    ' Set number of tile color palettes
+  num_sprites_ := NUM_SPRITES                                                   ' Set number of sprites in sprite attribute table
+  tile_map_size_ := TILE_MAP_WIDTH * TILE_MAP_HEIGHT                            ' Set size of tile map
 
   vga_tx.start(@gfx_resources_base_)                    ' Start graphics resource transfer routine
   input.start(@input_state_base_)                       ' Start input system
