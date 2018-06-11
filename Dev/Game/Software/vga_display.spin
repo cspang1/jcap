@@ -41,21 +41,32 @@ vga
         mov             scnptr, numSegs         ' Initialize segment pointer
 
         ' Generate scancode               
-:rdlng  mov             scancode+0, i0          ' Move rdlong instruction
-:wvid   mov             scancode+1, i1          ' Move waitvid instruction
+:rdlng  mov             scancode+0, iR          ' Move rdlong instruction
+:wvid   mov             scancode+1, iW          ' Move waitvid instruction
         add             :rdlng, d1              ' Increment next rdlong instruction move
         add             :wvid,  d1              ' Increment next waitvid instruction move
-        add             i0,     #1              ' Increment next memory location        
+        add             iR,     #1              ' Increment next memory location
 :vmmov  mov             vbptrs+1, vbptrs+0      ' Copy memory location to next
 :vminc  add             vbptrs+1, #4            ' Increment Main RAM location
         add             :vmmov, d0s0            ' Increment next Main RAM move
         add             :vminc, d0              ' Increment next Main RAM location
         djnz            scnptr, #:rdlng         ' Repeat for all parts of scanline
-        mov             scancode+160+0, i2      ' Move hsync vscl change instruction
-        mov             scancode+160+1, i3      ' Move hsync waitvid instruction
-        mov             scancode+160+2, i4      ' Move jmp instruction
+	' CAN SIMPLIFY W/ DJNZ & d0s0
+	mov             scancode+160+0, iS+0    ' Move HSync instructions
+        mov             scancode+160+1, iS+1	' |
+	mov             scancode+160+2, iS+2	' |
+	mov             scancode+160+3, iS+3	' |
+	mov             scancode+160+4, iS+4	' |
+	mov             scancode+160+5, iS+5	' |
+	mov             scancode+160+6, iS+6	' |
+	mov             scancode+160+7, iS+7	' |
+	mov             scancode+160+8, iS+8	' |
+	mov             scancode+160+9, iS+9	' |
+	mov             scancode+160+10, iS+10	' |
+	mov             scancode+160+11, iS+11	' |
+	mov             scancode+160+12, iJ	' Move return jump instruction
 
-        ' Setup and start video generator
+	' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins
         or              dira,   vspin           ' Set VSync signal output pin
         or              dira,   sigpin          ' Set data ready signal output pin
@@ -73,20 +84,26 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
 :fporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
         andn            outa,   vspin           ' Drive vertical sync signal pin low
         waitvid         sColor, vpPixel         ' Display blank active video line
+	' EXOTIC HSYNC HERE...
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
+	' ... TO HERE
         djnz            vptr,   #:fporch        ' Display front porch lines           
         mov             vptr,   numVS           ' Initialize vertical sync pointer        
 :vsync  mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, vPixel          ' Display blank active VSync video line
+	' EXOTIC HSYNC HERE (w/ VSync accounted for)...
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hvPixel         ' Horizontal + vertical sync
+	' ... TO HERE
         djnz            vptr,   #:vsync         ' Display vertical sync lines 
         mov             vptr,   numBP           ' Initialize vertical sync pointer        
 :bporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, vpPixel         ' Display blank active video line
+	' EXOTIC HSYNC HERE...
         mov             vscl,   HVidScl         ' Set video scale for HSync
         waitvid         sColor, hPixel          ' Horizontal sync
+	' ... TO HERE
         cmp             vptr,   dataSig wz      ' Check if graphics data ready
         if_z  or        outa,   sigpin          ' Signal data ready
         djnz            vptr,   #:bporch        ' Display back porch lines 
@@ -131,12 +148,34 @@ numLines      long      240     ' Number of rendered lines
 numSegs       long      80      ' Number of scanline segments
 dataSig       long      15      ' Back porch scanline to signal render cogs
 
+{{
+Need to calculate:
+fphScale - vscl for half of front porch
+fphPixel - Pixel pattern for half of front porch
+SyncCfg - vcfg for sync VGroup
+syncpin - bit mask for sync pins
+hsScale - vscl for horizontal sync
+hsPixel - Pixel pattern for horizontal sync
+bphScale - vscl for half of back porch
+bphPixel - Pixel pattern for hald of back porch
+}}
+
 ' Instructions used to generate scancode
-i0            rdlong    pixels, vbptrs+0        ' Load next pixels
-i1            waitvid   pixels, #%%3210         ' Display pixels
-i2            mov       vscl,   HVidScl         ' Set video scale for HSync
-i3            waitvid   sColor, hPixel          ' Horizontal sync
-i4            jmp       #scanret                ' Return to rest of display
+iR            rdlong    pixels, vbptrs+0        ' Load next pixels
+iW            waitvid   pixels, #%%3210         ' Display pixels
+iS    	      mov	vscl,	fphScale	' Set vieo generator scale to half front porch
+	      waitvid	zero,	fphPixel	' Display first half of front porch
+	      mov	vcfg,	SyncCfg		' Set video configuration to control sync pins
+	      waitvid	zero,	fphPixel	' Display second half of front porch
+	      andn	outa,	syncpin		' Hand sync pin control to video generator
+	      mov	vscl,	hsScale		' Set video generator scale to horizontal sync
+	      waitvid	sColor,	hsPixel		' Display horizontal sync
+	      mov	vscl,	bphScale	' Set video generator scale to half back porch
+	      waitvid	zero,	bphPixel	' Display first half of back porch
+	      or	outa,	syncpin		' Take sync pin control back from video generator
+	      waitvid	zero,	bphPixel	' Display second half of back porch
+	      mov	vcfg,	VidCfg		' Set video configuration to control color pins
+iJ            jmp       #scanret                ' Return to rest of display
 
 ' Other values
 d0s0          long      1 << 9 + 1              ' Value to increment source and destination registers         
@@ -144,7 +183,7 @@ d0            long      1 << 9                  ' Value to increment destination
 d1            long      1 << 10                 ' Value to incrememnt destination register by 2
 
 ' Scancode buffer
-scancode      long      0[80*2+3]               ' Buffer containing display scancode
+scancode      long      0[80*2+13]              ' Buffer containing display scancode
 vbptrs        long      0[80]                   ' Buffer containing Main RAM video buffer memory locations
 
 ' Frame pointers
