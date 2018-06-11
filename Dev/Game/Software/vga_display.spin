@@ -124,8 +124,8 @@ scanret djnz            lptr,   #active         ' Display same line twice
 
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
-vspin         long      |< 24                                                                           ' VSync signal output pin
-sigpin        long      |< 25                                                                           ' Data ready signal pin
+sigpin        long      |< 26                                                                           ' Data ready signal pin
+hspin         long      |< 27                                                                       	' VSync signal output pin
 pllfreq       long      259917792                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
 VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
@@ -148,6 +148,16 @@ numLines      long      240     ' Number of rendered lines
 numSegs       long      80      ' Number of scanline segments
 dataSig       long      15      ' Back porch scanline to signal render cogs
 
+' TESTING
+fphScale      long	%000000000000_00000000_000000001000			' Video generator scale for half of front porch
+fphPixel      long 	%%0_0_0_0_0_0_0_0_0_0_0_0_3_3_3_3			' Pixel pattern for half of front porch
+SyncCfg       long      %0_01_1_0_0_000_00000000000_011_0_11111111             	' Video generator sync pins configuration
+hspin         long      |< 24                                                   ' Horizontal sync pins
+vspin         long      |< 25                                                	' Vertical sync pin
+syncpin	      long	|< 24 | |< 25						' Sync pins
+hsScale       long	%000000000000_00000000_000001100000			' Video generator scale for horizontal sync
+hsPixel       long 	%%0_0_0_0_0_0_0_0_0_0_0_0_3_3_3_3			' Pixel pattern for horizontal sync
+
 {{
 Need to calculate:
 fphScale - vscl for half of front porch
@@ -164,7 +174,7 @@ bphPixel - Pixel pattern for hald of back porch
 iR            rdlong    pixels, vbptrs+0        ' Load next pixels
 iW            waitvid   pixels, #%%3210         ' Display pixels
 iS    	      mov	vscl,	fphScale	' Set vieo generator scale to half front porch
-	      waitvid	zero,	fphPixel	' Display first half of front porch
+	      waitvid	sColor,	fphPixel	' Display first half of front porch
 	      mov	vcfg,	SyncCfg		' Set video configuration to control sync pins
 	      waitvid	zero,	fphPixel	' Display second half of front porch
 	      andn	outa,	syncpin		' Hand sync pin control to video generator
@@ -175,6 +185,7 @@ iS    	      mov	vscl,	fphScale	' Set vieo generator scale to half front porch
 	      or	outa,	syncpin		' Take sync pin control back from video generator
 	      waitvid	zero,	bphPixel	' Display second half of back porch
 	      mov	vcfg,	VidCfg		' Set video configuration to control color pins
+iS_ret	      ret				' Return vector for vertical blanking
 iJ            jmp       #scanret                ' Return to rest of display
 
 ' Other values
