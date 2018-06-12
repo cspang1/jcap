@@ -153,7 +153,7 @@ scancode      long      0[80*2]                 ' Buffer containing display scan
         andn            outa,   syncpin         ' Hand sync pin control to video generator
         mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
         waitvid         sColor, hsPixel         ' Display horizontal sync
-	cmp		final,	#1
+	cmp		final,	#1 wz
         if_nz mov       vscl,   bphScale        ' Set video generator scale to half back porch
         if_nz waitvid   sColor, pPixel          ' Display first half of back porch
         if_nz or        outa,   syncpin         ' Take sync pin control back from video generator
