@@ -67,6 +67,7 @@ vga
 
         ' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins
+        andn            outa,   vgapin          ' Drive VGA pins low for blanking
         or              dira,   vspin           ' Set VSync signal output pin
         or              dira,   sigpin          ' Set data ready signal output pin
         or              dira,   syncpin         ' Set sync output pins
@@ -85,29 +86,66 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
 :fporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
         andn            outa,   vspin           ' Drive vertical sync signal pin low
         waitvid         sColor, pPixel          ' Display blank active video line
+
         ' EXOTIC HSYNC HERE...
-        mov             vscl,   HVidScl         ' Set video scale for HSync
-        'waitvid         sColor, hPixel          ' Horizontal sync
-        ' ... TO HERE
+
+        mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, cPixel          ' Display first half of front porch
+        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
+        waitvid         sColor, pPixel          ' Display second half of front porch
+        andn            outa,   syncpin         ' Hand sync pin control to video generator
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        waitvid         sColor, hsPixel         ' Display horizontal sync
+        mov             vscl,   bphScale        ' Set video generator scale to half back porch
+        waitvid         sColor, pPixel          ' Display first half of back porch
+        cmp             vptr,   #1 wz           ' Check if this is the last vertical front porch line
+        if_nz or        outa,   syncpin         ' Take sync pin control back from video generator
+        if_nz waitvid   sColor, cPixel          ' Display second half of back porch
+        if_nz mov       vcfg,   VidCfg          ' Set video configuration to control color pins
+        if_z  waitvid   sColor, pPixel
+
+        ' EXOTIC HSYNC HERE...
+
         djnz            vptr,   #:fporch        ' Display front porch lines           
         mov             vptr,   numVS           ' Initialize vertical sync pointer        
-:vsync  mov             vscl,   BVidScl         ' Set video scale for blank active video area
+:vsync  ' EXOTIC HVSYNC HERE (w/ VSync accounted for)...
+
+        mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, vPixel          ' Display blank active VSync video line
+        mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, vPixel          ' Display first half of front porch
+        waitvid         sColor, vPixel          ' Display second half of front porch
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        waitvid         sColor, cPixel          ' Display horizontal sync
+        mov             vscl,   bphScale        ' Set video generator scale to half back porch
+        waitvid         sColor, vPixel          ' Display first half of back porch
+        waitvid         sColor, vPixel          ' Display second half of back porch
+
         ' EXOTIC HSYNC HERE (w/ VSync accounted for)...
-        mov             vscl,   HVidScl         ' Set video scale for HSync
-        waitvid         sColor, hvPixel         ' Horizontal + vertical sync
-        ' ... TO HERE
+
         djnz            vptr,   #:vsync         ' Display vertical sync lines 
         mov             vptr,   numBP           ' Initialize vertical sync pointer        
 :bporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, pPixel          ' Display blank active video line
+
         ' EXOTIC HSYNC HERE...
-        mov             vscl,   HVidScl         ' Set video scale for HSync
-        'waitvid         sColor, hPixel          ' Horizontal sync
-        ' ... TO HERE
+
+        mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, pPixel          ' Display first half of front porch
+        waitvid         sColor, pPixel          ' Display second half of front porch
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        waitvid         sColor, hsPixel         ' Display horizontal sync
+        mov             vscl,   bphScale        ' Set video generator scale to half back porch
+        waitvid         sColor, pPixel          ' Display first half of back porch
+        waitvid         sColor, pPixel          ' Display second half of back porch
+
+        ' EXOTIC HSYNC HERE...
+
         cmp             vptr,   dataSig wz      ' Check if graphics data ready
         if_z  or        outa,   sigpin          ' Signal data ready
-        djnz            vptr,   #:bporch        ' Display back porch lines 
+        djnz            vptr,   #:bporch        ' Display back porch lines
+        or              outa,   syncpin
+        mov             vcfg,   VidCfg
         andn            outa,   sigpin          ' Disable data ready signal
 
         ' Display active video
@@ -135,8 +173,7 @@ HVidScl       long      %000000000000_00010000_000010100000                     
 BVidScl       long      %000000000000_00000000_001010000000                                             ' Video generator blank line scale register
 
 ' Video Generator inputs
-vPixel        long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       ' VSync pixels
-hvPixel       long      %%0_0_0_0_0_0_1_1_1_0_0_0_0_0_0_1                       ' HVSync pixels
+' ??????????????????????
 
 ' Video attributes
 numFP         long      10      ' Number of vertical front porch lines                        
@@ -149,8 +186,9 @@ dataSig       long      15      ' Back porch scanline to signal render cogs
 ' TESTING
 sColor        long      %00000011_00000001_00000010_00000000                    ' Sync colors (porch_HSync_VSync_HVSync)
 cPixel        long      %%0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0                       ' Porch color blank pixels
-pPixel        long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       ' Porch sync blank pixels
+vPixel        long      %%1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1                       ' VSync pixels
 hsPixel       long      %%2_2_2_2_2_2_2_2_2_2_2_2_2_2_2_2                       ' HSync sync blank pixels
+pPixel        long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       ' Porch sync blank pixels
 fphScale      long      %000000000000_00000000_000000001000                     ' Video generator scale for half of front porch
 hsScale       long      %000000000000_00000000_000001100000                     ' Video generator scale for horizontal sync
 bphScale      long      %000000000000_00000000_000000011000                     ' Video generator scale for horizontal sync
@@ -160,21 +198,21 @@ vsncpin       long      |< 25                                                   
 syncpin       long      |< 24 | |< 25                                           ' Sync pins
 
 ' Instructions used to generate scancode
-iR            rdlong    pixels, vbptrs+0        ' Load next pixels
-iW            waitvid   pixels, #%%3210         ' Display pixels
-iS            mov       vscl,   fphScale        ' Set vieo generator scale to half front porch
-              waitvid   sColor, cPixel          ' Display first half of front porch
-              mov       vcfg,   SyncCfg         ' Set video configuration to control sync pins
-              waitvid   sColor, pPixel          ' Display second half of front porch
-              andn      outa,   syncpin         ' Hand sync pin control to video generator
-              mov       vscl,   hsScale         ' Set video generator scale to horizontal sync
-              waitvid   sColor, hsPixel         ' Display horizontal sync
-              mov       vscl,   bphScale        ' Set video generator scale to half back porch
-              waitvid   sColor, pPixel          ' Display first half of back porch
-              or        outa,   syncpin         ' Take sync pin control back from video generator
-              waitvid   sColor, cPixel          ' Display second half of back porch
-              mov       vcfg,   VidCfg          ' Set video configuration to control color pins
-iJ            jmp       #scanret                ' Return to rest of display
+iR      rdlong          pixels, vbptrs+0        ' Load next pixels
+iW      waitvid         pixels, #%%3210         ' Display pixels
+iS      mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, cPixel          ' Display first half of front porch
+        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
+        waitvid         sColor, pPixel          ' Display second half of front porch
+        andn            outa,   syncpin         ' Hand sync pin control to video generator
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        waitvid         sColor, hsPixel         ' Display horizontal sync
+        mov             vscl,   bphScale        ' Set video generator scale to half back porch
+        waitvid         sColor, pPixel          ' Display first half of back porch
+        or              outa,   syncpin         ' Take sync pin control back from video generator
+        waitvid         sColor, cPixel          ' Display second half of back porch
+        mov             vcfg,   VidCfg          ' Set video configuration to control color pins
+iJ      jmp             #scanret                ' Return to rest of display
 
 ' Other values
 d0s0          long      1 << 9 + 1              ' Value to increment source and destination registers         
