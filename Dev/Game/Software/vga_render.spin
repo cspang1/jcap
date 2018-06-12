@@ -336,6 +336,8 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
         if_nc waitpeq   sigpin, sigpin          ' Wait for graphics data to be ready
         jmp             #slgen                  ' Generate next scanline
+
+TEMPR          LONG      $FFFF_FFFF
         
 ' Video attributes
 maxHor        long      512                     ' Maximum horizontal position

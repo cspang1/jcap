@@ -51,65 +51,46 @@ vga
         add             :vmmov, d0s0            ' Increment next Main RAM move
         add             :vminc, d0              ' Increment next Main RAM location
         djnz            scnptr, #:rdlng         ' Repeat for all parts of scanline
-        mov             scancode+160+0, iS+0    ' Move HSync instructions
-        mov             scancode+160+1, iS+1    ' |
-        mov             scancode+160+2, iS+2    ' |
-        mov             scancode+160+3, iS+3    ' |
-        mov             scancode+160+4, iS+4    ' |
-        mov             scancode+160+5, iS+5    ' |
-        mov             scancode+160+6, iS+6    ' |
-        mov             scancode+160+7, iS+7    ' |
-        mov             scancode+160+8, iS+8    ' |
-        mov             scancode+160+9, iS+9    ' |
-        mov             scancode+160+10, iS+10  ' |
-        mov             scancode+160+11, iS+11  ' |
-        mov             scancode+160+12, iJ     ' Move return jump instruction
 
         ' Setup and start video generator
+        or              dira,   tstpin
+        andn            outa,   tstpin
+
         or              dira,   vgapin          ' Set video generator output pins
         andn            outa,   vgapin          ' Drive VGA pins low for blanking
         or              dira,   vspin           ' Set VSync signal output pin
         or              dira,   sigpin          ' Set data ready signal output pin
         or              dira,   syncpin         ' Set sync output pins
-        or              outa,   syncpin         ' Drive sync pins high
+        andn            outa,   syncpin         ' Drive sync pins high
         mov             frqa,   pllfreq         ' Set Counter A frequency
         mov             ctra,   CtrCfg          ' Set Counter A control register
         rdlong          cnt,    #0              ' Retrive system clock
         shr             cnt,    #10             ' Set-up ~1ms wait
         add             cnt,    cnt             ' Add 1ms wait
         waitcnt         cnt,    #0              ' Allow PLL to settle
-        mov             vcfg,   VidCfg          ' Configure and start video generator
+        mov             vcfg,   SyncCfg         ' Configure and start video generator
         
         ' Display vertical sync area
 video   or              outa,   vspin           ' Drive vertical sync signal pin high
-        mov             vptr,   numFP           ' Initialize vertical sync pointer        
+        mov             vptr,   numFP           ' Initialize vertical sync pointer
 :fporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
         andn            outa,   vspin           ' Drive vertical sync signal pin low
         waitvid         sColor, pPixel          ' Display blank active video line
 
-        ' EXOTIC HSYNC HERE...
 
         mov             vscl,   fphScale        ' Set video generator scale to half front porch
-        waitvid         sColor, cPixel          ' Display first half of front porch
-        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
+        waitvid         sColor, pPixel          ' Display first half of front porch
         waitvid         sColor, pPixel          ' Display second half of front porch
-        andn            outa,   syncpin         ' Hand sync pin control to video generator
         mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
         waitvid         sColor, hsPixel         ' Display horizontal sync
         mov             vscl,   bphScale        ' Set video generator scale to half back porch
         waitvid         sColor, pPixel          ' Display first half of back porch
-        cmp             vptr,   #1 wz           ' Check if this is the last vertical front porch line
-        if_nz or        outa,   syncpin         ' Take sync pin control back from video generator
-        if_nz waitvid   sColor, cPixel          ' Display second half of back porch
-        if_nz mov       vcfg,   VidCfg          ' Set video configuration to control color pins
-        if_z  waitvid   sColor, pPixel
+        waitvid         sColor, pPixel          ' Display second half of back porch
 
-        ' EXOTIC HSYNC HERE...
 
         djnz            vptr,   #:fporch        ' Display front porch lines           
         mov             vptr,   numVS           ' Initialize vertical sync pointer        
-:vsync  ' EXOTIC HVSYNC HERE (w/ VSync accounted for)...
-
+:vsync
         mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, vPixel          ' Display blank active VSync video line
         mov             vscl,   fphScale        ' Set video generator scale to half front porch
@@ -121,14 +102,11 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         waitvid         sColor, vPixel          ' Display first half of back porch
         waitvid         sColor, vPixel          ' Display second half of back porch
 
-        ' EXOTIC HSYNC HERE (w/ VSync accounted for)...
-
         djnz            vptr,   #:vsync         ' Display vertical sync lines 
         mov             vptr,   numBP           ' Initialize vertical sync pointer        
 :bporch mov             vscl,   BVidScl         ' Set video scale for blank active video area
         waitvid         sColor, pPixel          ' Display blank active video line
 
-        ' EXOTIC HSYNC HERE...
 
         mov             vscl,   fphScale        ' Set video generator scale to half front porch
         waitvid         sColor, pPixel          ' Display first half of front porch
@@ -137,15 +115,16 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         waitvid         sColor, hsPixel         ' Display horizontal sync
         mov             vscl,   bphScale        ' Set video generator scale to half back porch
         waitvid         sColor, pPixel          ' Display first half of back porch
-        waitvid         sColor, pPixel          ' Display second half of back porch
+        cmp             vptr,   #1 wz
+        if_z  or        outa,   syncpin
+        if_z  waitvid   sColor, cPixel          ' Display second half of back porch
+        if_z  mov       vcfg,   VidCfg
+        if_nz waitvid   sColor, pPixel
 
-        ' EXOTIC HSYNC HERE...
 
         cmp             vptr,   dataSig wz      ' Check if graphics data ready
         if_z  or        outa,   sigpin          ' Signal data ready
         djnz            vptr,   #:bporch        ' Display back porch lines
-        or              outa,   syncpin
-        mov             vcfg,   VidCfg
         andn            outa,   sigpin          ' Disable data ready signal
 
         ' Display active video
@@ -160,6 +139,8 @@ scanret djnz            lptr,   #active         ' Display same line twice
         mov             cursl,  #0              ' Reset current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         jmp             #video                  ' Return to start of display
+
+tstpin        long      |< 1
 
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
@@ -192,6 +173,7 @@ pPixel        long      %%3_3_3_3_3_3_3_3_3_3_3_3_3_3_3_3                       
 fphScale      long      %000000000000_00000000_000000001000                     ' Video generator scale for half of front porch
 hsScale       long      %000000000000_00000000_000001100000                     ' Video generator scale for horizontal sync
 bphScale      long      %000000000000_00000000_000000011000                     ' Video generator scale for horizontal sync
+bpScale       long      %000000000000_00000000_000000110000                     ' Video generator scale for horizontal sync
 SyncCfg       long      %0_01_1_0_0_000_00000000000_011_0_11111111              ' Video generator sync pins configuration
 hsncpin       long      |< 24                                                   ' Horizontal sync pins
 vsncpin       long      |< 25                                                   ' Vertical sync pin
@@ -200,19 +182,6 @@ syncpin       long      |< 24 | |< 25                                           
 ' Instructions used to generate scancode
 iR      rdlong          pixels, vbptrs+0        ' Load next pixels
 iW      waitvid         pixels, #%%3210         ' Display pixels
-iS      mov             vscl,   fphScale        ' Set video generator scale to half front porch
-        waitvid         sColor, cPixel          ' Display first half of front porch
-        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
-        waitvid         sColor, pPixel          ' Display second half of front porch
-        andn            outa,   syncpin         ' Hand sync pin control to video generator
-        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
-        waitvid         sColor, hsPixel         ' Display horizontal sync
-        mov             vscl,   bphScale        ' Set video generator scale to half back porch
-        waitvid         sColor, pPixel          ' Display first half of back porch
-        or              outa,   syncpin         ' Take sync pin control back from video generator
-        waitvid         sColor, cPixel          ' Display second half of back porch
-        mov             vcfg,   VidCfg          ' Set video configuration to control color pins
-iJ      jmp             #scanret                ' Return to rest of display
 
 ' Other values
 d0s0          long      1 << 9 + 1              ' Value to increment source and destination registers         
@@ -220,7 +189,31 @@ d0            long      1 << 9                  ' Value to increment destination
 d1            long      1 << 10                 ' Value to incrememnt destination register by 2
 
 ' Scancode buffer
-scancode      long      0[80*2+13]              ' Buffer containing display scancode
+scancode      long      0[80*2]                 ' Buffer containing display scancode
+        mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, cPixel          ' Display first half of front porch
+        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
+        waitvid         sColor, pPixel          ' Display second half of front porch
+        andn            outa,   syncpin         ' Hand sync pin control to video generator
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        xor             outa,   tstpin
+        nop
+        nop
+        nop
+        xor             outa,   tstpin
+        waitvid         sColor, hsPixel         ' Display horizontal sync
+        mov             temp,   cursl
+        add             temp,   #1
+        cmp             temp,   numLines wz     ' Check if at bottom of screen
+        if_nz mov       vscl,   bphScale        ' Set video generator scale to half back porch
+        if_nz waitvid   sColor, pPixel          ' Display first half of back porch
+        if_nz or        outa,   syncpin         ' Take sync pin control back from video generator
+        if_nz waitvid   sColor, cPixel          ' Display second half of back porch
+        if_nz mov       vcfg,   VidCfg          ' Set video configuration to control color pins
+        if_z  mov       vscl,   bpScale
+        if_z  waitvid   sColor, pPixel
+        jmp             #scanret                ' Return to rest of display
+
 vbptrs        long      0[80]                   ' Buffer containing Main RAM video buffer memory locations
 
 ' Frame pointers
@@ -232,5 +225,6 @@ scnptr        res       1       ' Pointer to current scancode section being gene
 clptr         res       1       ' Pointer to location of current scanline in Main RAM
 cursl         res       1       ' Container for current scanline
 pixels        res       1       ' Container for currently rendering pixels
+temp          res       1       ' Container for temporary variables
 
         fit
