@@ -358,7 +358,7 @@ tpptr         long      24      ' Pointer to location of tile palettes in Main R
 spptr         long      28      ' Pointer to location of sprite palettes in Main RAM w/ offset
 
 ' Other values
-sigpin        long      |< 25                   ' Data ready signal pin
+sigpin        long      |< 26                   ' Data ready signal pin
 d0            long      1 << 9                  ' Value to increment destination register
 d1            long      1 << 10                 ' Value to increment destination register
 pxmask        long      $FFFFFF00               ' Mask for pixels in scanline buffer
