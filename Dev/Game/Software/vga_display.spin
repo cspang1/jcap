@@ -39,6 +39,7 @@ vga
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         mov             lptr,   #2              ' Initialize line pointer
         mov             scnptr, numSegs         ' Initialize segment pointer
+	mov		final,	#0
 
         ' Generate scancode               
 :rdlng  mov             scancode+0, iR          ' Move rdlong instruction
@@ -53,9 +54,6 @@ vga
         djnz            scnptr, #:rdlng         ' Repeat for all parts of scanline
 
         ' Setup and start video generator
-        or              dira,   tstpin
-        andn            outa,   tstpin
-
         or              dira,   vgapin          ' Set video generator output pins
         andn            outa,   vgapin          ' Drive VGA pins low for blanking
         or              dira,   vspin           ' Set VSync signal output pin
@@ -130,7 +128,12 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         ' Display active video
 active  mov             vscl,   VVidScl         ' Set video scale for visible video
         jmp             #scancode               ' Display line
-scanret djnz            lptr,   #active         ' Display same line twice
+scanret mov		temp,	cursl
+	add		temp,	#1
+	cmp		temp,	numLines wz
+	if_z  mov	final,	#1
+	djnz            lptr,   #active         ' Display same line twice
+	mov		final,	#0
         mov             lptr,   #2              ' Reset line pointer             
         add             cursl,  #1              ' Increment current scanline
         wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
@@ -140,14 +143,32 @@ scanret djnz            lptr,   #active         ' Display same line twice
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         jmp             #video                  ' Return to start of display
 
-tstpin        long      |< 1
+' Scancode buffer
+scancode      long      0[80*2]                 ' Buffer containing display scancode
+        mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, cPixel          ' Display first half of front porch
+	or		outa,	syncpin
+        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
+        waitvid         sColor, pPixel          ' Display second half of front porch
+        andn            outa,   syncpin         ' Hand sync pin control to video generator
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        waitvid         sColor, hsPixel         ' Display horizontal sync
+	cmp		final,	#1
+        if_nz mov       vscl,   bphScale        ' Set video generator scale to half back porch
+        if_nz waitvid   sColor, pPixel          ' Display first half of back porch
+        if_nz or        outa,   syncpin         ' Take sync pin control back from video generator
+        if_nz waitvid   sColor, cPixel          ' Display second half of back porch
+        if_nz mov       vcfg,   VidCfg          ' Set video configuration to control color pins
+        if_z  mov       vscl,   bpScale
+        if_z  waitvid   sColor, pPixel
+        jmp             #scanret                ' Return to rest of display
 
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
 sigpin        long      |< 26                                                                           ' Data ready signal pin
 vspin         long      |< 27                                                                           ' VSync signal output pin
 pllfreq       long      259917792                                                                       ' Counter A frequency
-CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration                        
+CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration
 VidCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator configuration
 VVidScl       long      %000000000000_00000010_000000001000                                             ' Video generator visible video scale register
 HVidScl       long      %000000000000_00010000_000010100000                                             ' Video generator horizontal sync scale register
@@ -188,32 +209,6 @@ d0s0          long      1 << 9 + 1              ' Value to increment source and 
 d0            long      1 << 9                  ' Value to increment destination register
 d1            long      1 << 10                 ' Value to incrememnt destination register by 2
 
-' Scancode buffer
-scancode      long      0[80*2]                 ' Buffer containing display scancode
-        mov             vscl,   fphScale        ' Set video generator scale to half front porch
-        waitvid         sColor, cPixel          ' Display first half of front porch
-        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
-        waitvid         sColor, pPixel          ' Display second half of front porch
-        andn            outa,   syncpin         ' Hand sync pin control to video generator
-        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
-        xor             outa,   tstpin
-        nop
-        nop
-        nop
-        xor             outa,   tstpin
-        waitvid         sColor, hsPixel         ' Display horizontal sync
-        mov             temp,   cursl
-        add             temp,   #1
-        cmp             temp,   numLines wz     ' Check if at bottom of screen
-        if_nz mov       vscl,   bphScale        ' Set video generator scale to half back porch
-        if_nz waitvid   sColor, pPixel          ' Display first half of back porch
-        if_nz or        outa,   syncpin         ' Take sync pin control back from video generator
-        if_nz waitvid   sColor, cPixel          ' Display second half of back porch
-        if_nz mov       vcfg,   VidCfg          ' Set video configuration to control color pins
-        if_z  mov       vscl,   bpScale
-        if_z  waitvid   sColor, pPixel
-        jmp             #scanret                ' Return to rest of display
-
 vbptrs        long      0[80]                   ' Buffer containing Main RAM video buffer memory locations
 
 ' Frame pointers
@@ -223,6 +218,7 @@ vptr          res       1       ' Current vertical sync line being rendered
 ' Other pointers
 scnptr        res       1       ' Pointer to current scancode section being generated
 clptr         res       1       ' Pointer to location of current scanline in Main RAM
+final	      res	1	' Container for indicating final render line
 cursl         res       1       ' Container for current scanline
 pixels        res       1       ' Container for currently rendering pixels
 temp          res       1       ' Container for temporary variables
