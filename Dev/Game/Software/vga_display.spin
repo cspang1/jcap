@@ -54,7 +54,7 @@ vga
 
         ' Setup and start video generator
         or              dira,   vgapin          ' Set video generator output pins
-        andn            outa,   vgapin          ' Drive VGA pins low for blanking
+        or		outa,   vgapin          ' Drive VGA pins low for blanking
         or              dira,   vspin           ' Set VSync signal output pin
         or              dira,   sigpin          ' Set data ready signal output pin
         or              dira,   syncpin         ' Set sync output pins
@@ -65,7 +65,7 @@ vga
         shr             cnt,    #10             ' Set-up ~1ms wait
         add             cnt,    cnt             ' Add 1ms wait
         waitcnt         cnt,    #0              ' Allow PLL to settle
-        mov             vcfg,   SyncCfg         ' Configure and start video generator
+        mov             vcfg,   VidCfg         	' Configure and start video generator
         
         ' Display vertical sync area
 video   or              outa,   vspin           ' Drive vertical sync signal pin high
