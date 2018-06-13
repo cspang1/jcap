@@ -126,17 +126,19 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         andn            outa,   sigpin          ' Disable data ready signal
 
         ' Display active video
-        add             cursl,  #1              ' Increment current scanline
 active  mov             vscl,   VVidScl         ' Set video scale for visible video
         jmp             #scancode               ' Display line
-scanret	cmp		cursl,	numLines wz
+scanret mov		temp,	cursl
+	add		temp,	#1
+	cmp		temp,	numLines wz
 	if_z  mov	final,	#1
 	djnz            lptr,   #active         ' Display same line twice
-        mov             lptr,   #2              ' Reset line pointer             
-        wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
-        cmp             final,  #1 wz           ' Check if at bottom of screen
-        if_nz jmp       #active                 ' Continue displaying remaining scanlines 
 	mov		final,	#0
+        mov             lptr,   #2              ' Reset line pointer             
+        add             cursl,  #1              ' Increment current scanline
+        wrlong          cursl,  clptr           ' Set current scanline in Main RAM                
+        cmp             cursl,  numLines wz     ' Check if at bottom of screen
+        if_nz jmp       #active                 ' Continue displaying remaining scanlines 
         mov             cursl,  #0              ' Reset current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
         jmp             #video                  ' Return to start of display
