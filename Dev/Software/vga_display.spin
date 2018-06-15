@@ -30,7 +30,7 @@ vga
         ' Initialize variables
         add             clptr,  par
         add             vbptrs, par             ' Initialize pointer to video buffer
-        rdlong          datptr, datptr          ' Load data indicator location
+        rdlong          datptr, par             ' Load data indicator location
         rdlong          clptr,  clptr           ' Load current scanline memory location
         rdlong          vbptrs, vbptrs          ' Load video buffer memory location
         mov             cursl,  #0              ' Initialize current scanline
@@ -54,7 +54,6 @@ vga
         or              dira,   vgapin          ' Set video generator output pins
         andn            outa,   vgapin          ' Drive VGA pins low for blanking
         or              dira,   vspin           ' Set VSync signal output pin
-        or              dira,   sigpin          ' Set data ready signal output pin
         or              dira,   syncpin         ' Set sync output pins
         andn            outa,   syncpin         ' Drive sync pins high
         mov             frqa,   pllfreq         ' Set Counter A frequency
@@ -117,9 +116,9 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         if_z  mov       vcfg,   ColCfg          ' Set video configuration to control color pins
         if_nz waitvid   sColor, pixel3          ' Display second half of back porch
         cmp             vidx,   dataSig wz      ' Check if graphics data ready
-        if_z  or        outa,   sigpin          ' Signal data ready
+        if_z  wrlong    pixel0, datptr          ' Indicate graphics resources data ready
         djnz            vidx,   #:bporch        ' Display back porch lines
-        andn            outa,   sigpin          ' Disable data ready signal
+        wrlong          pixel1, datptr          ' Disable data ready indicator
 
         ' Display active video
 nextsl  add             cursl,  #1              ' Increment current scanline
@@ -155,8 +154,7 @@ iW      waitvid         pixels, #%%3210         ' Display pixels
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
 syncpin       long      |< 24 | |< 25                                                                   ' Sync pins
-sigpin        long      |< 26                                                                           ' Data ready signal pin
-vspin         long      |< 27                                                                           ' VSync signal output pin
+vspin         long      |< 26                                                                           ' VSync signal output pin
 pllfreq       long      259917792                                                                       ' Counter A frequency
 CtrCfg        long      %0_00001_101_00000000_000000_000_000000                                         ' Counter A configuration
 ColCfg        long      %0_01_1_0_0_000_00000000000_010_0_11111111                                      ' Video generator color pins configuration

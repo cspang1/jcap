@@ -70,9 +70,6 @@ render
         rdlong          spptr,  spptr           ' Load sprite palette location
         rdlong          datptr, datptr          ' Load current scanline memory location
 
-        ' Initialize pins
-        andn            dira,   sigpin          ' Set data ready signal input pin
-
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
         if_c  jmp       #:lock                  ' Re-attempt to lock semaphore
@@ -333,7 +330,8 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
         add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
-        if_nc waitpeq   sigpin, sigpin          ' Wait for graphics data to be ready
+waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources ready
+        if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
         jmp             #slgen                  ' Generate next scanline
 
 TEMPR          LONG      $FFFF_FFFF
@@ -360,7 +358,6 @@ tpptr         long      28      ' Pointer to location of tile palettes in Main R
 spptr         long      32      ' Pointer to location of sprite palettes in Main RAM w/ offset
 
 ' Other values
-sigpin        long      |< 26                   ' Data ready signal pin
 d0            long      1 << 9                  ' Value to increment destination register
 d1            long      1 << 10                 ' Value to increment destination register
 pxmask        long      $FFFFFF00               ' Mask for pixels in scanline buffer
