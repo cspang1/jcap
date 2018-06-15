@@ -253,7 +253,6 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         mov             cpindx, curmt           ' Copy sprite attributes to color palette index
         and             cpindx, #112            ' Mask out color palette index * 16
         add             cpindx, scpptr          ' cpindx * 16 += scpptr
-	rdbyte		tranpx,	cpindx		' Retrieve sprite transparency color
 
         ' Retrieve sprite mirroring attributes
         mov             spxmir, curmt           ' Copy sprite attributes to temp variable
@@ -283,11 +282,10 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         ' Parse sprite pixel palette line
         mov             findx,  #sprSzX         ' Store sprite horizontal size into index
 :sprite mov             temp,   curpt           ' Load current sprite pixel palette line into temp variable
-        and             temp,   #15             ' Mask out current pixel
+        and             temp,   #15 wz          ' Mask out current pixel
+        if_z  jmp       #:trans                 ' Skip if pixel is transparent
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        cmp             curcp,  tranpx wz       ' Check if pixel is transparent
-        if_z  jmp       #:trans                 ' Skip pixel if so
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
         cmp             spxmir, #1 wz           ' Check for horizontal mirroring
         if_z  mov       tmpmir, #sprSzX         ' If so store sprite horizontal size into temp variable
@@ -386,7 +384,6 @@ spxoff        res       1       ' Sprite horizontal pixel palette offset
 spyoff        res       1       ' Sprite vertical pixel palette offset
 spxmir        res       1       ' Sprite horizontal mirroring
 spymir        res       1       ' Sprite horizontal mirroring
-tranpx        res	1	' Sprite transparency color
 
 ' Other pointers
 initsl        res       1       ' Container for initial scanline
