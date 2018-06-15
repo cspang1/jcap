@@ -199,7 +199,7 @@ shbuf2  mov             slbuff+1, pxbuff        ' Allocate space for color
         movd            shbuf2, #slbuff+1       ' Reset shbuf destination address
 
         ' Render sprites
-        mov             index,  numSprts        ' Initialize size of sprite attribute table
+        mov             index,  #numSprites     ' Initialize size of sprite attribute table
         mov             tmindx, satptr          ' Initialize sprite attribute table index
         mov             nrensp, #0              ' Initialize number of rendered sprites on this scanline
 sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Main RAM
@@ -333,8 +333,6 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
 waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources ready
         if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
         jmp             #slgen                  ' Generate next scanline
-
-TEMPR          LONG      $FFFF_FFFF
         
 ' Video attributes
 maxHor        long      512                     ' Maximum horizontal position
@@ -342,7 +340,6 @@ maxVis        long      319                     ' Maximum visible horizontal pos
 numLines      long      240                     ' Number of rendered scanlines
 numSegs       long      80                      ' Number of scanline segments
 numTiles      long      40                      ' Number of tiles per scanline
-numSprts      long      numSprites              ' Number of sprites in sprite attribute table
 
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
