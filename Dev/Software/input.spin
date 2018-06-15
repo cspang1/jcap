@@ -1,8 +1,6 @@
 {{
         File:     input.spin
         Author:   Connor Spangler
-        Date:     05/24/2017
-        Version:  5.0
         Description: 
                   This file contains the PASM code to create an interface between the
                   Propeller P8X32A and a dual 74HC165 daisy-chained setup. Its purpose

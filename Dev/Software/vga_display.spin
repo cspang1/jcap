@@ -1,8 +1,6 @@
 {{
         File:     vga_display.spin
         Author:   Connor Spangler
-        Date:     1/23/2018
-        Version:  1.1
         Description: 
                   This file contains the PASM code to drive a VGA signal using video data
                   from hub RAM
@@ -30,14 +28,14 @@ DAT
         org             0
 vga           
         ' Initialize variables
-        mov             clptr,  par             ' Initialize pointer to current scanline
-        mov             vbptrs, par             ' Initialize pointer to video buffer
-        add             vbptrs, #4              ' Point video buffer pointer to video buffer
+        add             clptr,  par
+        add             vbptrs, par             ' Initialize pointer to video buffer
+        rdlong          datptr, datptr          ' Load data indicator location
         rdlong          clptr,  clptr           ' Load current scanline memory location
         rdlong          vbptrs, vbptrs          ' Load video buffer memory location
         mov             cursl,  #0              ' Initialize current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
-        mov             lptr,   #2              ' Initialize line pointer
+        mov             lidx,   #2              ' Initialize line pointer
         mov             scnptr, numSegs         ' Initialize segment pointer
 
         ' Generate scancode               
@@ -69,7 +67,7 @@ vga
         
         ' Display video
 video   or              outa,   vspin           ' Drive vertical sync signal pin high
-        mov             vptr,   numFP           ' Initialize vertical sync pointer
+        mov             vidx,   numFP           ' Initialize vertical sync pointer
 
         ' Display vertical sync area
 :fporch mov             vscl,   blkScale        ' Set video scale for blank active video area
@@ -88,9 +86,9 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         or              outa,   syncpin         ' Take sync pin control back from video generator
         waitvid         sColor, pixel0          ' Display second half of back porch
         mov             vcfg,   ColCfg          ' Set video configuration to control color pins
-        djnz            vptr,   #:fporch        ' Display front porch lines           
+        djnz            vidx,   #:fporch        ' Display front porch lines
         mov             vcfg,   SyncCfg         ' Set video generator control to sync pins
-        mov             vptr,   numVS           ' Initialize vertical sync pointer        
+        mov             vidx,   numVS           ' Initialize vertical sync pointer
 :vsync  mov             vscl,   blkScale        ' Set video scale for blank active video area
         waitvid         sColor, pixel1          ' Display blank active VSync video line
         andn            outa,   syncpin         ' Hand sync pin control to video generator
@@ -102,8 +100,8 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         mov             vscl,   bphScale        ' Set video generator scale to half back porch
         waitvid         sColor, pixel1          ' Display first half of back porch
         waitvid         sColor, pixel1          ' Display second half of back porch
-        djnz            vptr,   #:vsync         ' Display vertical sync lines 
-        mov             vptr,   numBP           ' Initialize vertical sync pointer        
+        djnz            vidx,   #:vsync         ' Display vertical sync lines
+        mov             vidx,   numBP           ' Initialize vertical sync pointer
 :bporch mov             vscl,   blkScale        ' Set video scale for blank active video area
         waitvid         sColor, pixel3          ' Display blank active video line
         mov             vscl,   fphScale        ' Set video generator scale to half front porch
@@ -113,25 +111,25 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         waitvid         sColor, pixel2          ' Display horizontal sync
         mov             vscl,   bphScale        ' Set video generator scale to half back porch
         waitvid         sColor, pixel3          ' Display first half of back porch
-        cmp             vptr,   #1 wz           ' Check if last back porch line
+        cmp             vidx,   #1 wz           ' Check if last back porch line
         if_z  or        outa,   syncpin         ' Take control of sync pins from video generator
         if_z  waitvid   sColor, pixel0          ' Display second half of back porch
         if_z  mov       vcfg,   ColCfg          ' Set video configuration to control color pins
         if_nz waitvid   sColor, pixel3          ' Display second half of back porch
-        cmp             vptr,   dataSig wz      ' Check if graphics data ready
+        cmp             vidx,   dataSig wz      ' Check if graphics data ready
         if_z  or        outa,   sigpin          ' Signal data ready
-        djnz            vptr,   #:bporch        ' Display back porch lines
+        djnz            vidx,   #:bporch        ' Display back porch lines
         andn            outa,   sigpin          ' Disable data ready signal
 
         ' Display active video
 nextsl  add             cursl,  #1              ' Increment current scanline
 active  mov             vscl,   visScale        ' Set video scale for visible video
         jmp             #scancode               ' Display line
-scanret djnz            lptr,   #active         ' Display same line twice
+scanret djnz            lidx,   #active         ' Display same line twice
         cmp             cursl,  numLines wz     ' Check if at bottom of screen
         if_z  mov       cursl,  #0              ' Reset current scanline
         wrlong          cursl,  clptr           ' Set current scanline in Main RAM
-        mov             lptr,   #2              ' Reset line pointer
+        mov             lidx,   #2              ' Reset line pointer
         if_nz jmp       #nextsl                 ' Continue displaying remaining scanlines
         jmp             #video                  ' Return to start of display
 
@@ -188,15 +186,18 @@ d0s0          long      1 << 9 + 1              ' Value to increment source and 
 d0            long      1 << 9                  ' Value to increment destination register
 d1            long      1 << 10                 ' Value to incrememnt destination register by 2
 dataSig       long      15                      ' Back porch scanline to signal render cogs
-vbptrs        long      0[80]                   ' Buffer containing Main RAM video buffer memory locations
 
-' Frame pointers
-lptr          res       1       ' Current line being rendered
-vptr          res       1       ' Current vertical sync line being rendered
+' Main RAM pointers
+datptr        long      0                       ' Pointer to location of data indicator
+clptr         long      4                       ' Pointer to location of current scanline in Main RAM
+vbptrs        long      8[80]                   ' Buffer containing Main RAM video buffer memory locations
 
-' Other pointers
+' Frame indexes
+lidx          res       1       ' Current line being rendered
+vidx          res       1       ' Current vertical sync line being rendered
+
+' Other values
 scnptr        res       1       ' Pointer to current scancode section being generated
-clptr         res       1       ' Pointer to location of current scanline in Main RAM
 cursl         res       1       ' Container for current scanline
 pixels        res       1       ' Container for currently rendering pixels
 

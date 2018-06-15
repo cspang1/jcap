@@ -1,8 +1,6 @@
 {{
         File:     vga_tx.spin
         Author:   Connor Spangler
-        Date:     5/1/2018
-        Version:  1.0
         Description: 
                   This file contains the PASM code to transmit graphics resources from one
                   Propeller to another

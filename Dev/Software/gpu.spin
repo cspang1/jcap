@@ -1,8 +1,6 @@
 {{
         File:     gpu.spin
         Author:   Connor Spangler
-        Date:     5/9/2018
-        Version:  2.0
         Description: 
                   This file contains the PASM code defining a JCAP GPU
 }}
@@ -34,6 +32,7 @@ VAR
   ' Video system pointers
   long  gfx_buffer_base_        ' Register pointing to graphics resources buffer
   long  gfx_buffer_size_        ' Size of the graphics buffer
+  long  data_ready_base_        ' Register pointing to data status indicator
   long  cur_scanline_base_      ' Register pointing to current scanline being requested by the VGA Display system
   long  scanline_buff_base_     ' Register pointing to scanline buffer
   long  tcolor_palette_base_    ' Register pointing to base of tile color palettes
@@ -48,22 +47,24 @@ PUB main
   gfx_buffer_base_ := @gfx_buff                                                 ' Point graphics buffer base to graphics buffer
   gfx_buffer_size_ := GFX_BUFFER_SIZE                                           ' Set the size of the graphics resources buffer
   cur_scanline_base_ := @cur_scanline                                           ' Point current scanline base to current scanline
+  data_ready_base_ := @data_ready                                               ' Point data ready base to data ready indicator
   scanline_buff_base_ := @scanline_buff                                         ' Point video buffer base to video buffer
   tcolor_palette_base_ := gfx_buffer_base_                                      ' Point tile color palette base to base of tile color palettes
-  scolor_palette_base_ := tcolor_palette_base_+NUM_TILE_COLOR_PALETTES*4*4        ' Point sprite color palette base to base of sprite color palettes
-  sprite_att_base_ := scolor_palette_base_+NUM_SPRITE_COLOR_PALETTES*4*4          ' Point sprite attribute table base to base of sprite attribute table
-  tile_map_base_ := sprite_att_base_+NUM_SPRITES*4                                ' Point tile map base to base of tile maps
+  scolor_palette_base_ := tcolor_palette_base_+NUM_TILE_COLOR_PALETTES*4*4      ' Point sprite color palette base to base of sprite color palettes
+  sprite_att_base_ := scolor_palette_base_+NUM_SPRITE_COLOR_PALETTES*4*4        ' Point sprite attribute table base to base of sprite attribute table
+  tile_map_base_ := sprite_att_base_+NUM_SPRITES*4                              ' Point tile map base to base of tile maps
   tile_palette_base_ := @tile_palettes                                          ' Point tile palette base to base of tile palettes
   sprite_palette_base_ := @sprite_palettes                                      ' Point sprite palette base to base of sprite palettes
 
   ' Start subsystems
   vga_rx.start(@gfx_buffer_base_)                       ' Start video data RX driver
-  vga_display.start(@cur_scanline_base_)                ' Start display driver
-  vga_render.start(@cur_scanline_base_)                 ' Start renderers
+  vga_display.start(@data_ready_base_)                  ' Start display driver
+  vga_render.start(@data_ready_base_)                   ' Start renderers
 
 DAT
 
               ' Graphics engine resources
+data_ready    long      0                       ' Graphics data ready indicator
 cur_scanline  long      0                       ' Current scanline being rendered
 scanline_buff long      0[VID_BUFFER_SIZE]      ' Video buffer
 gfx_buff      long      0[GFX_BUFFER_SIZE]      ' Graphics resources buffer

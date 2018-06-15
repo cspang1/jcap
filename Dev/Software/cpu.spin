@@ -1,8 +1,6 @@
 {{
         File:     cpu.spin
         Author:   Connor Spangler
-        Date:     5/9/2018
-        Version:  2.0
         Description: 
                   This file contains the PASM code defining a JCAP CPU
 }}

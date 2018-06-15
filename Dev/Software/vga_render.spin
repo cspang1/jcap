@@ -1,8 +1,6 @@
 {{
         File:     vga_render.spin
         Author:   Connor Spangler
-        Date:     1/27/2018
-        Version:  0.9
         Description: 
                   This file contains the PASM code to generate video data and store it to hub RAM
                   to be displayed by the vga_display routine
@@ -50,25 +48,27 @@ DAT
         org             0
 render
         ' Initialize variables
-        rdlong          cslptr, par             ' Initialize pointer to current scanline
+        rdlong          datptr, par             ' Initialize pointer to current scanline
         add             semptr, par             ' Initialize pointer to semaphore
         add             ilptr,  par             ' Initialize pointer to initial scanline
         rdbyte          semptr, semptr          ' Get semaphore ID
-        add             slbptr, cslptr          ' Calculate video buffer memory location
-        rdlong          slbptr, slbptr          ' Load video buffer memory location
-        add             tcpptr, cslptr          ' Calculate graphics resource buffer memory location
-        rdlong          tcpptr, tcpptr          ' Load graphics resource buffer memory location
-        add             scpptr, cslptr          ' Calculate sprite color palette memory location
-        rdlong          scpptr, scpptr          ' Load sprite color palette memory locations
-        add             satptr, cslptr          ' Calculate sprite attribute table memory location
-        rdlong          satptr, satptr          ' Load sprite attribute table memory location
-        add             tmptr,  cslptr          ' Calculate tile map location
-        rdlong          tmptr,  tmptr           ' Load tile map location
-        add             tpptr,  cslptr          ' Calculate tile palette location
-        rdlong          tpptr,  tpptr           ' Load tile palette location
-        add             spptr,  cslptr          ' Calculate sprite palette location
-        rdlong          spptr,  spptr           ' Load sprite palette location
+        add             cslptr, datptr          ' Calculate current scanline memory location
         rdlong          cslptr, cslptr          ' Load current scanline memory location
+        add             slbptr, datptr          ' Calculate video buffer memory location
+        rdlong          slbptr, slbptr          ' Load video buffer memory location
+        add             tcpptr, datptr          ' Calculate graphics resource buffer memory location
+        rdlong          tcpptr, tcpptr          ' Load graphics resource buffer memory location
+        add             scpptr, datptr          ' Calculate sprite color palette memory location
+        rdlong          scpptr, scpptr          ' Load sprite color palette memory locations
+        add             satptr, datptr          ' Calculate sprite attribute table memory location
+        rdlong          satptr, satptr          ' Load sprite attribute table memory location
+        add             tmptr,  datptr          ' Calculate tile map location
+        rdlong          tmptr,  tmptr           ' Load tile map location
+        add             tpptr,  datptr          ' Calculate tile palette location
+        rdlong          tpptr,  tpptr           ' Load tile palette location
+        add             spptr,  datptr          ' Calculate sprite palette location
+        rdlong          spptr,  spptr           ' Load sprite palette location
+        rdlong          datptr, datptr          ' Load current scanline memory location
 
         ' Initialize pins
         andn            dira,   sigpin          ' Set data ready signal input pin
@@ -349,14 +349,15 @@ numSprts      long      numSprites              ' Number of sprites in sprite at
 ' Main RAM pointers
 semptr        long      4       ' Pointer to location of semaphore in Main RAM w/ offset
 ilptr         long      8       ' Pointer to location of initial scanline in Main RAM w/ offset
-cslptr        long      0       ' Pointer to location of current scanline in Main RAM w/ offset
-slbptr        long      4       ' Pointer to location of scanline buffer in Main RAM w/ offset
-tcpptr        long      8       ' Pointer to location of tile color palettes in Main RAM w/ offset
-scpptr        long      12      ' Pointer to location of sprite color palettes in Main RAM w/ offset
-satptr        long      16      ' Pointer to location of sprite attribute table in Main RAM w/ offset
-tmptr         long      20      ' Pointer to location of tile map in Main RAM w/ offset
-tpptr         long      24      ' Pointer to location of tile palettes in Main RAM w/ offset
-spptr         long      28      ' Pointer to location of sprite palettes in Main RAM w/ offset
+datptr        long      0       ' Pointer to location of data indicator in Main RAM w/ offset
+cslptr        long      4       ' Pointer to location of current scanline in Main RAM w/ offset
+slbptr        long      8       ' Pointer to location of scanline buffer in Main RAM w/ offset
+tcpptr        long      12      ' Pointer to location of tile color palettes in Main RAM w/ offset
+scpptr        long      16      ' Pointer to location of sprite color palettes in Main RAM w/ offset
+satptr        long      20      ' Pointer to location of sprite attribute table in Main RAM w/ offset
+tmptr         long      24      ' Pointer to location of tile map in Main RAM w/ offset
+tpptr         long      28      ' Pointer to location of tile palettes in Main RAM w/ offset
+spptr         long      32      ' Pointer to location of sprite palettes in Main RAM w/ offset
 
 ' Other values
 sigpin        long      |< 26                   ' Data ready signal pin

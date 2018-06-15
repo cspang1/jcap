@@ -1,8 +1,6 @@
 {{
         File:     vga_rx.spin
         Author:   Connor Spangler
-        Date:     5/1/2018
-        Version:  0.2
         Description: 
                   This file contains the PASM code to receive graphics resources from 
                   another Propeller
@@ -33,8 +31,8 @@ DAT
 rx
         ' Initialize variables
         add             buffsz, par             ' Initialize pointer to variables
-        rdlong          bufptr, par
-        rdlong          buffsz, buffsz
+        rdlong          bufptr, par             ' Point buffer pointer to start of graphics resources buffer
+        rdlong          buffsz, buffsz          ' Load size of graphics resources buffer
 
         ' Initialize pins
         andn            dira,   RxPin           ' Set input pin
