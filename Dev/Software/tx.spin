@@ -1,114 +1,91 @@
-{{
-        File:     vga_tx.spin
-        Author:   Connor Spangler
-        Description: 
-                  This file contains the PASM code to transmit graphics resources from one
-                  Propeller to another
-}}
+''
+'' single wire serial link - transmitter
+''
+''        Author: Marko Lukat
+''   Modified by: Connor Spangler 
+'' Last modified: 2018/06/21
+''       Version: 0.7
+''
+'' long[par][0]: cog startup: [!Z]:chn0 =  24:8 -> zero (ready)
+''               transaction: size:addr = 16:16 -> zero (transaction accepted)
+''
+'' 20110514: increased net transfer rate
+'' 20180621: refactored for JAMMA
+''
+
+PUB start(var_addr_base)
 
 CON
-  TX_PIN = 0                                            ' Pin used for data transmission
-  VS_PIN = 1                                            ' Pin used for VSYNC
-
-VAR
-  long  cog_                    ' Variable containing ID of transmission cog
-  long  var_addr_base_          ' Variable for pointer to base address of Main RAM variables
-  long  cont_                   ' Variable containing control flag for transmission routine
-  long  watch_dog_              ' Variable containing the cycle count for the watchdog timer
+  shl_phsb_imm1 = $2CFFFA01                     ' shl phsb, #1
   
-PUB start(varAddrBase) : status                         ' Function to start transmission driver with pointer to Main RAM variables
-  stop                                                  ' Stop any existing transmission cogs
+DAT             org     0                       ' proplink transmitter
+
+transmit        jmpret  $, #:setup              ' once
+
+                rdlong  tx_addr, par wz         '  +0 = size:addr = 16:16
+        if_z    jmp     #$-1
+
+                mov     tx_lcnt, tx_addr
+                wrlong  par, par                '  +0 = accept transaction
+                shr     tx_lcnt, #16 wz         '       extract long count
+        if_z    jmp     %%0
+
+' The transmission loop is sync'd to the hub window. Minimal cycle count is
+' 8(rdlong) + 140(transfer) + 8(loop) = 156(160). In the receiver we need at
+' least 20 cycles between stop and start bit plus an additional 15 cycles in
+' case we miss the hub window (35). The transmitter covers 16 cycles already
+' (rdlong+loop) which leaves us with an artificial delay of 19(20) cycles.
+
+:primary        rdlong  tx, tx_addr             '  +0 = 176 cycles
+
+' prerequisites: ctra NCO clkfreq/4, low centres around phase D
+'                ctrb NCO inactive, output preset to high (mutes ctra)
+
+' transfer starts, 2 start bits, 32 data bits, 1 stop bit
+
+                mov     phsb, #0                ' start bit 0
+                neg     phsb, #1                ' start bit 1
+                xor     phsb, tx                ' bit 31
+                long    shl_phsb_imm1[31]       ' bit 30..0
+                neg     phsb, #1                ' stop bit
+
+' transfer ends
+
+                mov     cnt, cnt                ' |
+                add     cnt, #9{14}+ 6          ' |
+                waitcnt cnt, #0                 ' delay 20 cycles
+                
+                add     tx_addr, #4             ' advance address
+                djnz    tx_lcnt, #:primary      ' next long
+
+                jmp     %%0                     ' handle next transaction
 
 
-  ' Instantiate variables
-  var_addr_base_ := varAddrBase                         ' Assign local base variable address
-  cont_ := FALSE                                        ' Instantiate control flag
-  watch_dog_ := clkfreq / 1_000 * 500                   ' Calculate time to wait
+:setup          rdbyte  ctra, par               ' read transmitter pin ([!Z]:chn0 = 24:8)
 
-  ' Start transmission driver
-  ifnot cog_ := cognew(@tx, @var_addr_base_) + 1        ' Initialize cog running "tx" routine with reference to start of variable registers
-    return FALSE                                        ' Transmission system failed to initialize
+                neg     phsb, #1                ' preset high
+                movs    ctrb, ctra              ' copy pin assignment
+                movi    ctrb, #%0_00100_000     ' NCO single-ended
 
-  return TRUE                                           ' Transmission system successfully initialized
+                shl     tx_mask, ctra           ' pin number -> pin mask
+                mov     dira, tx_mask           ' set output
+                
+                movi    ctra, #%0_00100_000     ' NCO single-ended
+                movi    phsa, #%1100_0000_0     ' preset (low centres around phase D)
+                movi    frqa, #%0100_0000_0     ' clkfreq/4
 
-PUB stop                        ' Function to stop transmission driver
-  if cog_                       ' If cog is running
-    cogstop(cog_~ - 1)          ' Stop the cog
+                wrlong  par, par                ' setup done
+                jmp     %%0                     ' ret
+                
+' initialised data and/or presets
 
-PUB transmit | waitstart
-  waitstart := cnt                                      ' Set start time
-  repeat while cont_                                    ' Wait for previous transfer to complete
-    if (cnt - waitstart => watch_dog_)                  ' Check if time limit blown i.e. TX has hung somewhere
-      start(var_addr_base_)                             ' Restart TX routine
-      return                                            ' Exit function
-  cont_ := TRUE                                         ' Signal transfer start
+tx_mask         long    1                       ' pin mask (outgoing data)
 
-DAT
-        org     0
-tx
-        ' Initialize variables
-        add             cntptr, par             ' Initialize pointer to control flag
-        rdlong          bufptr, par             ' Initialize pointer to buffer
-        add             buffsz, bufptr          ' Calculate buffer size address
-        rdlong          buffsz, buffsz          ' Load buffer size
-        rdlong          bufptr, bufptr          ' Load buffer base address
+' uninitialised data and/or temporaries
 
-        ' Setup Counter in NCO mode
-        mov             ctra,   CtrCfg          ' Set Counter A control register mode
-        mov             frqa,   #0              ' Zero Counter A frequency register
-        or              dira,   TxPin           ' Set output pin
-        andn            dira,   VsPin           ' Set input pin
+tx              res     1                       ' payload
 
-        ' Transfer entire graphics buffer
-txbuff  mov             curbuf, buffsz          ' Initialize graphics buffer size
-        mov             curlng, bufptr          ' Initialize graphics buffer location
+tx_addr         res     1
+tx_lcnt         res     1
 
-        ' Wait for control flag to go high
-:wait   rdlong          poll,   cntptr wz       ' Poll control flag
-        if_z  jmp       #:wait                  ' Loop while low
-        waitpeq         VsPin,  VsPin           ' Wait for VSYNC
-
-        ' Transfer current long of graphics buffer
-:txlong rdlong          txval,  curlng          ' Load current long
-        add             curlng, #4              ' Increment to next graphics buffer long
-        mov             txindx, #31             ' Load number of bits in long
-
-        ' Setup long transmission start
-        nop                                     ' Compensation NOP
-        nop                                     ' Compensation NOP
-        nop                                     ' Compensation NOP
-        mov             phsa,   TxStart         ' Send one bit high
-        mov             phsa,   txval           ' Stage long for transfer
-
-        ' Transmit bits
-:txbits shl             phsa,   #1              ' Shift next bit to transmit
-        djnz            txindx, #:txbits        ' Repeat for all bits
-
-        ' Setup long transmission end
-        mov             phsa,   #0              ' Pull data line low
-        djnz            curbuf, #:txlong        ' Repeat for all longs in buffer
-
-        ' Wait for ACK and prepare for next transmission
-        andn            dira,   TxPin           ' Set transmission pin to input for ACK
-        waitpeq         TxPin,  TxPin           ' Wait for ACK
-        wrlong          zero,   cntptr          ' Reset control flag
-        or              dira,   TxPin           ' Reset transmission pin for output
-        jmp             #txbuff                 ' Loop infinitely
-
-TxStart       long      -1                      ' High transmission start pulse
-CtrCfg        long      (%00100 << 26) | TX_PIN ' Counter A configuration
-TxPin         long      |< TX_PIN               ' Pin used for data transmission
-VsPin         long      |< VS_PIN               ' Pin used for data transmission
-zero          long      0                       ' Zero for control flag
-bufptr        long      0                       ' Pointer to transmission buffer in main RAM w/ offset
-cntptr        long      4                       ' Pointer to transmission control flag in main RAM w/ offset
-buffsz        long      4                       ' Pointer to buffer size in LONGs w/ offset
-
-curbuf        res       1       ' Container for current iteration of graphics buffer
-curlng        res       1       ' Container for current long address
-txval         res       1       ' Container for current long
-txindx        res       1       ' Container for index of current graphics buffer long bit being transferred
-poll          res       1       ' Container for polled control flag
-temp          res       1       ' Container for temporary variables
-
-        fit
+                fit

@@ -1,4 +1,11 @@
 ############
+# Prop IDE #
+############
+
+# Generated files #
+*.binary
+
+############
 # ModelSim #
 ############
 

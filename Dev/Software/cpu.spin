@@ -23,7 +23,7 @@ CON
   GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
 
 OBJ
-  vga_tx        : "tx"          ' Import graphics transmission system
+  gfx_tx        : "tx"          ' Import graphics transmission system
   input         : "input"       ' Import input system
 
 VAR
@@ -42,7 +42,7 @@ PUB main | cont,temp,temps,x,y
   gfx_buffer_size_ := GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
 
   ' Start subsystems
-  vga_tx.start(@gfx_resources_base_)                    ' Start graphics resource transfer system
+  gfx_tx.start(@gfx_resources_base_)                    ' Start graphics resource transfer system
   input.start(@input_state_base_)                       ' Start input system
 
   '                                  sprite         x position       y position    color v h size
@@ -81,7 +81,9 @@ PUB main | cont,temp,temps,x,y
 
   ' Main game loop
   repeat
-    vga_tx.transmit                                     ' Transmit graphics resource data
+  
+    {{' Transmit graphics resource data here }}
+  
     left_right((control_state >> 7) & %10100000)
     up_down((control_state >> 7) & %01010000)
     cont := tilt_state
