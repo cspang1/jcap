@@ -13,14 +13,29 @@
 '' 20180621: refactored for JAMMA
 ''
 
-PUB start(var_addr_base)
-
 CON
-  shl_phsb_imm1 = $2CFFFA01                     ' shl phsb, #1
-  
+    shl_phsb_imm1 = $2CFFFA01                     ' shl phsb, #1
+
+VAR
+    long  cog_                    ' Variable containing ID of transmission cog
+
+PUB start(varAddrBase) : status
+    {{stop
+
+    ' Start transmission driver
+    ifnot cog_ := cognew(@tx, varAddrBase) + 1            ' Initialize cog running "vga" routine with reference to start of variable registers
+        return FALSE                                        ' Graphics system failed to initialize
+
+    return TRUE                                           ' Graphics system successfully initialized}}
+    cognew(@tx, varAddrBase)
+
+PUB stop                                                ' Function to stop VGA driver
+    if cog_                                             ' If cog is running
+      cogstop(cog_~ - 1)                                ' Stop the cog
+
 DAT             org     0                       ' proplink transmitter
 
-transmit        jmpret  $, #:setup              ' once
+tx              jmpret  $, #:setup              ' once
 
                 rdlong  tx_addr, par wz         '  +0 = size:addr = 16:16
         if_z    jmp     #$-1
@@ -45,7 +60,7 @@ transmit        jmpret  $, #:setup              ' once
 
                 mov     phsb, #0                ' start bit 0
                 neg     phsb, #1                ' start bit 1
-                xor     phsb, tx                ' bit 31
+                xor     phsb, buff              ' bit 31
                 long    shl_phsb_imm1[31]       ' bit 30..0
                 neg     phsb, #1                ' stop bit
 
@@ -83,7 +98,7 @@ tx_mask         long    1                       ' pin mask (outgoing data)
 
 ' uninitialised data and/or temporaries
 
-tx              res     1                       ' payload
+buff            res     1                       ' payload
 
 tx_addr         res     1
 tx_lcnt         res     1
