@@ -20,14 +20,13 @@ VAR
     long  cog_                    ' Variable containing ID of transmission cog
 
 PUB start(varAddrBase) : status
-    {{stop
+    stop
 
     ' Start transmission driver
     ifnot cog_ := cognew(@tx, varAddrBase) + 1            ' Initialize cog running "vga" routine with reference to start of variable registers
         return FALSE                                        ' Graphics system failed to initialize
 
-    return TRUE                                           ' Graphics system successfully initialized}}
-    cognew(@tx, varAddrBase)
+    return TRUE                                           ' Graphics system successfully initialized
 
 PUB stop                                                ' Function to stop VGA driver
     if cog_                                             ' If cog is running
@@ -51,7 +50,7 @@ tx              jmpret  $, #:setup              ' once
 ' case we miss the hub window (35). The transmitter covers 16 cycles already
 ' (rdlong+loop) which leaves us with an artificial delay of 19(20) cycles.
 
-:primary        rdlong  tx, tx_addr             '  +0 = 176 cycles
+:primary        rdlong  buff, tx_addr             '  +0 = 176 cycles
 
 ' prerequisites: ctra NCO clkfreq/4, low centres around phase D
 '                ctrb NCO inactive, output preset to high (mutes ctra)
