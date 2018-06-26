@@ -14,7 +14,11 @@
 ''
 
 CON
-  shr_frqa_imm1 = $28FFF401                     ' shr frqa, #1
+    shr_frqa_imm1 = $28FFF401                     ' shr frqa, #1
+    VS_PIN = 14
+
+VAR
+    long  cog_                    ' Variable containing ID of transmission cog
 
 PUB null
 '' This is not a top level object.
@@ -37,7 +41,7 @@ DAT             org     0                       ' proplink receiver
 rx              jmpret  $, #:setup              ' once
 
                 wrlong  par, par                ' setup/transaction done
-                rdlong  rx_addr, par wz         ' size:addr = 16:16
+:cont           rdlong  rx_addr, par wz         ' size:addr = 16:16
         if_z    jmp     #$-1
 
                 mov     rx_lcnt, rx_addr
@@ -65,7 +69,7 @@ rx              jmpret  $, #:setup              ' once
 
                 djnz    rx_lcnt, #:primary      ' next long
 
-                jmp     %%0                     ' handle next transaction
+                jmp     #:cont                  ' handle next transaction
 
 
 :setup          rdbyte  ctra, par               ' read receiver pin ([!Z]:chn0 = 24:8)
@@ -79,6 +83,7 @@ rx              jmpret  $, #:setup              ' once
 ' initialised data and/or presets
 
 rx_mask         long    1                       ' pin mask (incoming data)
+VsPin           long    |< VS_PIN               ' Pin used for data transmission
 
 ' uninitialised data and/or temporaries
 

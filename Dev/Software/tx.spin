@@ -50,6 +50,7 @@ tx              jmpret  $, #:setup              ' once
 ' case we miss the hub window (35). The transmitter covers 16 cycles already
 ' (rdlong+loop) which leaves us with an artificial delay of 19(20) cycles.
 
+                waitpeq VsPin, VsPin
 :primary        rdlong  buff, tx_addr             '  +0 = 176 cycles
 
 ' prerequisites: ctra NCO clkfreq/4, low centres around phase D
