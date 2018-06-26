@@ -21,7 +21,6 @@ CON
 
   ' GPU attributes
   GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
-  shl_phsb_imm1 = $2CFFFA01                     ' shl phsb, #1
 
 OBJ
   gfx_tx        : "tx"          ' Import graphics transmission system

@@ -24,7 +24,7 @@ CON
   VID_BUFFER_SIZE = 80                                                                                                          ' Number of scanline segments in video buffer
 
 OBJ
-  vga_rx        : "rx"          ' Import graphics reception system
+  gfx_rx        : "rx"          ' Import graphics reception system
   vga_render    : "vga_render"  ' Import VGA render system
   vga_display   : "vga_display" ' Import VGA display system
 
@@ -57,7 +57,7 @@ PUB main
   sprite_palette_base_ := @sprite_palettes                                      ' Point sprite palette base to base of sprite palettes
 
   ' Start subsystems
-  vga_rx.start(@gfx_buffer_base_)                       ' Start video data RX driver
+  gfx_rx.start(@gfx_buffer_base_)                       ' Start video data RX driver
   vga_display.start(@data_ready_base_)                  ' Start display driver
   vga_render.start(@data_ready_base_)                   ' Start renderers
 

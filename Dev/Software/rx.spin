@@ -1,1 +1,90 @@
-'''' single wire serial link - receiver''''        Author: Marko Lukat'' Last modified: 2011/05/14''       Version: 0.6'''' long[par][0]: cog startup: [!Z]:chn0 =  24:8 -> zero (ready)''               transaction: size:addr = 16:16 -> zero (transaction done)'' long[par][1]: unused'' long[par][2]: unused'' long[par][3]: unused'''' 20110514: increased net transfer rate''OBJ  system: "core.con.system"  PUB null'' This is not a top level object.PUB init(ID, rx_setup)  return system.launch(ID, @receive, rx_setup)  DAT             org     0                       ' cog binary headerheader_2048     long    system#ID_2             ' magic number for a cog binary                word    header_size             ' header size                word    %00000000_00000000      ' flags                word    0, 0                    ' start register, register countheader_size     fit     16                CON  shr_frqa_imm1 = $28FFF401                     ' shr frqa, #1  DAT             org     0                       ' proplink receiverreceive         jmpret  $, #:setup              ' once                wrlong  par, par                ' setup/transaction done                rdlong  rx_addr, par wz         ' size:addr = 16:16        if_z    jmp     #$-1                mov     rx_lcnt, rx_addr                shr     rx_lcnt, #16 wz         ' extract long count        if_z    jmp     %%0                sub     rx_addr, #4             ' preset (increment before)     (%%)                ' prerequisites: ctra POSEDGE detector'                frqa NEGX:primary        neg     phsa, frqa              ' counter start bit effect                ' transfer starts, 2 start bits, 32 data bits, 1 stop bit                waitpne rx_mask, rx_mask        ' wait for start bit                waitpne rx_addr, #3 wr          ' bit 31, advance address (+4)  (%%)                long    shr_frqa_imm1[31]       ' bit 30..0                ror     frqa, #1                ' NEGX                ' transfer ends                mov     phsa, phsa              ' shadow[phsa] := counter[phsa]                wrlong  phsa, rx_addr           ' store data                djnz    rx_lcnt, #:primary      ' next long                jmp     %%0                     ' handle next transaction:setup          rdbyte  ctra, par               ' read receiver pin ([!Z]:chn0 = 24:8)                movi    ctra, #%0_01010_000     ' POSEDGE detector                movi    frqa, #%10000000_0      ' NEGX                                shl     rx_mask, ctra           ' pin number -> pin mask                jmp     %%0                     ' ret' initialised data and/or presets                rx_mask         long    1                       ' pin mask (incoming data)' uninitialised data and/or temporariesrx_addr         res     1rx_lcnt         res     1                fit                DAT
+''
+'' single wire serial link - receiver
+''
+''        Author: Marko Lukat
+''   Modified by: Connor Spangler
+'' Last modified: 2018/06/26
+''       Version: 0.7
+''
+'' long[par][0]: cog startup: [!Z]:chn0 =  24:8 -> zero (ready)
+''               transaction: size:addr = 16:16 -> zero (transaction done)
+''
+'' 20110514: increased net transfer rate
+'' 20180626: refactored for JAMMA
+''
+
+CON
+  shr_frqa_imm1 = $28FFF401                     ' shr frqa, #1
+
+PUB null
+'' This is not a top level object.
+
+PUB start(varAddrBase) : status
+    stop
+
+    ' Start transmission driver
+    ifnot cog_ := cognew(@rx, varAddrBase) + 1            ' Initialize cog running "vga" routine with reference to start of variable registers
+        return FALSE                                        ' Graphics system failed to initialize
+
+    return TRUE                                           ' Graphics system successfully initialized
+
+PUB stop                                                ' Function to stop VGA driver
+    if cog_                                             ' If cog is running
+      cogstop(cog_~ - 1)                                ' Stop the cog
+
+DAT             org     0                       ' proplink receiver
+
+rx              jmpret  $, #:setup              ' once
+
+                wrlong  par, par                ' setup/transaction done
+                rdlong  rx_addr, par wz         ' size:addr = 16:16
+        if_z    jmp     #$-1
+
+                mov     rx_lcnt, rx_addr
+                shr     rx_lcnt, #16 wz         ' extract long count
+        if_z    jmp     %%0
+
+                sub     rx_addr, #4             ' preset (increment before)     (%%)
+
+' prerequisites: ctra POSEDGE detector
+'                frqa NEGX
+
+:primary        neg     phsa, frqa              ' counter start bit effect
+
+' transfer starts, 2 start bits, 32 data bits, 1 stop bit
+
+                waitpne rx_mask, rx_mask        ' wait for start bit
+                waitpne rx_addr, #3 wr          ' bit 31, advance address (+4)  (%%)
+                long    shr_frqa_imm1[31]       ' bit 30..0
+                ror     frqa, #1                ' NEGX
+
+' transfer ends
+
+                mov     phsa, phsa              ' shadow[phsa] := counter[phsa]
+                wrlong  phsa, rx_addr           ' store data
+
+                djnz    rx_lcnt, #:primary      ' next long
+
+                jmp     %%0                     ' handle next transaction
+
+
+:setup          rdbyte  ctra, par               ' read receiver pin ([!Z]:chn0 = 24:8)
+                movi    ctra, #%0_01010_000     ' POSEDGE detector
+                movi    frqa, #%10000000_0      ' NEGX
+
+                shl     rx_mask, ctra           ' pin number -> pin mask
+
+                jmp     %%0                     ' ret
+
+' initialised data and/or presets
+
+rx_mask         long    1                       ' pin mask (incoming data)
+
+' uninitialised data and/or temporaries
+
+rx_addr         res     1
+rx_lcnt         res     1
+
+                fit
+
+DAT

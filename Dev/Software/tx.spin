@@ -2,8 +2,8 @@
 '' single wire serial link - transmitter
 ''
 ''        Author: Marko Lukat
-''   Modified by: Connor Spangler 
-'' Last modified: 2018/06/21
+''   Modified by: Connor Spangler
+'' Last modified: 2018/06/26
 ''       Version: 0.7
 ''
 '' long[par][0]: cog startup: [!Z]:chn0 =  24:8 -> zero (ready)
