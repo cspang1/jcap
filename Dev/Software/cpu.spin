@@ -85,7 +85,7 @@ PUB main | time,trans,cont,temp,temps,x,y
     
     ' Main game loop
     repeat
-        waitcnt(Time += clkfreq/60)
+        waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
         trans := constant(GFX_BUFFER_SIZE << 16) | @tile_color_palettes{0}            ' register send request
         left_right((control_state >> 7) & %10100000)
         up_down((control_state >> 7) & %01010000)
@@ -136,8 +136,6 @@ pri up_down(y_but) | y,dir,mir,temp
         longmove(@sprite_atts, @temp, 1)
 
 DAT
-tester      long    $FFFF_0000[GFX_BUFFER_SIZE]
-
 input_states
               ' Input states
 control_state word      0       ' Control states

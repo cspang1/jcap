@@ -57,8 +57,8 @@ PUB main | rx
   sprite_palette_base_ := @sprite_palettes                                      ' Point sprite palette base to base of sprite palettes
 
   ' Start subsystems
-    rx := constant(NEGX|15)
-  gfx_rx.start(@gfx_buffer_base_)                       ' Start video data RX driver
+  rx := constant(NEGX|0)
+  gfx_rx.start(@rx)                       ' Start video data RX driver
   repeat while rx
   rx := constant(GFX_BUFFER_SIZE << 16) | @gfx_buff
   vga_display.start(@data_ready_base_)                  ' Start display driver

@@ -15,7 +15,6 @@
 
 CON
     shr_frqa_imm1 = $28FFF401                     ' shr frqa, #1
-    VS_PIN = 14
 
 VAR
     long  cog_                    ' Variable containing ID of transmission cog
@@ -46,7 +45,7 @@ rx              jmpret  $, #:setup              ' once
 
                 mov     rx_lcnt, rx_addr
                 shr     rx_lcnt, #16 wz         ' extract long count
-        if_z    jmp     %%0
+        if_z    jmp     #:cont
 
                 sub     rx_addr, #4             ' preset (increment before)     (%%)
 
@@ -77,13 +76,13 @@ rx              jmpret  $, #:setup              ' once
                 movi    frqa, #%10000000_0      ' NEGX
 
                 shl     rx_mask, ctra           ' pin number -> pin mask
+                andn    dira,   rx_mask
 
                 jmp     %%0                     ' ret
 
 ' initialised data and/or presets
 
 rx_mask         long    1                       ' pin mask (incoming data)
-VsPin           long    |< VS_PIN               ' Pin used for data transmission
 
 ' uninitialised data and/or temporaries
 

@@ -82,6 +82,7 @@ tx              jmpret  $, #:setup              ' once
                 movs    ctrb, ctra              ' copy pin assignment
                 movi    ctrb, #%0_00100_000     ' NCO single-ended
 
+                andn    dira, VsPin
                 shl     tx_mask, ctra           ' pin number -> pin mask
                 mov     dira, tx_mask           ' set output
                 
@@ -95,6 +96,7 @@ tx              jmpret  $, #:setup              ' once
 ' initialised data and/or presets
 
 tx_mask         long    1                       ' pin mask (outgoing data)
+VsPin           long    |< 14
 
 ' uninitialised data and/or temporaries
 
