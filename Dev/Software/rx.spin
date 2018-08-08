@@ -76,6 +76,12 @@ rx              jmpret  $, #:setup              ' once
                 movi    frqa, #%10000000_0      ' NEGX
 
                 shl     rx_mask, ctra           ' pin number -> pin mask
+                andn    dira, vs_mask
+                or      dira, rx_mask
+                andn    outa, rx_mask
+                waitpeq vs_mask, vs_mask
+                or      outa, rx_mask
+                andn    outa, rx_mask
                 andn    dira,   rx_mask
 
                 jmp     %%0                     ' ret
@@ -83,6 +89,7 @@ rx              jmpret  $, #:setup              ' once
 ' initialised data and/or presets
 
 rx_mask         long    1                       ' pin mask (incoming data)
+vs_mask         long    |< 26                   ' VSync signal output pin
 
 ' uninitialised data and/or temporaries
 

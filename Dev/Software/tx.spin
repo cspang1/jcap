@@ -50,7 +50,7 @@ tx              jmpret  $, #:setup              ' once
 ' case we miss the hub window (35). The transmitter covers 16 cycles already
 ' (rdlong+loop) which leaves us with an artificial delay of 19(20) cycles.
 
-                waitpeq VsPin, VsPin
+                waitpeq vs_mask, vs_mask
 :primary        rdlong  buff, tx_addr             '  +0 = 176 cycles
 
 ' prerequisites: ctra NCO clkfreq/4, low centres around phase D
@@ -82,10 +82,15 @@ tx              jmpret  $, #:setup              ' once
                 movs    ctrb, ctra              ' copy pin assignment
                 movi    ctrb, #%0_00100_000     ' NCO single-ended
 
-                andn    dira, VsPin
                 shl     tx_mask, ctra           ' pin number -> pin mask
-                mov     dira, tx_mask           ' set output
-                
+                andn    dira, tx_mask           ' set output
+                or      dira, vs_mask
+                or      outa, vs_mask
+                waitpeq tx_mask, tx_mask
+                andn    outa, vs_mask
+                andn    dira, vs_mask
+                or      dira, tx_mask
+
                 movi    ctra, #%0_00100_000     ' NCO single-ended
                 movi    phsa, #%1100_0000_0     ' preset (low centres around phase D)
                 movi    frqa, #%0100_0000_0     ' clkfreq/4
@@ -96,7 +101,7 @@ tx              jmpret  $, #:setup              ' once
 ' initialised data and/or presets
 
 tx_mask         long    1                       ' pin mask (outgoing data)
-VsPin           long    |< 14
+vs_mask         long    |< 14
 
 ' uninitialised data and/or temporaries
 
