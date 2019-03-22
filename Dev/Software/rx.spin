@@ -40,13 +40,9 @@ DAT             org     0                       ' proplink receiver
 rx              jmpret  $, #:setup              ' once
 
                 wrlong  par, par                ' setup/transaction done
-:cont           rdlong  rx_addr, par wz         ' size:addr = 16:16
-        if_z    jmp     #$-1
-
+:cont           rdlong  rx_addr, gfx_addr
                 mov     rx_lcnt, rx_addr
-                shr     rx_lcnt, #16 wz         ' extract long count
-        if_z    jmp     #:cont
-
+                shr     rx_lcnt, #1
                 sub     rx_addr, #4             ' preset (increment before)     (%%)
 
 ' prerequisites: ctra POSEDGE detector
@@ -71,7 +67,10 @@ rx              jmpret  $, #:setup              ' once
                 jmp     #:cont                  ' handle next transaction
 
 
-:setup          rdbyte  ctra, par               ' read receiver pin ([!Z]:chn0 = 24:8)
+:setup          mov     gfx_addr, par
+                rdbyte  ctra, par               ' read receiver pin ([!Z]:chn0 = 24:8)
+                add     gfx_addr, #4
+
                 movi    ctra, #%0_01010_000     ' POSEDGE detector
                 movi    frqa, #%10000000_0      ' NEGX
 
@@ -91,11 +90,10 @@ rx              jmpret  $, #:setup              ' once
 rx_mask         long    1                       ' pin mask (incoming data)
 vs_mask         long    |< 26                   ' VSync signal output pin
 
-' uninitialised data and/or temporaries
+' uninitialised data and/or gfx_addroraries
 
+gfx_addr        res     1
 rx_addr         res     1
 rx_lcnt         res     1
 
                 fit
-
-DAT

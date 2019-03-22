@@ -42,7 +42,7 @@ VAR
     long  tile_palette_base_      ' Register pointing to base of tile palettes
     long  sprite_palette_base_    ' Register pointing to base of sprite palettes
 
-PUB main | rx
+PUB main | rx1, rx2
     ' Initialize graphics system pointers
     gfx_buffer_base_ := @gfx_buff                                                 ' Point graphics buffer base to graphics buffer
     gfx_buffer_size_ := GFX_BUFFER_SIZE                                           ' Set the size of the graphics resources buffer
@@ -57,10 +57,10 @@ PUB main | rx
     sprite_palette_base_ := @sprite_palettes                                      ' Point sprite palette base to base of sprite palettes
 
     ' Start subsystems
-    rx := constant(NEGX|0)
-    gfx_rx.start(@rx)                       ' Start video data RX driver
-    repeat while rx
-    rx := constant(GFX_BUFFER_SIZE << 16) | @gfx_buff
+    rx1 := constant(NEGX|0)
+    rx2 := constant(GFX_BUFFER_SIZE << 16) | @gfx_buff
+    gfx_rx.start(@rx1)                       ' Start video data RX driver
+    repeat while rx1
     vga_display.start(@data_ready_base_)                  ' Start display driver
     vga_render.start(@data_ready_base_)                   ' Start renderers
 
