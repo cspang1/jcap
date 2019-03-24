@@ -42,7 +42,7 @@ rx              jmpret  $, #:setup              ' once
                 wrlong  par, par                ' setup/transaction done
 :cont           rdlong  rx_addr, gfx_addr
                 mov     rx_lcnt, rx_addr
-                shr     rx_lcnt, #1
+                shr     rx_lcnt, #16
                 sub     rx_addr, #4             ' preset (increment before)     (%%)
 
 ' prerequisites: ctra POSEDGE detector
