@@ -83,13 +83,7 @@ tx              jmpret  $, #:setup              ' once
                 movi    ctrb, #%0_00100_000     ' NCO single-ended
 
                 shl     tx_mask, ctra           ' pin number -> pin mask
-                andn    dira, tx_mask           ' set output
-                or      dira, vs_mask
-                or      outa, vs_mask
-                waitpeq tx_mask, tx_mask
-                andn    outa, vs_mask
-                andn    dira, vs_mask
-                or      dira, tx_mask
+                or      dira, tx_mask           ' set output
 
                 movi    ctra, #%0_00100_000     ' NCO single-ended
                 movi    phsa, #%1100_0000_0     ' preset (low centres around phase D)
