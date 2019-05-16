@@ -22,15 +22,15 @@ VAR
 PUB null
 '' This is not a top level object.
 
-PUB start(varAddrBase) : status
+PUB start(varAddrBase, vsPin, rxPin) : status
     ' Wait for CPU to start
-    dira[0] := 0
-    dira[26] := 1
-    outa[26] := 0
-    waitpeq(|< 0, |< 0, 0)
-    outa[26] := 1
-    outa[26] := 0
-    dira[26] := 0
+    dira[rxPin] := 0
+    dira[vsPin] := 1
+    outa[vsPin] := 0
+    waitpeq(|< rxPin, |< rxPin, 0)
+    outa[vsPin] := 1
+    outa[vsPin] := 0
+    dira[vsPin] := 0
 
     stop
 

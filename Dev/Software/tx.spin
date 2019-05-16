@@ -19,7 +19,7 @@ CON
 VAR
     long  cog_                    ' Variable containing ID of transmission cog
 
-PUB start(varAddrBase) : status
+PUB start(varAddrBase, vsPin, txPin) : status
     stop
 
     ' Start transmission driver
@@ -27,12 +27,12 @@ PUB start(varAddrBase) : status
         return FALSE                                        ' Graphics system failed to initialize
 
     ' Notify GPU ready
-    dira[14] := 0
-    dira[15] := 1
-    outa[15] := 1
-    waitpeq(|< 14, |< 14, 0)
-    outa[15] := 0
-    dira[15] := 0
+    dira[vsPin] := 0
+    dira[txPin] := 1
+    outa[txPin] := 1
+    waitpeq(|< vsPin, |< vsPin, 0)
+    outa[txPin] := 0
+    dira[txPin] := 0
     
     return TRUE                                           ' Graphics system successfully initialized
 

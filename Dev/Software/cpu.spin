@@ -10,19 +10,12 @@ CON
     _clkmode = xtal1 + pll16x     ' Standard clock mode w/ 16x PLL
     _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
-    ' Game settings
-    NUM_TILE_COLOR_PALETTES = 2                           ' Number of tile color palettes
-    NUM_SPRITE_COLOR_PALETTES = 2                         ' Number of sprite color palettes
-    NUM_SPRITES = 64                                      ' Number of sprites in sprite attribute table
-    TILE_MAP_WIDTH = 40                                   ' Number of horizontal tiles in tile map
-    TILE_MAP_HEIGHT = 30                                  ' Number of vertical tiles in tile map
-    NUM_TILE_PALETTES = 5                                 ' Number of tile palettes
-    NUM_SPRITE_PALETTES = 3                               ' Number of sprite palettes
-
-    ' GPU attributes
-    GFX_BUFFER_SIZE = ((TILE_MAP_WIDTH*TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4 ' Number of LONGs in graphics resources buffer
+    ' Pin settings
+    VS_PIN = 14
+    TX_PIN = 15
 
 OBJ
+    system        : "system"      ' Import system settings
     gfx_tx        : "tx"          ' Import graphics transmission system
     input         : "input"       ' Import input system
 
@@ -33,17 +26,17 @@ VAR
     long  gfx_buffer_size_        ' Container for graphics resources buffer size
 
     ' TEST RESOURCE POINTERS
-    long  satts[num_sprites]
+    long  satts[system#NUM_SPRITES]
 
 PUB main | time,trans,cont,temp,temps,x,y
     ' Initialize variables
     input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
-    gfx_buffer_size_ := GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
+    gfx_buffer_size_ := system#GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
 
     ' Start subsystems
     trans := constant(NEGX|15)                              ' link setup
-    gfx_tx.start(@trans)                    ' Start graphics resource transfer system
+    gfx_tx.start(@trans, VS_PIN, TX_PIN)                    ' Start graphics resource transfer system
     repeat while trans
 
     input.start(@input_state_base_)                       ' Start input system
@@ -68,12 +61,12 @@ PUB main | time,trans,cont,temp,temps,x,y
     satts[14] :=                  %0_0_0_0_0_0_1_0_0_0_1_1_0_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
     satts[15] :=                  %0_0_0_0_0_0_1_0_0_0_1_1_1_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0
 
-    longmove(@sprite_atts, @satts, num_sprites)
+    longmove(@sprite_atts, @satts, system#NUM_SPRITES)
 
     x := 0
     y := 0
     temp := @sprite_atts + (4*17)
-    repeat num_sprites-17
+    repeat system#NUM_SPRITES-17
         x += 6
         y += 6
         x &= %111111111
@@ -87,12 +80,12 @@ PUB main | time,trans,cont,temp,temps,x,y
     ' Main game loop
     repeat
         waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
-        trans := constant(GFX_BUFFER_SIZE << 16) | @tile_color_palettes{0}            ' register send request
+        trans := constant(system#GFX_BUFFER_SIZE << 16) | @tile_color_palettes{0}            ' register send request
         left_right((control_state >> 7) & %10100000)
         up_down((control_state >> 7) & %01010000)
         cont := tilt_state
         if (tilt_state & 1) == 0
-            longfill(@sprite_atts, 0, num_sprites)
+            longfill(@sprite_atts, 0, system#NUM_SPRITES)
 
 pri left_right(x_but) | x,dir,mir,temp
     if x_but == %10000000 OR x_but == %00100000
@@ -165,7 +158,7 @@ s_palette1    byte      %00000011,%00110011,%11111111,%11000011                 
               byte      %00000011,%00110011,%11111111,%11000011
 
               ' Sprite attribute table
-sprite_atts   long      0[NUM_SPRITES]
+sprite_atts   long      0[system#NUM_SPRITES]
 
 tile_maps
               ' Main tile map
