@@ -46,14 +46,6 @@ PUB main | time,trans,cont,temp,temps,x,y
     gfx_tx.start(@trans)                    ' Start graphics resource transfer system
     repeat while trans
 
-    ' Notify GPU ready
-    dira[14] := 0
-    dira[15] := 1
-    outa[15] := 1
-    waitpeq(|< 14, |< 14, 0)
-    outa[15] := 0
-    dira[15] := 0
-
     input.start(@input_state_base_)                       ' Start input system
 
     '                                  sprite         x position       y position    color v h size

@@ -26,6 +26,14 @@ PUB start(varAddrBase) : status
     ifnot cog_ := cognew(@tx, varAddrBase) + 1            ' Initialize cog running "vga" routine with reference to start of variable registers
         return FALSE                                        ' Graphics system failed to initialize
 
+    ' Notify GPU ready
+    dira[14] := 0
+    dira[15] := 1
+    outa[15] := 1
+    waitpeq(|< 14, |< 14, 0)
+    outa[15] := 0
+    dira[15] := 0
+    
     return TRUE                                           ' Graphics system successfully initialized
 
 PUB stop                                                ' Function to stop VGA driver

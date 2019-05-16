@@ -23,6 +23,15 @@ PUB null
 '' This is not a top level object.
 
 PUB start(varAddrBase) : status
+    ' Wait for CPU to start
+    dira[0] := 0
+    dira[26] := 1
+    outa[26] := 0
+    waitpeq(|< 0, |< 0, 0)
+    outa[26] := 1
+    outa[26] := 0
+    dira[26] := 0
+
     stop
 
     ' Start transmission driver
