@@ -369,6 +369,8 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
         jmp             #slgen                  ' Generate next scanline
 
 tld     add             tmindx, #2              ' Increment pointer to tile in tile map
+        cmp             tmindx, numsegs wz      ' Check end of tile map reached
+        if_z mov        tmindx, #0              ' If so wrap to beginning
         rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
