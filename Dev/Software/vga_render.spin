@@ -95,12 +95,15 @@ slgen   'Calculate tile map line memory location
         add             findx,  temp            ' tmindx = tmindx(64+32)
         add             tmindx, findx           ' tmindx = tmindx(64+32+16)
         add             tmindx, tmptr           ' tmindx += tmptr + tmindx*112
+        mov             initti, tmindx          ' Store initial row tile location
 
         ' Generate each tile
         mov             index,  numTiles        ' Initialize number of tiles to parse
         rdlong          horpos, hspptr          ' Retrieve horizontal screen position
         mov             temp,   horpos          ' Store horizontal screen position in temp variable
         shr             temp,   #3              ' temp = floor(horpos/8)
+        mov             remtil, #57
+        sub             remtil, temp
         shl             temp,   #1              ' temp *= 2
         add             tmindx, temp
         sub             tmindx, #2              ' Pre-decrement tile map index
@@ -369,8 +372,9 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
         jmp             #slgen                  ' Generate next scanline
 
 tld     add             tmindx, #2              ' Increment pointer to tile in tile map
-        cmp             tmindx, numsegs wz      ' Check end of tile map reached
-        if_z mov        tmindx, #0              ' If so wrap to beginning
+        sub             remtil, #1 wz           ' Check end of tile map reached
+        if_z mov        tmindx, initti          ' If so wrap to beginning
+        'if_z mov        remtil, #57
         rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
@@ -437,6 +441,9 @@ spymir        res       1       ' Sprite horizontal mirroring
 ' Other pointers
 horpos        res       1       ' Container for current horizontal screen position
 pxindx        res       1       ' Container for current pixel of tile being rendered
+initti        res       1       ' Container for current row's initial tile
+remtil        res       1       ' Container for remaining number of tiles to render before wrapping
+curtil        res       1       ' Container for current tile rendering
 initsl        res       1       ' Container for initial scanline
 cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline

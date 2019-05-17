@@ -98,13 +98,17 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
             mir := 0
             x := (x + 1) & %111111111
             xsp := long[@h_pos][0]
-            if xsp < 128
+            if xsp == 447
+                long[@h_pos][0] := 0
+            else
                 long[@h_pos][0] := xsp + 1
         if x_but == %00100000
             mir := 1 << 2
             x := (x - 1) & %111111111
             xsp := long[@h_pos][0]
-            if xsp > 0
+            if xsp == 0
+                long[@h_pos][0] := 447
+            else
                 long[@h_pos][0] := xsp - 1
         if x == 320
             x := 505
