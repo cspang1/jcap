@@ -10,7 +10,7 @@ CON
   ' Graphics system attributes
   numRenderCogs = 6             ' Number of cogs used for rendering
   numSprites = 64               ' Number of sprites in the sprite attribute table
-  maxSprRen = 16                ' Maximum number of sprites rendered per scanline
+  maxSprRen = 12                 ' Maximum number of sprites rendered per scanline
   sprSzX = 8                    ' Horizontal size of sprites
   sprSzY = 8                    ' Vertical size of sprites
 
@@ -92,39 +92,30 @@ slgen   'Calculate tile map line memory location
         shl             temp,   #6              ' tmindx *= 64
         shl             findx,  #5              ' tmindx *= 32
         shl             tmindx, #4              ' tmindx *= 16
-        add             findx,  temp            ' tmindx = tmindx(64+16)
-        add             tmindx, findx           ' tmindx = tmindx(64+16)
-        add             tmindx, tmptr           ' tmindx += tmptr + tmindx*80
+        add             findx,  temp            ' tmindx = tmindx(64+32)
+        add             tmindx, findx           ' tmindx = tmindx(64+32+16)
+        add             tmindx, tmptr           ' tmindx += tmptr + tmindx*112
 
         ' Generate each tile
-        rdlong          horpos, hspptr          ' Retrieve horizontal screen position
         mov             index,  numTiles        ' Initialize number of tiles to parse
-        mov             curpos, #0              ' Initialize current screen pixel being rendered
+        rdlong          horpos, hspptr          ' Retrieve horizontal screen position
         mov             temp,   horpos          ' Store horizontal screen position in temp variable
-        shr             temp,   #2              ' temp = floor(horpos/4)
+        shr             temp,   #3              ' temp = floor(horpos/8)
         shl             temp,   #1              ' temp *= 2
         add             tmindx, temp
-tile    rdword          curmt,  tmindx          ' Load current map tile from Main RAM
-        mov             cpindx, curmt           ' Store map tile into color palette index
-        and             curmt,  #255            ' Isolate palette tile index of map tile
-        shr             cpindx, #8              ' Isolate color palette index of map tile
+        sub             tmindx, #2              ' Pre-decrement tile map index
+        call            #tld
 
-        ' Calculate color palette location
-        shl             cpindx, #4              ' cpindx *= 16
-        add             cpindx, tcpptr          ' cpindx += tcpptr
-
-        ' Calculate and load palette tile
-        mov             tpindx, cursl           ' Initialize tile palette index
-        and             tpindx, #7              ' tpindx %= 8
-        shl             tpindx, #2              ' tpindx *= 4
-        shl             curmt,  #5              ' tilePaletteIndex *= 32
-        add             tpindx, curmt           ' tpindx += paletteTileIndex
-        add             tpindx, tpptr           ' tpindx += tpptr
-        rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
+        ' Determine horizontal pixel location in tile
+        mov             temp,   horpos          ' Store horizontal position into temp variable
+        and             temp,   #7              ' pxindx %= 8 to determine first pixel to render from tile
+        mov             pxindx, temp  
+        shl             temp,   #2
+        shl             curpt,  temp
 
         ' Parse palette tile pixels
         {{ HALF 1 PIXEL 1 }}
-        mov             pxbuff, #0              ' Initialize half-tile pixel buffer
+tile    mov             pxbuff, #0              ' Initialize half-tile pixel buffer
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -132,9 +123,12 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         or              pxbuff, curcp           ' Store color
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
 
         {{ HALF 1 PIXEL 2 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -142,9 +136,12 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         or              pxbuff, curcp           ' Store color
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
 
         {{ HALF 1 PIXEL 3 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -153,8 +150,11 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
+
         {{ HALF 1 PIXEL 4 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -162,13 +162,16 @@ tile    rdword          curmt,  tmindx          ' Load current map tile from Mai
         or              pxbuff, curcp           ' Store color
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
 
         ' Store first half tile pixels
 shbuf1  mov             slbuff+0, pxbuff        ' Allocate space for color
         add             shbuf1,   d1            ' Increment scanline buffer OR position
 
         {{ HALF 2 PIXEL 1 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             pxbuff, #0              ' Initialize half-tile pixel buffer
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
@@ -178,8 +181,11 @@ shbuf1  mov             slbuff+0, pxbuff        ' Allocate space for color
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
+
         {{ HALF 2 PIXEL 2 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -187,9 +193,12 @@ shbuf1  mov             slbuff+0, pxbuff        ' Allocate space for color
         or              pxbuff, curcp           ' Store color
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
 
         {{ HALF 2 PIXEL 3 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -198,20 +207,27 @@ shbuf1  mov             slbuff+0, pxbuff        ' Allocate space for color
         ror             pxbuff, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
+
         {{ HALF 2 PIXEL 4 }}
-        add             curpos, #1              ' Increment current screen pixel being rendered
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
         or              pxbuff, curcp           ' Store color
         ror             pxbuff, #8              ' Allocate space for next color
+        shl             curpt,  #4              ' Shift palette tile left 4 bits
+
+        add             pxindx, #1
+        cmp             pxindx, #8 wz
+        if_z call       #tld
 
         ' Store second half tile pixels
 shbuf2  mov             slbuff+1, pxbuff        ' Allocate space for color
         add             shbuf2, d1              ' Increment scanline buffer OR position
 
-        add             tmindx, #2              ' Increment pointer to tile in tile map
         djnz            index , #tile           ' Repeat for all tiles in scanline
         movd            shbuf1, #slbuff+0       ' Reset shbuf destination address
         movd            shbuf2, #slbuff+1       ' Reset shbuf destination address
@@ -351,7 +367,24 @@ write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer t
 waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources ready
         if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
         jmp             #slgen                  ' Generate next scanline
-        
+
+tld     add             tmindx, #2              ' Increment pointer to tile in tile map
+        rdword          curmt,  tmindx          ' Load current map tile from Main RAM
+        mov             cpindx, curmt           ' Store map tile into color palette index
+        and             curmt,  #255            ' Isolate palette tile index of map tile
+        shr             cpindx, #8              ' Isolate color palette index of map tile
+        shl             cpindx, #4              ' cpindx *= 16
+        add             cpindx, tcpptr          ' cpindx += tcpptr
+        mov             tpindx, cursl           ' Initialize tile palette index
+        and             tpindx, #7              ' tpindx %= 8
+        shl             tpindx, #2              ' tpindx *= 4
+        shl             curmt,  #5              ' tilePaletteIndex *= 32
+        add             tpindx, curmt           ' tpindx += paletteTileIndex
+        add             tpindx, tpptr           ' tpindx += tpptr
+        rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
+        mov             pxindx, #0
+tld_ret ret
+
 ' Video attributes
 maxHor        long      512                     ' Maximum horizontal position
 maxVis        long      319                     ' Maximum visible horizontal position
@@ -401,7 +434,7 @@ spymir        res       1       ' Sprite horizontal mirroring
 
 ' Other pointers
 horpos        res       1       ' Container for current horizontal screen position
-curpos        res       1       ' Container for current rendering horizontal screen position
+pxindx        res       1       ' Container for current pixel of tile being rendered
 initsl        res       1       ' Container for initial scanline
 cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline
