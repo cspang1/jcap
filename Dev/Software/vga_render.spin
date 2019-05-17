@@ -14,6 +14,9 @@ CON
   sprSzX = 8                    ' Horizontal size of sprites
   sprSzY = 8                    ' Vertical size of sprites
 
+OBJ
+    system        : "system"      ' Import system settings
+
 VAR
   ' Cog attributes
   long  cog_[numRenderCogs]     ' Array containing IDs of rendering cogs
@@ -102,7 +105,7 @@ slgen   'Calculate tile map line memory location
         rdlong          horpos, hspptr          ' Retrieve horizontal screen position
         mov             temp,   horpos          ' Store horizontal screen position in temp variable
         shr             temp,   #3              ' temp = floor(horpos/8)
-        mov             remtil, #57
+        mov             remtil, #system#MEM_TILE_MAP_WIDTH+1
         sub             remtil, temp
         shl             temp,   #1              ' temp *= 2
         add             tmindx, temp
@@ -374,7 +377,6 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
 tld     add             tmindx, #2              ' Increment pointer to tile in tile map
         sub             remtil, #1 wz           ' Check end of tile map reached
         if_z mov        tmindx, initti          ' If so wrap to beginning
-        'if_z mov        remtil, #57
         rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
