@@ -27,6 +27,7 @@ VAR
     long  data_ready_base_        ' Register pointing to data status indicator
     long  cur_scanline_base_      ' Register pointing to current scanline being requested by the VGA Display system
     long  scanline_buff_base_     ' Register pointing to scanline buffer
+    long  horizontal_position_    ' Register pointing to base of tile color palettes
     long  tcolor_palette_base_    ' Register pointing to base of tile color palettes
     long  scolor_palette_base_    ' Register pointing to base of sprite color palettes
     long  sprite_att_base_        ' Register pointing to base of sprite attribute table
@@ -41,7 +42,8 @@ PUB main | rx1, rx2
     cur_scanline_base_ := @cur_scanline                                           ' Point current scanline base to current scanline
     data_ready_base_ := @data_ready                                               ' Point data ready base to data ready indicator
     scanline_buff_base_ := @scanline_buff                                         ' Point video buffer base to video buffer
-    tcolor_palette_base_ := gfx_buffer_base_                                      ' Point tile color palette base to base of tile color palettes
+    horizontal_position_ := gfx_buffer_base_                                      ' Point tile color palette base to base of tile color palettes
+    tcolor_palette_base_ := horizontal_position_ + 4                                      ' Point tile color palette base to base of tile color palettes
     scolor_palette_base_ := tcolor_palette_base_+system#NUM_TILE_COLOR_PALETTES*4*4      ' Point sprite color palette base to base of sprite color palettes
     sprite_att_base_ := scolor_palette_base_+system#NUM_SPRITE_COLOR_PALETTES*4*4        ' Point sprite attribute table base to base of sprite attribute table
     tile_map_base_ := sprite_att_base_+system#NUM_SPRITES*4                              ' Point tile map base to base of tile maps
