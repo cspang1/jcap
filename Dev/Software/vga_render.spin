@@ -100,7 +100,7 @@ slgen   'Calculate tile map line memory location
         add             tmindx, tmptr           ' tmindx += tmptr + tmindx*112
         mov             initti, tmindx          ' Store initial row tile location
 
-        ' Generate each tile
+        ' Calculate initial tile offset and load
         mov             index,  numTiles        ' Initialize number of tiles to parse
         rdlong          horpos, hspptr          ' Retrieve horizontal screen position
         mov             temp,   horpos          ' Store horizontal screen position in temp variable
@@ -121,8 +121,9 @@ slgen   'Calculate tile map line memory location
         shl             curpt,  temp
 
         ' Parse palette tile pixels
-        {{ HALF 1 PIXEL 1 }}
 tile    mov             pxbuff, #0              ' Initialize half-tile pixel buffer
+
+        {{ HALF 1 PIXEL 1 }}
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -368,9 +369,9 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
         jmp             #slgen                  ' Generate next scanline
 
 tld     add             tmindx, #2              ' Increment pointer to tile in tile map
-        sub             remtil, #1 wz           ' Check end of tile map reached
+        djnz            remtil, #:next
         if_z mov        tmindx, initti          ' If so wrap to beginning
-        rdword          curmt,  tmindx          ' Load current map tile from Main RAM
+:next   rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
         shr             cpindx, #8              ' Isolate color palette index of map tile
