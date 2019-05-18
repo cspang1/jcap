@@ -313,12 +313,12 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
-        cmp             spxmir, #1 wz           ' Check for horizontal mirroring
-        if_z  mov       tmpmir, #sprSzX         ' If so store sprite horizontal size into temp variable
-        if_z  sub       tmpmir, findx           ' And invert current index
-        if_z  add       temp,   tmpmir          ' And add inverted pixel index
-        if_nz add       temp,   findx           ' Or add current pixel index
-        if_nz sub       temp,   #1              ' And decrement for inclusivity
+
+        cmp             spxmir, #1 wc           ' Check for horizontal mirroring
+        if_nc add       temp,   #sprSzX         ' If so store sprite horizontal size into temp variable
+        if_c sub        temp,   #1
+        sumnc           temp,   findx
+
         mov             slboff, temp            ' Store scanline buffer offset
         shr             slboff, #2              ' slboff /= 4
         cmp             slboff, #80 wc          ' Check if pixel out of bounds
