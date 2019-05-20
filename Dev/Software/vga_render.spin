@@ -321,7 +321,6 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         add             slboff, #slbuff         ' slboff += @slbuff
         movs            :slbget, slboff         ' Move target scanline buffer segment source
         movd            :slbput, slboff         ' Move target scanline buffer segment destination
-        and             temp,   #3              ' temp %= 4
         shl             temp,   #3              ' temp *= 8
         shl             curcp,  temp            ' Shift pixel color to calculated pixel location
 :slbget mov             tmpslb, 0-0             ' Store target scanline buffer segment into temp variable
