@@ -301,9 +301,10 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         shl             spyoff, #2              ' Calculate vertical sprite pixel palette offset
         add             temp,   spyoff          ' Calculate final sprite pixel palette Main RAM location
         rdlong          curpt,  temp            ' Load sprite pixel palette line from Main RAM
-        cmp             spxmir, #1 wz           ' Check for horizontal mirroring
-        if_nz shl       curpt,  spxoff          ' Shift sprite pixel palette line left to compensate for wrapping
-        if_z  shr       curpt,  spxoff          ' Shift sprite pixel palette line right to compensate for mirrored wrapping
+        cmp             spxmir, #1 wc           ' Check for horizontal mirroring
+        if_c shl        curpt,  spxoff          ' Shift sprite pixel palette line left to compensate for wrapping
+        if_nc shr       curpt,  spxoff          ' Shift sprite pixel palette line right to compensate for mirrored wrapping
+        sub             spxpos, #1
 
         ' Parse sprite pixel palette line
         mov             findx,  #sprSzX         ' Store sprite horizontal size into index
@@ -313,14 +314,10 @@ sprites rdlong          curmt,  tmindx          ' Load sprite attributes from Ma
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
-        cmp             spxmir, #1 wc           ' Check for horizontal mirroring
-        if_nc add       temp,   #sprSzX         ' If so store sprite horizontal size into temp variable
-        if_c sub        temp,   #1
+        if_nc add       temp,   #sprSzX+1       ' If so store sprite horizontal size into temp variable
         sumnc           temp,   findx
         mov             slboff, temp            ' Store scanline buffer offset
         shr             slboff, #2              ' slboff /= 4
-        cmp             slboff, #80 wc          ' Check if pixel out of bounds
-        if_nc jmp       #:trans                 ' Skip if out of bounds
         add             slboff, #slbuff         ' slboff += @slbuff
         movs            :slbget, slboff         ' Move target scanline buffer segment source
         movd            :slbput, slboff         ' Move target scanline buffer segment destination
@@ -407,7 +404,7 @@ d1            long      1 << 10                 ' Value to increment destination
 pxmask        long      $FFFFFF00               ' Mask for pixels in scanline buffer
 
 ' Scanline buffer
-slbuff        long      0[80]   ' Buffer containing scanline
+slbuff        long      0[82]   ' Buffer containing scanline
 
 ' Tile pointers
 tmindx        res       1       ' Tile map index
