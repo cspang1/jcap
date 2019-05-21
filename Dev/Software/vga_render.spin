@@ -116,8 +116,8 @@ slgen   'Calculate tile map line memory location
         shl             temp,   #2
         shl             curpt,  temp
 
-	add		pxindx,	#tile+2		' SHOULD THIS BE PXINDX OR ITS INVERSE???
 	shl		pxindx,	#3
+	add		pxindx,	#tile+2		' SHOULD THIS BE PXINDX OR ITS INVERSE???
 	movd		tiset,	pxindx
 tiset	mov		0-0,	tldcall
 
