@@ -31,7 +31,7 @@ PUB start(varAddrBase) | cIndex                                        ' Functio
 
   ' Instantiate variables
   var_addr_base_ := varAddrBase                                                 ' Assign local base variable address
-  start_line_ := 0                                                              ' Initialize first scanline index
+  start_line_ := -1                                                             ' Initialize first scanline index
   
   ' Create cog semaphore
   cog_sem_ := locknew                                                           ' Create new lock
@@ -79,11 +79,10 @@ render
 :lock   lockset         semptr wc               ' Attempt to lock semaphore
         if_c  jmp       #:lock                  ' Re-attempt to lock semaphore
         rdlong          initsl, ilptr           ' Load initial scanline
-        add             initsl, #1              ' Increment initial scanline for next cog
+        adds            initsl, #1              ' Increment initial scanline for next cog
+        mov             cursl,  initsl          ' Initialize current scanline
         wrlong          initsl, ilptr           ' Write back next initial scanline
         lockclr         semptr                  ' Clear semaphore
-        sub             initsl, #1              ' Re-decrement initial scanline
-        mov             cursl,  initsl          ' Initialize current scanline
         cogid           temp wz, nr             ' Check if this is the final cog to be initialized
         if_z  lockret   semptr                  ' Return lock handle if so
 
@@ -91,13 +90,10 @@ slgen   'Calculate tile map line memory location
         mov             tmindx, cursl           ' Initialize tile map index
         shr             tmindx, #3              ' tmindx = floor(cursl/8)
         mov             temp,   tmindx          ' Store tile map index into temp variable
-        mov             findx,  tmindx          ' Store tile map index into temp variable
-        shl             temp,   #6              ' tmindx *= 64
-        shl             findx,  #5              ' tmindx *= 32
-        shl             tmindx, #4              ' tmindx *= 16
-        add             findx,  temp            ' tmindx = tmindx(64+32)
-        add             tmindx, findx           ' tmindx = tmindx(64+32+16)
-        add             tmindx, tmptr           ' tmindx += tmptr + tmindx*112
+        shl             tmindx, #3              ' x8
+        sub             tmindx, temp            ' x7
+        shl             tmindx, #4              ' x112
+        add             tmindx, tmptr           ' tmindx = tmptr + (cursl/8)*112
         mov             initti, tmindx          ' Store initial row tile location
 
         ' Calculate initial tile offset and load
@@ -366,13 +362,12 @@ tld     add             tmindx, #2              ' Increment pointer to tile in t
         shr             cpindx, #8              ' Isolate color palette index of map tile
         shl             cpindx, #4              ' cpindx *= 16
         add             cpindx, tcpptr          ' cpindx += tcpptr
-        mov             tpindx, cursl           ' Initialize tile palette index
-        and             tpindx, #7              ' tpindx %= 8
-        shl             tpindx, #2              ' tpindx *= 4
+        mov             phsb,   cursl           ' Initialize tile palette index
+        and             phsb,   #7              ' tpindx %= 8
+        shl             phsb,   #2              ' tpindx *= 4
         shl             curmt,  #5              ' tilePaletteIndex *= 32
-        add             tpindx, curmt           ' tpindx += paletteTileIndex
-        add             tpindx, tpptr           ' tpindx += tpptr
-        rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
+        add             phsb,   curmt           ' tpindx += paletteTileIndex
+        rdlong          curpt,  phsb            ' Load current palette tile from Main RAM
         mov             pxindx, #8
 tld_ret ret
 
