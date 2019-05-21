@@ -116,113 +116,100 @@ slgen   'Calculate tile map line memory location
         shl             temp,   #2
         shl             curpt,  temp
 
+	add		pxindx,	#tile+2		' SHOULD THIS BE PXINDX OR ITS INVERSE???
+	shl		pxindx,	#3
+	movd		tiset,	pxindx
+tiset	mov		0-0,	tldcall
+
         ' Parse palette tile pixels
-tile    mov             pxbuff, #0              ' Initialize half-tile pixel buffer
+tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buffer
+	mov             pxbuf2, #0              ' Initialize half-tile pixel buffer
 
         {{ HALF 1 PIXEL 1 }}
-        mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf1, curcp           ' Store color
+        ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
-
-        djnz            pxindx, #:next1
-        call            #tld
 
         {{ HALF 1 PIXEL 2 }}
-:next1  mov             temp,   curpt           ' Load current palette tile into temp variable
+	nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf1, curcp           ' Store color
+        ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
-
-        djnz            pxindx, #:next2
-        call            #tld
 
         {{ HALF 1 PIXEL 3 }}
-:next2  mov             temp,   curpt           ' Load current palette tile into temp variable
+	nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf1, curcp           ' Store color
+        ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
-
-        djnz            pxindx, #:next3
-        call            #tld
 
         {{ HALF 1 PIXEL 4 }}
-:next3  mov             temp,   curpt           ' Load current palette tile into temp variable
+	nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf1, curcp           ' Store color
+        ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
-        djnz            pxindx, #shbuf1
-        call            #tld
-
-        ' Store first half tile pixels
-shbuf1  mov             slbuff+0, pxbuff        ' Allocate space for color
-        add             shbuf1,   d1            ' Increment scanline buffer OR position
-
         {{ HALF 2 PIXEL 1 }}
-        mov             pxbuff, #0              ' Initialize half-tile pixel buffer
+        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf2, curcp           ' Store color
+        ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
-
-        djnz            pxindx, #:next1
-        call            #tld
 
         {{ HALF 2 PIXEL 2 }}
-:next1  mov             temp,   curpt           ' Load current palette tile into temp variable
+	nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf2, curcp           ' Store color
+        ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
-
-        djnz            pxindx, #:next2
-        call            #tld
 
         {{ HALF 2 PIXEL 3 }}
-:next2  mov             temp,   curpt           ' Load current palette tile into temp variable
+	nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf2, curcp           ' Store color
+        ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
-
-        djnz            pxindx, #:next3
-        call            #tld
 
         {{ HALF 2 PIXEL 4 }}
-:next3  mov             temp,   curpt           ' Load current palette tile into temp variable
+	nop
+	mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
-        or              pxbuff, curcp           ' Store color
-        ror             pxbuff, #8              ' Allocate space for next color
+        or              pxbuf2, curcp           ' Store color
+        ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
-        djnz            pxindx, #shbuf2
-        call            #tld
-
-        ' Store second half tile pixels
-shbuf2  mov             slbuff+1, pxbuff        ' Allocate space for color
-        add             shbuf2, d1              ' Increment scanline buffer OR position
+        ' Store tile pixels
+shbuf1  mov             slbuff+0, pxbuf1       	' Allocate space for color
+        add             shbuf1,	d1            	' Increment scanline buffer OR position
+shbuf2  mov             slbuff+1, pxbuf2       	' Allocate space for color
+        add             shbuf2,	d1              ' Increment scanline buffer OR position
 
         djnz            index , #tile           ' Repeat for all tiles in scanline
         movd            shbuf1, #slbuff+0       ' Reset shbuf destination address
@@ -368,7 +355,6 @@ tld     add             tmindx, #2              ' Increment pointer to tile in t
         shl             curmt,  #5              ' tilePaletteIndex *= 32
         add             phsb,   curmt           ' tpindx += paletteTileIndex
         rdlong          curpt,  phsb            ' Load current palette tile from Main RAM
-        mov             pxindx, #8
 tld_ret ret
 
 ' Video attributes
@@ -396,6 +382,7 @@ spptr         long      36      ' Pointer to location of sprite palettes in Main
 d0            long      1 << 9                  ' Value to increment destination register
 d1            long      1 << 10                 ' Value to increment destination register
 pxmask        long      $FFFFFF00               ' Mask for pixels in scanline buffer
+tldcall	call		#tld
 
 ' Scanline buffer
 slbuff        long      0[82]   ' Buffer containing scanline
@@ -429,7 +416,8 @@ cursl         res       1       ' Container for current cog scanline
 tgtsl         res       1       ' Container for target scanline
 curvb         res       1       ' Container for current video buffer Main RAM location being written
 index         res       1       ' Container for temporary index
-pxbuff        res       1       ' Container for temporary pixel buffer
+pxbuf1        res       1       ' Container for temporary pixel buffer
+pxbuf2        res       1       ' Container for temporary pixel buffer
 hindx         res       1       ' Container for half-tile index
 findx         res       1       ' Container for full-tile index
 slboff        res       1       ' Container for scanline buffer offset
