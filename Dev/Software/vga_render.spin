@@ -355,7 +355,7 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
 
 tld     add             tmindx, #2              ' Increment pointer to tile in tile map
         djnz            remtil, #:next          ' Check if need to wrap to beginning
-        if_z mov        tmindx, initti          ' If so wrap to beginning
+        mov             tmindx, initti          ' If so wrap to beginning
 :next   rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
         and             curmt,  #255            ' Isolate palette tile index of map tile
