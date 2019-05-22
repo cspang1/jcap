@@ -105,18 +105,23 @@ slgen   'Calculate tile map line memory location
         sub             remtil, temp
         shl             temp,   #1              ' temp *= 2
         add             tmindx, temp
+        call            #tld
 
         ' Determine horizontal pixel location in tile
         mov             temp,   horpos          ' Store horizontal position into temp variable
         and             temp,   #7              ' pxindx %= 8 to determine first pixel to render from tile
+        mov             spypos, temp
+        shl             spypos, #2
+        shl             curpt,  spypos
+        shr             curpt,  #4
         shl             temp,	#3
-        add             temp,	#tile+2
+        mov             spypos, #cmon
+        sub             spypos, temp
 trset   mov             0-0,	#0
-        movd            tiset,	temp
-        movd            trset,	temp
+        movd            tiset,	spypos
+        movd            trset,	spypos
 tiset   mov             0-0,	tldcall
-        shl             temp,   #2
-        shl             curpt,  temp
+
 
         ' Parse palette tile pixels
 tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buffer
@@ -193,7 +198,7 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 2 PIXEL 4 }}
-        nop
+cmon    nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
