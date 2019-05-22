@@ -125,7 +125,6 @@ trset   mov             0-0,    #0      ' Reset previous frame's tile load routi
         movd            trset,  spypos  ' Set this frame's tile load routine call location
 tiset   mov             0-0,    tldcall ' Set this frame's tile load 
 
-
         ' Parse palette tile pixels
 tile    mov             pxbuf1, #0  ' Initialize first half-tile pixel buffer
         mov             pxbuf2, #0  ' Initialize second half-tile pixel buffer
