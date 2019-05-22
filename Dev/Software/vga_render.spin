@@ -105,7 +105,6 @@ slgen   'Calculate tile map line memory location
         sub             remtil, temp
         shl             temp,   #1              ' temp *= 2
         add             tmindx, temp
-        sub             tmindx, #2              ' Pre-decrement tile map index
 
         ' Determine horizontal pixel location in tile
         mov             temp,   horpos          ' Store horizontal position into temp variable
@@ -338,8 +337,7 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
         if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
         jmp             #slgen                  ' Generate next scanline
 
-tld     add             tmindx, #2              ' Increment pointer to tile in tile map
-        djnz            remtil, #:next          ' Check if need to wrap to beginning
+tld     djnz            remtil, #:next          ' Check if need to wrap to beginning
         mov             tmindx, initti          ' If so wrap to beginning
 :next   rdword          curmt,  tmindx          ' Load current map tile from Main RAM
         mov             cpindx, curmt           ' Store map tile into color palette index
@@ -354,6 +352,7 @@ tld     add             tmindx, #2              ' Increment pointer to tile in t
         add             tpindx, curmt           ' tpindx += paletteTileIndex
         add             tpindx, tpptr           ' tpindx += tpptr
         rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
+        add             tmindx, #2              ' Increment pointer to tile in tile map
 tld_ret ret
 
 ' Video attributes
