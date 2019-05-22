@@ -220,13 +220,19 @@ shbuf2  mov             slbuff+1, pxbuf2    ' Allocate space for color
         mov             index,  #numSprites ' Initialize size of sprite attribute table
         mov             tmindx, satptr      ' Initialize sprite attribute table index
         mov             spindx, #0          ' Initialize number of rendered sprites on this scanline
-sprites rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
 
-        ' Check if sprite is on scanline vertically
+     sprite         x position       y position    color v h size
+|<------------->|<--------------->|<------------->|<--->|-|-|<->|
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+sprites ' Load sprite attributes
+        rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
         mov             temp,   curmt       ' Copy sprite attributes to temp variable
         shr             temp,   #7          ' Shift vertical position to LSB
         and             temp,   #255        ' Mask out vertical position
-        mov             spypos, temp        ' Store sprite vertical position
+        mov             spypos, temp        ' Store sprite vertical position        
+
+        ' Check if sprite is on scanline vertically
         add             temp,   #SprSzY-1   ' Calculate sprite vertical position upper bound
         cmp             temp,   cursl wc    ' Check sprite upper bound
         if_nc cmp       cursl,  spypos wc   ' Check sprite lower bound
@@ -265,29 +271,21 @@ sprites rdlong          curmt,  tmindx      ' Load sprite attributes from Main R
         and             cpindx, #112    ' Mask out color palette index * 16
         add             cpindx, scpptr  ' cpindx * 16 += scpptr
 
-        ' Retrieve sprite mirroring attributes
-        mov             spxmir, curmt   ' Copy sprite attributes to temp variable
-        shr             spxmir, #2      ' Align sprite horizontal mirroring attribute to LSB
-        and             spxmir, #1      ' Mask out sprite horizontal mirroring attribute
-        mov             spymir, curmt   ' Copy sprite attributes to temp variable
-        shr             spymir, #3      ' Align sprite vertical mirroring attribute to LSB
-        and             spymir, #1      ' Mask out sprite vertical mirroring attribute
-
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt       ' Copy sprite attributes to temp variable
         shr             temp,   #24         ' Align sprite pixel palette attribute to LSB
         and             temp,   #255        ' Mask out sprite pixel palette attribute
         shl             temp,   #5          ' Calculate sprite pixel palette Main RAM location offset
         add             temp,   spptr       ' Calculate sprite pixel palette Main RAM base location
-        cmp             spymir, #1 wz       ' Check if sprite is mirrored vertically
-        if_z  subs      spyoff, #SprSzY-1   ' If so calculate inverted offset...
-        if_z  abs       spyoff, spyoff      ' And calculate final absolute offset
+        and             curmt,  #8 wz, nr   ' Check sprite mirrored vertically
+        if_nz subs      spyoff, #SprSzY-1   ' If so calculate inverted offset...
+        if_nz abs       spyoff, spyoff      ' And calculate final absolute offset
         shl             spyoff, #2          ' Calculate vertical sprite pixel palette offset
         add             temp,   spyoff      ' Calculate final sprite pixel palette Main RAM location
         rdlong          curpt,  temp        ' Load sprite pixel palette line from Main RAM
-        cmp             spxmir, #1 wc       ' Check for horizontal mirroring
-        if_c shl        curpt,  spxoff      ' Shift sprite pixel palette line left to compensate for wrapping
-        if_nc shr       curpt,  spxoff      ' Shift sprite pixel palette line right to compensate for mirrored wrapping
+        and             curmt,  #4 wc, nr   ' Check sprite mirrored horizontally
+        if_nc shl       curpt,  spxoff      ' Shift sprite pixel palette line left to compensate for wrapping
+        if_c shr        curpt,  spxoff      ' Shift sprite pixel palette line right to compensate for mirrored wrapping
         sub             spxpos, #1          ' Pre-decrement horizontal sprite position
 
         ' Parse sprite pixel palette line
@@ -298,8 +296,8 @@ sprites rdlong          curmt,  tmindx      ' Load sprite attributes from Main R
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
-        if_nc add       temp,   #sprSzX+1       ' If so store sprite horizontal size into temp variable
-        sumnc           temp,   findx           ' Calculate final offset
+        if_c add        temp,   #sprSzX+1       ' If so store sprite horizontal size into temp variable
+        sumc            temp,   findx           ' Calculate final offset
         mov             slboff, temp            ' Store scanline buffer offset
         shr             slboff, #2              ' slboff /= 4
         add             slboff, #slbuff         ' slboff += @slbuff
@@ -401,8 +399,6 @@ spxpos      res     1   ' Sprite horizontal position
 spypos      res     1   ' Sprite vertical position
 spxoff      res     1   ' Sprite horizontal pixel palette offset
 spyoff      res     1   ' Sprite vertical pixel palette offset
-spxmir      res     1   ' Sprite horizontal mirroring
-spymir      res     1   ' Sprite horizontal mirroring
 spindx      res     1   ' Container for number of rendered sprites on current scanline
 
 ' Other pointers
