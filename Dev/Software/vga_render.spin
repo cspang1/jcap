@@ -70,7 +70,8 @@ render
         add             tmptr,  datptr  ' Calculate tile map location
         rdlong          tmptr,  tmptr   ' Load tile map location
         add             tpptr,  datptr  ' Calculate tile palette location
-        rdlong          tpptr,  tpptr   ' Load tile palette location
+        rdlong          frqb,   tpptr   ' Load tile palette location
+        shr             frqb,   #1      ' load from phsb+2*frqb
         add             spptr,  datptr  ' Calculate sprite palette location
         rdlong          spptr,  spptr   ' Load sprite palette location
         rdlong          datptr, datptr  ' Load current scanline memory location
@@ -85,6 +86,9 @@ render
         lockclr         semptr          ' Clear semaphore
         cogid           temp wz, nr     ' Check if this is the final cog to be initialized
         if_z  lockret   semptr          ' Return lock handle if so
+
+        ' Start Counter B for tile loading routine
+        movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
 slgen   'Calculate tile map line memory location
         mov             tmindx, cursl   ' Initialize tile map index
@@ -341,84 +345,83 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
         if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
         jmp             #slgen                  ' Generate next scanline
 
-tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
-        mov             tmindx, initti  ' If so wrap to beginning
-:next   rdword          curmt,  tmindx  ' Load current map tile from Main RAM
-        mov             cpindx, curmt   ' Store map tile into color palette index
-        and             curmt,  #255    ' Isolate palette tile index of map tile
-        shr             cpindx, #8      ' Isolate color palette index of map tile
-        shl             cpindx, #4      ' cpindx *= 16
-        add             cpindx, tcpptr  ' cpindx += tcpptr
-        mov             tpindx, cursl   ' Initialize tile palette index
-        and             tpindx, #7      ' tpindx %= 8
-        shl             tpindx, #2      ' tpindx *= 4
-        shl             curmt,  #5      ' tilePaletteIndex *= 32
-        add             tpindx, curmt   ' tpindx += paletteTileIndex
-        add             tpindx, tpptr   ' tpindx += tpptr
-        rdlong          curpt,  tpindx  ' Load current palette tile from Main RAM
-        add             tmindx, #2      ' Increment pointer to tile in tile map
+tld     djnz            remtil, #:next          ' Check if need to wrap to beginning
+        if_z mov        tmindx, initti          ' If so wrap to beginning
+:next   rdword          curmt,  tmindx          ' Load current map tile from Main RAM
+        mov             cpindx, curmt           ' Store map tile into color palette index
+        and             curmt,  #255            ' Isolate palette tile index of map tile
+        shr             cpindx, #8              ' Isolate color palette index of map tile
+        shl             cpindx, #4              ' cpindx *= 16
+        add             cpindx, tcpptr          ' cpindx += tcpptr
+        mov             phsb,   cursl           ' Initialize tile palette index
+        and             phsb,   #7              ' tpindx %= 8
+        shl             phsb,   #2              ' tpindx *= 4
+        shl             curmt,  #5              ' tilePaletteIndex *= 32
+        add             phsb,   curmt           ' tpindx += paletteTileIndex
+        rdlong          curpt,  phsb            ' Load current palette tile from Main RAM
+        add             tmindx, #2              ' Increment pointer to tile in tile map
 tld_ret ret
 
 ' Video attributes
-maxHor        long      512 ' Maximum horizontal position
-maxVis        long      319 ' Maximum visible horizontal position
-numLines      long      240 ' Number of rendered scanlines
-numSegs       long      80  ' Number of scanline segments
-numTiles      long      40  ' Number of tiles per scanline
+maxHor      long    512 ' Maximum horizontal position
+maxVis      long    319 ' Maximum visible horizontal position
+numLines    long    240 ' Number of rendered scanlines
+numSegs     long    80  ' Number of scanline segments
+numTiles    long    40  ' Number of tiles per scanline
 
 ' Main RAM pointers
-semptr        long      4   ' Pointer to location of semaphore in Main RAM w/ offset
-ilptr         long      8   ' Pointer to location of initial scanline in Main RAM w/ offset
-datptr        long      0   ' Pointer to location of data indicator in Main RAM w/ offset
-cslptr        long      4   ' Pointer to location of current scanline in Main RAM w/ offset
-slbptr        long      8   ' Pointer to location of scanline buffer in Main RAM w/ offset
-hspptr        long      12  ' Pointer to location of horizontal screen position in Main RAM w/ offset
-tcpptr        long      16  ' Pointer to location of tile color palettes in Main RAM w/ offset
-scpptr        long      20  ' Pointer to location of sprite color palettes in Main RAM w/ offset
-satptr        long      24  ' Pointer to location of sprite attribute table in Main RAM w/ offset
-tmptr         long      28  ' Pointer to location of tile map in Main RAM w/ offset
-tpptr         long      32  ' Pointer to location of tile palettes in Main RAM w/ offset
-spptr         long      36  ' Pointer to location of sprite palettes in Main RAM w/ offset
+semptr      long    4   ' Pointer to location of semaphore in Main RAM w/ offset
+ilptr       long    8   ' Pointer to location of initial scanline in Main RAM w/ offset
+datptr      long    0   ' Pointer to location of data indicator in Main RAM w/ offset
+cslptr      long    4   ' Pointer to location of current scanline in Main RAM w/ offset
+slbptr      long    8   ' Pointer to location of scanline buffer in Main RAM w/ offset
+hspptr      long    12  ' Pointer to location of horizontal screen position in Main RAM w/ offset
+tcpptr      long    16  ' Pointer to location of tile color palettes in Main RAM w/ offset
+scpptr      long    20  ' Pointer to location of sprite color palettes in Main RAM w/ offset
+satptr      long    24  ' Pointer to location of sprite attribute table in Main RAM w/ offset
+tmptr       long    28  ' Pointer to location of tile map in Main RAM w/ offset
+tpptr       long    32  ' Pointer to location of tile palettes in Main RAM w/ offset
+spptr       long    36  ' Pointer to location of sprite palettes in Main RAM w/ offset
 
 ' Other values
-d0            long      1 << 9      ' Value to increment destination register
-d1            long      1 << 10     ' Value to increment destination register
-pxmask        long      $FFFFFF00   ' Mask for pixels in scanline buffer
+d0          long    1 << 9      ' Value to increment destination register
+d1          long    1 << 10     ' Value to increment destination register
+pxmask      long    $FFFFFF00   ' Mask for pixels in scanline buffer
 tldcall	call		#tld
 
 ' Scanline buffer
-slbuff        long      0[82]   ' Buffer containing scanline
+slbuff      long    0[82]   ' Buffer containing scanline
 
 ' Tile pointers
-tmindx        res       1   ' Tile map index
-tpindx        res       1   ' Tile palette index
-cpindx        res       1   ' Color palette index
-curmt         res       1   ' Current map tile
-curpt         res       1   ' Current palette tile
-curcp         res       1   ' Current color palette
+tmindx      res     1   ' Tile map index
+tpindx      res     1   ' Tile palette index
+cpindx      res     1   ' Color palette index
+curmt       res     1   ' Current map tile
+curpt       res     1   ' Current palette tile
+curcp       res     1   ' Current color palette
 
 ' Sprite pointers
-spxpos        res       1   ' Sprite horizontal position
-spypos        res       1   ' Sprite vertical position
-spxoff        res       1   ' Sprite horizontal pixel palette offset
-spyoff        res       1   ' Sprite vertical pixel palette offset
-spxmir        res       1   ' Sprite horizontal mirroring
-spymir        res       1   ' Sprite horizontal mirroring
-spindx        res       1   ' Container for number of rendered sprites on current scanline
+spxpos      res     1   ' Sprite horizontal position
+spypos      res     1   ' Sprite vertical position
+spxoff      res     1   ' Sprite horizontal pixel palette offset
+spyoff      res     1   ' Sprite vertical pixel palette offset
+spxmir      res     1   ' Sprite horizontal mirroring
+spymir      res     1   ' Sprite horizontal mirroring
+spindx      res     1   ' Container for number of rendered sprites on current scanline
 
 ' Other pointers
-horpos        res       1   ' Container for current horizontal screen position
-initti        res       1   ' Container for current row's initial tile
-remtil        res       1   ' Container for remaining number of tiles to render before wrapping
-initsl        res       1   ' Container for initial scanline
-cursl         res       1   ' Container for current cog scanline
-curvb         res       1   ' Container for current video buffer Main RAM location being written
-index         res       1   ' Container for temporary index
-pxbuf1        res       1   ' Container for temporary pixel buffer
-pxbuf2        res       1   ' Container for temporary pixel buffer
-findx         res       1   ' Container for full-tile index
-slboff        res       1   ' Container for scanline buffer offset
-tmpslb        res       1   ' Container for temporary scanline buffer segment
-temp          res       1   ' Container for temporary variables
+horpos      res     1   ' Container for current horizontal screen position
+initti      res     1   ' Container for current row's initial tile
+remtil      res     1   ' Container for remaining number of tiles to render before wrapping
+initsl      res     1   ' Container for initial scanline
+cursl       res     1   ' Container for current cog scanline
+curvb       res     1   ' Container for current video buffer Main RAM location being written
+index       res     1   ' Container for temporary index
+pxbuf1      res     1   ' Container for temporary pixel buffer
+pxbuf2      res     1   ' Container for temporary pixel buffer
+findx       res     1   ' Container for full-tile index
+slboff      res     1   ' Container for scanline buffer offset
+tmpslb      res     1   ' Container for temporary scanline buffer segment
+temp        res     1   ' Container for temporary variables
 
         fit
