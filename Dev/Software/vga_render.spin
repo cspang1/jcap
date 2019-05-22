@@ -387,7 +387,7 @@ spptr       long    36  ' Pointer to location of sprite palettes in Main RAM w/ 
 d0          long    1 << 9      ' Value to increment destination register
 d1          long    1 << 10     ' Value to increment destination register
 pxmask      long    $FFFFFF00   ' Mask for pixels in scanline buffer
-tldcall	call		#tld
+tldcall     call	   #tld
 
 ' Scanline buffer
 slbuff      long    0[82]   ' Buffer containing scanline
