@@ -124,8 +124,7 @@ trset   mov             0-0,    #0      ' Reset previous frame's tile load routi
 tiset   mov             0-0,    tldcall ' Set this frame's tile load 
 
         ' Parse palette tile pixels
-tile    {{ HALF 1 PIXEL 1 }}
-        mov             temp,   curpt   ' Load current palette tile into temp variable
+tile    mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
         rdbyte          curcp,  temp    ' Load color
@@ -134,8 +133,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf1, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 1 PIXEL 2 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -144,8 +141,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf1, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 1 PIXEL 3 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -154,8 +149,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf1, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 1 PIXEL 4 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -164,8 +157,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf1, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 2 PIXEL 1 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -175,8 +166,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf2, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 2 PIXEL 2 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -185,8 +174,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf2, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 2 PIXEL 3 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -195,8 +182,6 @@ tile    {{ HALF 1 PIXEL 1 }}
         ror             pxbuf2, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
-
-        {{ HALF 2 PIXEL 4 }}
         mov             temp,   curpt   ' Load current palette tile into temp variable
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
@@ -220,10 +205,6 @@ shbuf2  mov             slbuff+1, pxbuf2    ' Allocate space for color
         mov             index,  #numSprites ' Initialize size of sprite attribute table
         mov             tmindx, satptr      ' Initialize sprite attribute table index
         mov             spindx, #0          ' Initialize number of rendered sprites on this scanline
-
-     sprite         x position       y position    color v h size
-|<------------->|<--------------->|<------------->|<--->|-|-|<->|
- 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
 sprites ' Load sprite attributes
         rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
@@ -266,11 +247,6 @@ sprites ' Load sprite attributes
 :cont   if_nc mov       spxoff, #0          ' Start rendering the sprite at its origin
         shl             spxoff, #2          ' Calculate horizontal sprite pixel palette offset
 
-        ' Retrieve sprite color palette
-        mov             cpindx, curmt   ' Copy sprite attributes to color palette index
-        and             cpindx, #112    ' Mask out color palette index * 16
-        add             cpindx, scpptr  ' cpindx * 16 += scpptr
-
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt       ' Copy sprite attributes to temp variable
         shr             temp,   #24         ' Align sprite pixel palette attribute to LSB
@@ -288,12 +264,16 @@ sprites ' Load sprite attributes
         if_c shr        curpt,  spxoff      ' Shift sprite pixel palette line right to compensate for mirrored wrapping
         sub             spxpos, #1          ' Pre-decrement horizontal sprite position
 
+        ' Retrieve sprite color palette
+        and             curmt,  #112    ' Mask out color palette index * 16
+        add             curmt,  scpptr  ' cpindx * 16 += scpptr
+
         ' Parse sprite pixel palette line
         mov             findx,  #sprSzX         ' Store sprite horizontal size into index
 :sprite mov             temp,   curpt           ' Load current sprite pixel palette line into temp variable
         and             temp,   #15 wz          ' Mask out current pixel
         if_z  jmp       #:trans                 ' Skip if pixel is transparent
-        add             temp,   cpindx          ' Calculate color palette offset
+        add             temp,   curmt           ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
         mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
         if_c add        temp,   #sprSzX+1       ' If so store sprite horizontal size into temp variable
@@ -381,7 +361,7 @@ spptr       long    36  ' Pointer to location of sprite palettes in Main RAM w/ 
 d0          long    1 << 9      ' Value to increment destination register
 d1          long    1 << 10     ' Value to increment destination register
 pxmask      long    $FFFFFF00   ' Mask for pixels in scanline buffer
-tldcall     call	   #tld
+tldcall     call        #tld
 
 ' Scanline buffer
 slbuff      long    0[82]   ' Buffer containing scanline
