@@ -120,7 +120,7 @@ slgen   'Calculate tile map line memory location
         and             horpos, #%111*8 ' limit
         add             spypos, #lastpx ' lastpx + 1*(horpos&7)
         sub             spypos, horpos  ' lastpx - 7*(horpos&7)
-trset   mov             0-0,    #0      ' Reset previous frame's tile load routine call
+trset   mov             0-0,    shlcall ' Reset previous frame's tile load routine call
         movd            tiset,  spypos  ' Set next frame's reset
         movd            trset,  spypos  ' Set this frame's tile load routine call location
 tiset   mov             0-0,    tldcall ' Set this frame's tile load 
@@ -354,6 +354,7 @@ d0          long    1 << 9      ' Value to increment destination register
 d1          long    1 << 10     ' Value to increment destination register
 pxmask      long    $FFFFFF00   ' Mask for pixels in scanline buffer
 tldcall     call        #tld
+shlcall     shl         curpt,  #4
 
 ' Scanline buffer
 slbuff      long    0[82]   ' Buffer containing scanline
