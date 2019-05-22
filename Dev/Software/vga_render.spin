@@ -113,7 +113,6 @@ slgen   'Calculate tile map line memory location
         mov             spypos, temp
         shl             spypos, #2
         shl             curpt,  spypos
-        shr             curpt,  #4
         shl             temp,	#3
         mov             spypos, #cmon
         sub             spypos, temp
