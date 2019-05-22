@@ -7,45 +7,45 @@
 }}
 
 CON
-  ' Graphics system attributes
-  numRenderCogs = 6 ' Number of cogs used for rendering
-  numSprites = 64   ' Number of sprites in the sprite attribute table
-  maxSprRen = 16    ' Maximum number of sprites rendered per scanline
-  sprSzX = 8        ' Horizontal size of sprites
-  sprSzY = 8        ' Vertical size of sprites
+    ' Graphics system attributes
+    numRenderCogs = 6   ' Number of cogs used for rendering
+    numSprites = 64     ' Number of sprites in the sprite attribute table
+    maxSprRen = 16      ' Maximum number of sprites rendered per scanline
+    sprSzX = 8          ' Horizontal size of sprites
+    sprSzY = 8          ' Vertical size of sprites
 
 OBJ
     system: "system"    ' Import system settings
 
 VAR
-  ' Cog attributes
-  long  cog_[numRenderCogs] ' Array containing IDs of rendering cogs
+    ' Cog attributes
+    long    cog_[numRenderCogs] ' Array containing IDs of rendering cogs
 
-  ' Graphics system attributes
-  long  var_addr_base_  ' Variable for pointer to base address of Main RAM variables
-  long  cog_sem_        ' Cog semaphore
-  long  start_line_     ' Variable for start of cog line rendering
+    ' Graphics system attributes
+    long    var_addr_base_  ' Variable for pointer to base address of Main RAM variables
+    long    cog_sem_        ' Cog semaphore
+    long    start_line_     ' Variable for start of cog line rendering
   
 PUB start(varAddrBase) | cIndex ' Function to start renderer with pointer to Main RAM variables
-  stop  ' Stop render cogs if running
+    stop    ' Stop render cogs if running
 
-  ' Instantiate variables
-  var_addr_base_ := varAddrBase ' Assign local base variable address
-  start_line_ := -1             ' Initialize first scanline index
-  
-  ' Create cog semaphore
-  cog_sem_ := locknew   ' Create new lock
-  
-  repeat cIndex from 0 to numRenderCogs - 2                     ' Iterate over cogs
-    ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1  ' Initialize cog running "render" routine with reference to start of variables
-        stop                                                    ' Stop render cogs if running
+    ' Instantiate variables
+    var_addr_base_ := varAddrBase   ' Assign local base variable address
+    start_line_ := -1               ' Initialize first scanline index
 
-  coginit(COGID, @render, @var_addr_base_)  ' Start final render cog in cog 0
+    ' Create cog semaphore
+    cog_sem_ := locknew ' Create new lock
 
-PUB stop | cIndex                           ' Function to stop VGA driver
-  repeat cIndex from 0 to numRenderCogs - 1 ' Loop through cogs
-    if cog_[cIndex]                         ' If cog is running
-      cogstop(cog_[cIndex]~ - 1)            ' Stop the cog
+    repeat cIndex from 0 to numRenderCogs - 2                       ' Iterate over cogs
+        ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1  ' Initialize cog running "render" routine with reference to start of variables
+            stop                                                    ' Stop render cogs if running
+
+    coginit(COGID, @render, @var_addr_base_)    ' Start final render cog in cog 0
+
+PUB stop | cIndex                               ' Function to stop VGA driver
+    repeat cIndex from 0 to numRenderCogs - 1   ' Loop through cogs
+        if cog_[cIndex]                         ' If cog is running
+            cogstop(cog_[cIndex]~ - 1)          ' Stop the cog
 
 DAT
         org             0
@@ -112,8 +112,8 @@ slgen   'Calculate tile map line memory location
         call            #tld                                    ' Load initial tile
 
         ' Determine horizontal pixel location in tile
-        mov	        spypos, horpos  ' *= 1
-        and	        spypos, #%111*1 ' limit	
+        mov             spypos, horpos  ' *= 1
+        and             spypos, #%111*1 ' limit
         shl             horpos, #2      ' *= 4
         shl             curpt,  horpos  ' Shift to first pixel
         shl             horpos, #1      ' *= 8
@@ -311,6 +311,7 @@ waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources re
         if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
         jmp             #slgen                  ' Generate next scanline
 
+        ' Tile loading routine
 tld     djnz            remtil, #:next          ' Check if need to wrap to beginning
         if_z mov        tmindx, initti          ' If so wrap to beginning
 :next   rdword          curmt,  tmindx          ' Load current map tile from Main RAM
@@ -327,6 +328,10 @@ tld     djnz            remtil, #:next          ' Check if need to wrap to begin
         rdlong          curpt,  phsb            ' Load current palette tile from Main RAM
         add             tmindx, #2              ' Increment pointer to tile in tile map
 tld_ret ret
+
+        ' Instructions for dynamic tile shifting
+tldcall call            #tld
+shlcall shl             curpt,  #4
 
 ' Video attributes
 maxHor      long    512 ' Maximum horizontal position
@@ -353,8 +358,6 @@ spptr       long    36  ' Pointer to location of sprite palettes in Main RAM w/ 
 d0          long    1 << 9      ' Value to increment destination register
 d1          long    1 << 10     ' Value to increment destination register
 pxmask      long    $FFFFFF00   ' Mask for pixels in scanline buffer
-tldcall     call        #tld
-shlcall     shl         curpt,  #4
 
 ' Scanline buffer
 slbuff      long    0[82]   ' Buffer containing scanline
