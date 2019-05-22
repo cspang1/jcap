@@ -128,8 +128,7 @@ tile    mov             temp,   curpt   ' Load current palette tile into temp va
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
         rdbyte          curcp,  temp    ' Load color
-        mov             pxbuf1, #0      ' Initialize first half-tile pixel buffer
-        or              pxbuf1, curcp   ' Store color
+        mov             pxbuf1, curcp   ' Initialize first half-tile pixel buffer
         ror             pxbuf1, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
@@ -161,8 +160,7 @@ tile    mov             temp,   curpt   ' Load current palette tile into temp va
         shr             temp,   #28     ' LSB align palette index
         add             temp,   cpindx  ' Calculate color palette offset
         rdbyte          curcp,  temp    ' Load color
-        mov             pxbuf2, #0      ' Initialize second half-tile pixel buffer        
-        or              pxbuf2, curcp   ' Store color
+        mov             pxbuf2, curcp   ' Initialize second half-tile pixel buffer        
         ror             pxbuf2, #8      ' Allocate space for next color
         shl             curpt,  #4      ' Shift palette tile left 4 bits
         nop
