@@ -211,9 +211,9 @@ lastpx  nop
 
         ' Store tile pixels
 shbuf1  mov             slbuff+0, pxbuf1    'Allocate space for color
-        add             shbuf1,	d1          ' Increment scanline buffer OR position
+        add             shbuf1, d1          ' Increment scanline buffer OR position
 shbuf2  mov             slbuff+1, pxbuf2    ' Allocate space for color
-        add             shbuf2,	d1          ' Increment scanline buffer OR position
+        add             shbuf2, d1          ' Increment scanline buffer OR position
 
         djnz            index , #tile       ' Repeat for all tiles in scanline
         movd            shbuf1, #slbuff+0   ' Reset shbuf destination address
