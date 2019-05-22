@@ -106,28 +106,26 @@ slgen   'Calculate tile map line memory location
         shl             temp,   #1              ' temp *= 2
         add             tmindx, temp
         sub             tmindx, #2              ' Pre-decrement tile map index
-        call            #tld
 
         ' Determine horizontal pixel location in tile
         mov             temp,   horpos          ' Store horizontal position into temp variable
         and             temp,   #7              ' pxindx %= 8 to determine first pixel to render from tile
-        mov             pxindx, #8
-        sub             pxindx, temp
+        shl             temp,	#3
+        add             temp,	#tile+2
+trset   mov             0-0,	#0
+        movd            tiset,	temp
+        movd            trset,	temp
+tiset   mov             0-0,	tldcall
         shl             temp,   #2
         shl             curpt,  temp
 
-	shl		pxindx,	#3
-	add		pxindx,	#tile+2		' SHOULD THIS BE PXINDX OR ITS INVERSE???
-	movd		tiset,	pxindx
-tiset	mov		0-0,	tldcall
-
         ' Parse palette tile pixels
 tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buffer
-	mov             pxbuf2, #0              ' Initialize half-tile pixel buffer
+        mov             pxbuf2, #0              ' Initialize half-tile pixel buffer
 
         {{ HALF 1 PIXEL 1 }}
         nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -136,8 +134,8 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 1 PIXEL 2 }}
-	nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -146,8 +144,8 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 1 PIXEL 3 }}
-	nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -156,8 +154,8 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 1 PIXEL 4 }}
-	nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -176,8 +174,8 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 2 PIXEL 2 }}
-	nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -186,8 +184,8 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 2 PIXEL 3 }}
-	nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -196,8 +194,8 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         shl             curpt,  #4              ' Shift palette tile left 4 bits
 
         {{ HALF 2 PIXEL 4 }}
-	nop
-	mov             temp,   curpt           ' Load current palette tile into temp variable
+        nop
+        mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
         rdbyte          curcp,  temp            ' Load color
@@ -349,12 +347,13 @@ tld     add             tmindx, #2              ' Increment pointer to tile in t
         shr             cpindx, #8              ' Isolate color palette index of map tile
         shl             cpindx, #4              ' cpindx *= 16
         add             cpindx, tcpptr          ' cpindx += tcpptr
-        mov             phsb,   cursl           ' Initialize tile palette index
-        and             phsb,   #7              ' tpindx %= 8
-        shl             phsb,   #2              ' tpindx *= 4
+        mov             tpindx, cursl           ' Initialize tile palette index
+        and             tpindx, #7              ' tpindx %= 8
+        shl             tpindx, #2              ' tpindx *= 4
         shl             curmt,  #5              ' tilePaletteIndex *= 32
-        add             phsb,   curmt           ' tpindx += paletteTileIndex
-        rdlong          curpt,  phsb            ' Load current palette tile from Main RAM
+        add             tpindx, curmt           ' tpindx += paletteTileIndex
+        add             tpindx, tpptr           ' tpindx += tpptr
+        rdlong          curpt,  tpindx          ' Load current palette tile from Main RAM
 tld_ret ret
 
 ' Video attributes
@@ -407,7 +406,6 @@ spymir        res       1       ' Sprite horizontal mirroring
 
 ' Other pointers
 horpos        res       1       ' Container for current horizontal screen position
-pxindx        res       1       ' Container for current pixel of tile being rendered
 initti        res       1       ' Container for current row's initial tile
 remtil        res       1       ' Container for remaining number of tiles to render before wrapping
 curtil        res       1       ' Container for current tile rendering
