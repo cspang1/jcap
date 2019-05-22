@@ -112,15 +112,14 @@ slgen   'Calculate tile map line memory location
         call            #tld                                    ' Load initial tile
 
         ' Determine horizontal pixel location in tile
-        mov             temp,   horpos  ' Temporarily store horizontal screen position
-        mov             spxpos, horpos  ' Make another copy
-        shl             temp,   #2      ' *= 4
-        shl             curpt,  temp    ' Shift to first pixel
-        and             horpos, #7      ' %= 8
-        shl             horpos, #3      ' *= 8
-        sub             horpos, spxpos  ' *= 7
-        mov             spypos, #lastpx ' Temporarily store possible tile load position of final pixel in imminent buffer
-        sub             spypos, horpos  ' Calculate offset
+        mov	        spypos, horpos  ' *= 1
+        and	        spypos, #%111*1 ' limit	
+        shl             horpos, #2      ' *= 4
+        shl             curpt,  horpos  ' Shift to first pixel
+        shl             horpos, #1      ' *= 8
+        and             horpos, #%111*8 ' limit
+        add             spypos, #lastpx ' lastpx + 1*(horpos&7)
+        sub             spypos, horpos  ' lastpx - 7*(horpos&7)
 trset   mov             0-0,    #0      ' Reset previous frame's tile load routine call
         movd            tiset,  spypos  ' Set next frame's reset
         movd            trset,  spypos  ' Set this frame's tile load routine call location
