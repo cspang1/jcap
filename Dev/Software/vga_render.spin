@@ -127,7 +127,6 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         mov             pxbuf2, #0              ' Initialize half-tile pixel buffer
 
         {{ HALF 1 PIXEL 1 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -135,9 +134,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf1, curcp           ' Store color
         ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 1 PIXEL 2 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -145,9 +144,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf1, curcp           ' Store color
         ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 1 PIXEL 3 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -155,9 +154,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf1, curcp           ' Store color
         ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 1 PIXEL 4 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -165,9 +164,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf1, curcp           ' Store color
         ror             pxbuf1, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 2 PIXEL 1 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -175,9 +174,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf2, curcp           ' Store color
         ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 2 PIXEL 2 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -185,9 +184,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf2, curcp           ' Store color
         ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 2 PIXEL 3 }}
-        nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -195,9 +194,9 @@ tile    mov             pxbuf1, #0              ' Initialize half-tile pixel buf
         or              pxbuf2, curcp           ' Store color
         ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+        nop
 
         {{ HALF 2 PIXEL 4 }}
-cmon    nop
         mov             temp,   curpt           ' Load current palette tile into temp variable
         shr             temp,   #28             ' LSB align palette index
         add             temp,   cpindx          ' Calculate color palette offset
@@ -205,6 +204,7 @@ cmon    nop
         or              pxbuf2, curcp           ' Store color
         ror             pxbuf2, #8              ' Allocate space for next color
         shl             curpt,  #4              ' Shift palette tile left 4 bits
+cmon    nop
 
         ' Store tile pixels
 shbuf1  mov             slbuff+0, pxbuf1       	' Allocate space for color
