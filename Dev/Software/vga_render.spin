@@ -38,7 +38,7 @@ PUB start(varAddrBase) | cIndex ' Function to start renderer with pointer to Mai
   
   repeat cIndex from 0 to numRenderCogs - 2                     ' Iterate over cogs
     ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1  ' Initialize cog running "render" routine with reference to start of variables
-      sto                                                       ' Stop render cogs if running
+      stop                                                       ' Stop render cogs if running
 
   coginit(COGID, @render, @var_addr_base_)  ' Start final render cog in cog 0
 
