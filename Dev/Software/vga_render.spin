@@ -240,16 +240,15 @@ sprites ' Load sprite attributes
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt       ' Copy sprite attributes to temp variable
         shr             temp,   #24         ' Align sprite pixel palette attribute to LSB
-        and             temp,   #255        ' Mask out sprite pixel palette attribute
         shl             temp,   #5          ' Calculate sprite pixel palette Main RAM location offset
         add             temp,   spptr       ' Calculate sprite pixel palette Main RAM base location
-        and             curmt,  #8 wz, nr   ' Check sprite mirrored vertically
+        test            curmt,  #8 wz       ' Check sprite mirrored vertically
         if_nz subs      spyoff, #SprSzY-1   ' If so calculate inverted offset...
         if_nz abs       spyoff, spyoff      ' And calculate final absolute offset
         shl             spyoff, #2          ' Calculate vertical sprite pixel palette offset
         add             temp,   spyoff      ' Calculate final sprite pixel palette Main RAM location
         rdlong          curpt,  temp        ' Load sprite pixel palette line from Main RAM
-        and             curmt,  #4 wc, nr   ' Check sprite mirrored horizontally
+        test            curmt,  #4 wc       ' Check sprite mirrored horizontally
         if_nc shl       curpt,  spxoff      ' Shift sprite pixel palette line left to compensate for wrapping
         if_c shr        curpt,  spxoff      ' Shift sprite pixel palette line right to compensate for mirrored wrapping
         sub             spxpos, #1          ' Pre-decrement horizontal sprite position
