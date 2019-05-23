@@ -116,11 +116,11 @@ slgen   'Calculate tile map line memory location
         add             patch,  horpos  ' base+index
         shl             horpos, #2      ' *= 4
         shl             curpt,  horpos  ' Shift to first pixel
-patch   mov             spypos, ptable  ' load relevant offset
+patch   mov             temp,   ptable  ' load relevant offset
         movs            patch,  #ptable ' restore
 trset   mov             px7,    shlcall ' make sure we don't corrupt location 0 (might be important some day)
-        movd            tiset,  spypos  ' Set next frame's reset
-        movd            trset,  spypos  ' Set this frame's tile load routine call location
+        movd            tiset,  temp    ' Set next frame's reset
+        movd            trset,  temp    ' Set this frame's tile load routine call location
 tiset   mov             0-0,    tldcall ' Set this frame's tile load 
 
         ' Parse palette tile pixels
