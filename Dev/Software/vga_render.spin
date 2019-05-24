@@ -13,6 +13,7 @@ CON
     maxSprRen = 16      ' Maximum number of sprites rendered per scanline
     sprSzX = 8          ' Horizontal size of sprites
     sprSzY = 8          ' Vertical size of sprites
+    buff_size = system#VID_BUFFER_SIZE+2
 
 OBJ
     system: "system"    ' Import system settings
@@ -291,16 +292,25 @@ sprites ' Load sprite attributes
         ' Wait for target scanline
 maxsp   mov             index,  numSegs     ' Initialize current scanline segment
         mov             curvb,  slbptr      ' Initialize Main RAM video buffer memory location
+        mov             ptr,    curvb
 gettsl  rdlong          temp,   cslptr      ' Read target scanline index from Main RAM
         cmp             temp,   cursl wz    ' Check if current scanline is being requested for display
         if_nz jmp       #gettsl             ' If not, re-read target scanline
 
         ' Write scanline buffer to video buffer in Main RAM
-write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer to Main RAM video buffer
-        add             write,  d0              ' Increment scanline buffer memory location
-        add             curvb,  #4              ' Increment video buffer memory location
-        djnz            index,  #write          ' Repeat for all scanline segments
-        movd            write,  #slbuff         ' Reset initial scanline buffer position
+
+        movd            long0,  #ptr-3          ' last long in cog buffer
+        movd            long1,  #ptr-4          ' second-to-last long in cog buffer
+        add             ptr,    #system#VID_BUFFER_SIZE*4-1  ' last byte in hub buffer (8n + 7)
+        movi            ptr,    #system#VID_BUFFER_SIZE-2    ' add magic marker
+
+long0   wrlong          0-0,    ptr             ' |
+        sub             long0,  d1              ' |
+        sub             ptr,    i2s7 wc         ' |
+long1   wrlong          0-0,    ptr             ' |
+        sub             long1,  d1              ' |
+        if_nc djnz      ptr,    #long0          ' sub #7/djnz (Thanks Phil!)
+
         add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
@@ -354,12 +364,14 @@ spptr       long    36  ' Pointer to location of sprite palettes in Main RAM w/ 
 ' Other values
 d0          long    1 << 9                  ' Value to increment destination register
 d1          long    1 << 10                 ' Value to increment destination register
+i2s7        long    2 << 23 | 7             ' Value to summon Cthullu
 pxmask      long    $FFFFFF00               ' Mask for pixels in scanline buffer
 ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile load logic
             long    px3, px2, px1, px0
 
 ' Scanline buffer
-slbuff      long    0[82]   ' Buffer containing scanline
+slbuff      res     buff_size   ' Buffer containing scanline
+ptr         res     1
 
 ' Tile pointers
 tmindx      res     1   ' Tile map index
