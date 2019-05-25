@@ -153,7 +153,7 @@ sc      long            0[80*2]                 ' Buffer containing display scan
         movd            :loop,  #vbptrs+0
         movd            :patch, #vbptrs+0
 :loop   waitvid         vbptrs+0, #%%3210
-        add             $-1,    d0
+        add             $-1,    d0  
 :patch  mov             vbptrs+0, temp          ' restore address array
         add             $-1,    d0
         add             temp,   #4 
@@ -218,7 +218,7 @@ dataSig       long      15                      ' Back porch scanline to signal 
 ' Main RAM pointers
 datptr        long      0                       ' Pointer to location of data indicator
 clptr         long      4                       ' Pointer to location of current scanline in Main RAM
-vbptrs        long      8[80]                   ' Buffer containing Main RAM video buffer memory locations
+vbptrs        long      8[81]                   ' Buffer containing Main RAM video buffer memory locations
 initvb        long      0                       ' Buffer containing initial Main RAM video buffer memory location
 
 ' Frame indexes
