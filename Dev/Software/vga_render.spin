@@ -289,22 +289,18 @@ sprites ' Load sprite attributes
         djnz            index,  #sprites        ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
-maxsp   mov             index,  #system#VID_BUFFER_SIZE>>1  ' Initialize current scanline segment
-        mov             curvb,  slbptr                      ' Initialize Main RAM video buffer memory location
-gettsl  rdlong          temp,   cslptr                      ' Read target scanline index from Main RAM
-        cmp             temp,   cursl wz                    ' Check if current scanline is being requested for display
-        if_nz jmp       #gettsl                             ' If not, re-read target scanline
+maxsp   mov             index,  numSegs     ' Initialize current scanline segment
+        mov             curvb,  slbptr      ' Initialize Main RAM video buffer memory location
+gettsl  rdlong          temp,   cslptr      ' Read target scanline index from Main RAM
+        cmp             temp,   cursl wz    ' Check if current scanline is being requested for display
+        if_nz jmp       #gettsl             ' If not, re-read target scanline
 
         ' Write scanline buffer to video buffer in Main RAM
-write0  wrlong          slbuff+0, curvb         ' If so, write scanline buffer to Main RAM video buffer
-        add             write0,  d1             ' Increment scanline buffer memory location
+write   wrlong          slbuff+0, curvb         ' If so, write scanline buffer to Main RAM video buffer
+        add             write,  d0              ' Increment scanline buffer memory location
         add             curvb,  #4              ' Increment video buffer memory location
-write1  wrlong          slbuff+1, curvb         ' If so, write scanline buffer to Main RAM video buffer
-        add             write1,  d1             ' Increment scanline buffer memory location
-        add             curvb,  #4              ' Increment video buffer memory location
-        djnz            index,  #write0         ' Repeat for all scanline segments
-        movd            write0, #slbuff+0       ' Reset initial scanline buffer position
-        movd            write1, #slbuff+1       ' Reset initial scanline buffer position
+        djnz            index,  #write          ' Repeat for all scanline segments
+        movd            write,  #slbuff         ' Reset initial scanline buffer position
         add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
         if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
@@ -335,10 +331,11 @@ tldcall call            #tld
 shlcall shl             curpt,  #4
 
 ' Video attributes
-maxHor      long    512                         ' Maximum horizontal position
-maxVis      long    319                         ' Maximum visible horizontal position
-numLines    long    240                         ' Number of rendered scanlines
-numTiles    long    system#VID_BUFFER_SIZE/2    ' Number of tiles per scanline
+maxHor      long    512 ' Maximum horizontal position
+maxVis      long    319 ' Maximum visible horizontal position
+numLines    long    240 ' Number of rendered scanlines
+numSegs     long    80  ' Number of scanline segments
+numTiles    long    40  ' Number of tiles per scanline
 
 ' Main RAM pointers
 semptr      long    4   ' Pointer to location of semaphore in Main RAM w/ offset
