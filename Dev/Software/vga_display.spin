@@ -33,17 +33,18 @@ vga
         rdlong          datptr, par             ' Load data indicator location
         rdlong          clptr,  clptr           ' Load current scanline memory location
         rdlong          vbptrs, vbptrs          ' Load video buffer memory location
+        mov             initvb, vbptrs
         mov             cursl,  #0              ' Initialize current scanline
         wrlong          cursl,  clptr           ' Set initial scanline in Main RAM
-        mov             lidx,   #2              ' Initialize line pointer
         mov             scnptr, numSegs         ' Initialize segment pointer
 
         ' Generate scancode               
-:rdlng  mov             scancode+0, iR          ' Move rdlong instruction
-:wvid   mov             scancode+1, iW          ' Move waitvid instruction
+:rdlng  mov             sc+0,   iR              ' Move rdlong instruction
+:wvid   mov             sc+1,   iW              ' Move waitvid instruction
         add             :rdlng, d1              ' Increment next rdlong instruction move
         add             :wvid,  d1              ' Increment next waitvid instruction move
-        add             iR,     #1              ' Increment next memory location
+        add             iR,     d0s0            ' Increment next memory location
+        add             iW,     d0              ' Increment next memory location
 :vmmov  mov             vbptrs+1, vbptrs+0      ' Copy memory location to next
 :vminc  add             vbptrs+1, #4            ' Increment Main RAM location
         add             :vmmov, d0s0            ' Increment next Main RAM move
@@ -123,17 +124,9 @@ video   or              outa,   vspin           ' Drive vertical sync signal pin
         ' Display active video
 nextsl  add             cursl,  #1              ' Increment current scanline
 active  mov             vscl,   visScale        ' Set video scale for visible video
-        jmp             #scancode               ' Display line
-scanret djnz            lidx,   #active         ' Display same line twice
-        cmp             cursl,  numLines wz     ' Check if at bottom of screen
-        if_z  mov       cursl,  #0              ' Reset current scanline
-        wrlong          cursl,  clptr           ' Set current scanline in Main RAM
-        mov             lidx,   #2              ' Reset line pointer
-        if_nz jmp       #nextsl                 ' Continue displaying remaining scanlines
-        jmp             #video                  ' Return to start of display
 
-' Scancode resources
-scancode      long      0[80*2]                 ' Buffer containing display scancode
+        ' Display scanline first time
+sc      long            0[80*2]                 ' Buffer containing display scancode
         mov             vscl,   fphScale        ' Set video generator scale to half front porch
         waitvid         sColor, pixel0          ' Display first half of front porch
         or              outa,   syncpin         ' Take control of sync pins from video generator
@@ -147,9 +140,46 @@ scancode      long      0[80*2]                 ' Buffer containing display scan
         or              outa,   syncpin         ' Take sync pin control back from video generator
         waitvid         sColor, pixel0          ' Display second half of back porch
         mov             vcfg,   ColCfg          ' Set video configuration to control color pins
-        jmp             #scanret                ' Return to rest of display
-iR      rdlong          pixels, vbptrs+0        ' Load next pixels
-iW      waitvid         pixels, #%%3210         ' Display pixels
+
+        ' Update target scanline in main RAM
+        cmp             cursl,  numLines wz     ' Check if at bottom of screen
+        if_z  mov       cursl,  #0              ' Reset current scanline
+        wrlong          cursl,  clptr           ' Set current scanline in Main RAM
+
+        ' Display scanline second time
+        mov             vscl,   visScale        ' Set video scale for visible video
+        mov             temp,   initvb          ' scanline hub address
+        mov             ecnt,   numSegs
+        movd            :loop,  #vbptrs+0
+        movd            :patch, #vbptrs+0
+:loop   waitvid         vbptrs+0, #%%3210
+        add             $-1,    d0
+:patch  mov             vbptrs+0, temp          ' restore address array
+        add             $-1,    d0
+        add             temp,   #4 
+    
+        djnz            ecnt,   #:loop
+
+        mov             vscl,   fphScale        ' Set video generator scale to half front porch
+        waitvid         sColor, pixel0          ' Display first half of front porch
+        or              outa,   syncpin         ' Take control of sync pins from video generator
+        mov             vcfg,   SyncCfg         ' Set video configuration to control sync pins
+        waitvid         sColor, pixel3          ' Display second half of front porch
+        andn            outa,   syncpin         ' Hand sync pin control to video generator
+        mov             vscl,   hsScale         ' Set video generator scale to horizontal sync
+        waitvid         sColor, pixel2          ' Display horizontal sync
+        mov             vscl,   bphScale        ' Set video generator scale to half back porch
+        waitvid         sColor, pixel3          ' Display first half of back porch
+        or              outa,   syncpin         ' Take sync pin control back from video generator
+        waitvid         sColor, pixel0          ' Display second half of back porch
+        mov             vcfg,   ColCfg          ' Set video configuration to control color pins
+
+        if_nz jmp       #nextsl                 ' Continue displaying remaining scanlines
+        jmp             #video                  ' Return to start of display
+
+' Scancode resources
+iR      rdlong          vbptrs+0, vbptrs+0      ' Load next pixels
+iW      waitvid         vbptrs+0, #%%3210       ' Display pixels
 
 ' Config values
 vgapin        long      |< 16 | |< 17 | |< 18 | |< 19 | |< 20 | |< 21 | |< 22 | |< 23                   ' VGA output pins
@@ -189,14 +219,16 @@ dataSig       long      15                      ' Back porch scanline to signal 
 datptr        long      0                       ' Pointer to location of data indicator
 clptr         long      4                       ' Pointer to location of current scanline in Main RAM
 vbptrs        long      8[80]                   ' Buffer containing Main RAM video buffer memory locations
+initvb        long      0                       ' Buffer containing initial Main RAM video buffer memory location
 
 ' Frame indexes
-lidx          res       1       ' Current line being rendered
 vidx          res       1       ' Current vertical sync line being rendered
 
 ' Other values
 scnptr        res       1       ' Pointer to current scancode section being generated
 cursl         res       1       ' Container for current scanline
 pixels        res       1       ' Container for currently rendering pixels
+temp        res       1       ' Container for currently rendering pixels
+ecnt        res         1
 
         fit
