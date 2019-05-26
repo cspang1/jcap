@@ -80,6 +80,6 @@
 <p>The following individuals have contributed to JCAP:</p>
 
 <ul>
-  <li>Connor Spangler (cspang1): cspang1@vt.edu</li>
+  <li>Connor Spangler (cspang1)</li>
   <li>Marko Lukat (konimaru)</li>
 </ul>
