@@ -97,7 +97,7 @@ slgen   'Calculate tile map line memory location
         and             verpos, vpmask                          ' Mask out vertical position
         mov             possl,  cursl
         add             possl,  verpos
-        cmpsub          possl,  numLines
+        cmpsub          possl,  numMemLines
         mov             tmindx, possl   ' Initialize tile map index
         shr             tmindx, #3      ' tmindx = floor(cursl/8)
         mov             temp,   tmindx  ' Store tile map index into temp variable
@@ -350,6 +350,7 @@ shlcall shl             curpt,  #4
 maxHor      long    512 ' Maximum horizontal position
 maxVis      long    319 ' Maximum visible horizontal position
 numLines    long    240 ' Number of rendered scanlines
+numMemLines long    272 ' Number of scanlines in memory
 numSegs     long    80  ' Number of scanline segments
 numTiles    long    40  ' Number of tiles per scanline
 

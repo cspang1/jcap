@@ -6,7 +6,7 @@ CON
     VIS_TILE_MAP_WIDTH = 40         ' Number of visible horizontal tiles in tile map
     VIS_TILE_MAP_HEIGHT = 30        ' Number of visible vertical tiles in tile map
     MEM_TILE_MAP_WIDTH = 56         ' Number of visible horizontal tiles in tile map
-    MEM_TILE_MAP_HEIGHT = 30        ' Number of visible vertical tiles in tile map
+    MEM_TILE_MAP_HEIGHT = 34        ' Number of visible vertical tiles in tile map
     NUM_TILE_PALETTES = 5           ' Number of tile palettes
     NUM_SPRITE_PALETTES = 3         ' Number of sprite palettes
 
