@@ -92,7 +92,13 @@ render
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
 slgen   'Calculate tile map line memory location
-        mov             tmindx, cursl   ' Initialize tile map index
+        rdlong          horpos, hspptr                          ' Retrieve horizontal screen position
+        mov             verpos, horpos                          ' Load position into vertical position
+        and             verpos, vpmask                          ' Mask out vertical position
+        mov             possl,  cursl
+        add             possl,  verpos
+        cmpsub          possl,  numLines
+        mov             tmindx, possl   ' Initialize tile map index
         shr             tmindx, #3      ' tmindx = floor(cursl/8)
         mov             temp,   tmindx  ' Store tile map index into temp variable
         shl             tmindx, #3      ' x8
@@ -103,7 +109,6 @@ slgen   'Calculate tile map line memory location
 
         ' Calculate initial tile offset and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
-        rdlong          horpos, hspptr                          ' Retrieve horizontal screen position
         shr             horpos, #16                             ' Align horizontal position w/ LSB
         mov             temp,   horpos                          ' Store horizontal screen position in temp variable
         shr             temp,   #3                              ' temp = floor(horpos/8)
@@ -328,7 +333,7 @@ tld     djnz            remtil, #:next          ' Check if need to wrap to begin
         shr             cpindx, #8              ' Isolate color palette index of map tile
         shl             cpindx, #4              ' cpindx *= 16
         add             cpindx, tcpptr          ' cpindx += tcpptr
-        mov             phsb,   cursl           ' Initialize tile palette index
+        mov             phsb,   possl           ' Initialize tile palette index
         and             phsb,   #7              ' tpindx %= 8
         shl             phsb,   #2              ' tpindx *= 4
         shl             curmt,  #5              ' tilePaletteIndex *= 32
@@ -367,6 +372,7 @@ d0          long    1 << 9                  ' Value to increment destination reg
 d1          long    1 << 10                 ' Value to increment destination register
 i2s7        long    2 << 23 | 7             ' Value to summon Cthullu
 pxmask      long    $FFFFFF00               ' Mask for pixels in scanline buffer
+vpmask      long    $FFFF                   ' Mask for vertical game world position
 ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile load logic
             long    px3, px2, px1, px0
 
@@ -391,10 +397,12 @@ spindx      res     1   ' Container for number of rendered sprites on current sc
 
 ' Other pointers
 horpos      res     1   ' Container for current horizontal screen position
+verpos      res     1   ' Container for current vertical screen position
 initti      res     1   ' Container for current row's initial tile
 remtil      res     1   ' Container for remaining number of tiles to render before wrapping
 initsl      res     1   ' Container for initial scanline
 cursl       res     1   ' Container for current cog scanline
+possl       res     1   ' Container for current psotion scanline
 curvb       res     1   ' Container for current video buffer Main RAM location being written
 index       res     1   ' Container for temporary index
 pxbuf1      res     1   ' Container for temporary pixel buffer
