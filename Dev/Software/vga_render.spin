@@ -92,20 +92,20 @@ render
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
 slgen   'Calculate tile map line memory location
-        rdlong          horpos, hspptr                          ' Retrieve horizontal screen position
-        mov             verpos, horpos                          ' Load position into vertical position
-        and             verpos, vpmask                          ' Mask out vertical position
-        mov             possl,  cursl
-        add             possl,  verpos
-        cmpsub          possl,  numMemLines
-        mov             tmindx, possl   ' Initialize tile map index
-        shr             tmindx, #3      ' tmindx = floor(cursl/8)
-        mov             temp,   tmindx  ' Store tile map index into temp variable
-        shl             tmindx, #3      ' x8
-        sub             tmindx, temp    ' x7
-        shl             tmindx, #4      ' x112
-        add             tmindx, tmptr   ' tmindx = tmptr + (cursl/8)*112
-        mov             initti, tmindx  ' Store initial row tile location
+        rdlong          horpos, hspptr      ' Retrieve horizontal screen position
+        mov             verpos, horpos      ' Load position into vertical position
+        and             verpos, vpmask      ' Mask out vertical position
+        mov             possl,  cursl       ' Store current scanline into position scanline
+        add             possl,  verpos      ' Calculate net vertical position
+        cmpsub          possl,  numMemLines ' Compensate for wrapping
+        mov             tmindx, possl       ' Initialize tile map index
+        shr             tmindx, #3          ' tmindx = floor(cursl/8)
+        mov             temp,   tmindx      ' Store tile map index into temp variable
+        shl             tmindx, #3          ' x8
+        sub             tmindx, temp        ' x7
+        shl             tmindx, #4          ' x112
+        add             tmindx, tmptr       ' tmindx = tmptr + (cursl/8)*112
+        mov             initti, tmindx      ' Store initial row tile location
 
         ' Calculate initial tile offset and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
@@ -347,12 +347,12 @@ tldcall call            #tld
 shlcall shl             curpt,  #4
 
 ' Video attributes
-maxHor      long    512 ' Maximum horizontal position
-maxVis      long    319 ' Maximum visible horizontal position
-numLines    long    240 ' Number of rendered scanlines
-numMemLines long    272 ' Number of scanlines in memory
-numSegs     long    80  ' Number of scanline segments
-numTiles    long    40  ' Number of tiles per scanline
+maxHor      long    system#MAX_MEM_HOR_POS      ' Maximum horizontal position
+maxVis      long    system#MAX_VIS_HOR_POS-1    ' Maximum visible horizontal position
+numLines    long    system#MAX_VIS_VER_POS      ' Number of rendered scanlines
+numMemLines long    system#MAX_MEM_VER_POS      ' Number of scanlines in memory
+numSegs     long    system#VID_BUFFER_SIZE      ' Number of scanline segments
+numTiles    long    system#VIS_TILE_MAP_WIDTH   ' Number of tiles per scanline
 
 ' Main RAM pointers
 semptr      long    4   ' Pointer to location of semaphore in Main RAM w/ offset
