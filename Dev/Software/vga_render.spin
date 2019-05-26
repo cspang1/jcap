@@ -104,6 +104,7 @@ slgen   'Calculate tile map line memory location
         ' Calculate initial tile offset and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
         rdlong          horpos, hspptr                          ' Retrieve horizontal screen position
+        shr             horpos, #16                             ' Align horizontal position w/ LSB
         mov             temp,   horpos                          ' Store horizontal screen position in temp variable
         shr             temp,   #3                              ' temp = floor(horpos/8)
         mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' Load pre-incremented width of tile map in memory

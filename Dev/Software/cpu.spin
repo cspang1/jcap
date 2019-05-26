@@ -64,64 +64,74 @@ PUB main | time,trans,cont,temp,x,y
     ' Main game loop
     repeat
         waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
-        trans := constant(system#GFX_BUFFER_SIZE << 16) | @h_pos{0}            ' register send request
-        left_right((control_state >> 7) & %10100000)
-        up_down((control_state >> 7) & %01010000)
+        trans := constant(system#GFX_BUFFER_SIZE << 16) | @world_pos{0}            ' register send request
+        x := (word[@control_state][0] >> 7) & %10100000
+        y := (word[@control_state][0] >> 7) & %01010000
+        if x == %10000000 or x == %00100000
+            left_right(x)
+        if y == %01000000 or y == %00010000
+            up_down(y)
         cont := tilt_state
         if (tilt_state & 1) == 0
             longfill(@sprite_atts, 0, system#NUM_SPRITES)
 
 pri left_right(x_but) | x,dir,mir,temp,xsp
-    if x_but == %10000000 OR x_but == %00100000
-        longmove(@x, @sprite_atts, 1)
-        temp := x & %00000000000000000111111111111011
-        dir := 1 << 24
-        x >>= 15
-        x &= %111111111
-        if x_but == %10000000
-            mir := 0
-            x := (x + 1) & %111111111
-            xsp := long[@h_pos][0]
-            if xsp == 447
-                long[@h_pos][0] := 0
-            else
-                long[@h_pos][0] := xsp + 1
-        if x_but == %00100000
-            mir := 1 << 2
-            x := (x - 1) & %111111111
-            xsp := long[@h_pos][0]
-            if xsp == 0
-                long[@h_pos][0] := 447
-            else
-                long[@h_pos][0] := xsp - 1
-        if x == 320
-            x := 505
-        elseif x == 504
-            x := 319
-        x <<= 15
-        temp |= (x | mir | dir)
-        longmove(@sprite_atts, @temp, 1)
+    x := long[@sprite_atts][0]
+    temp := x & %00000000000000000111111111111011
+    dir := 1 << 24
+    x >>= 15
+    x &= %111111111
+    xsp := long[@world_pos][0] >> 16
+    if x_but == %10000000
+        mir := 0
+        x := (x + 1) & %111111111
+        if xsp == 447
+            long[@world_pos][0] &= $FFFF
+        else
+            long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | ((xsp + 1) << 16)
+    if x_but == %00100000
+        mir := 1 << 2
+        x := (x - 1) & %111111111
+        if xsp == 0
+            long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | (447 << 16)
+        else
+            long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | ((xsp - 1) << 16)
+    if x == 320
+        x := 505
+    elseif x == 504
+        x := 319
+    x <<= 15
+    temp |= (x | mir | dir)
+    longmove(@sprite_atts, @temp, 1)
 
-pri up_down(y_but) | y,dir,mir,temp
-    if y_but == %01000000 OR y_but == %00010000
-        longmove(@y, @sprite_atts, 1)
-        temp := y & %00000000111111111000000001110111
-        dir := 0 << 24
-        y >>= 7
-        y &= %11111111
-        if y_but == %01000000
-            mir := 1 << 3
-            y := (y + 1) & %11111111
-        if y_but == %00010000
-            mir := 0
-            y := (y - 1) & %11111111
-        if y == 240
-            y := 249
-        elseif y == 248
-            y := 239
-        y <<= 7
-        temp |= (y | mir | dir)
-        longmove(@sprite_atts, @temp, 1)
+pri up_down(y_but) | y,dir,mir,temp,ysp
+    y := long[@sprite_atts][0]
+    temp := y & %00000000111111111000000001110111
+    dir := 0 << 24
+    y >>= 7
+    y &= %11111111
+    ysp := long[@world_pos][0] & $FFFF
+    if y_but == %01000000
+        mir := 1 << 3
+        y := (y + 1) & %11111111
+        if ysp == 239
+            long[@world_pos][0] &= ($FFFF << 16)
+        else
+            long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | (ysp + 1)
+    if y_but == %00010000
+        mir := 0
+        y := (y - 1) & %11111111
+        if ysp == 0
+            long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | 239
+        else
+            long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | (ysp - 1)
+    if y == 240
+        y := 249
+    elseif y == 248
+        y := 239
+    y <<= 7
+    temp |= (y | mir | dir)
+    longmove(@sprite_atts, @temp, 1)
 
 DAT
 input_states
@@ -129,7 +139,7 @@ input_states
 control_state   word    0   ' Control states
 tilt_state      word    0   ' Tilt shift state
 
-h_pos   long    0   ' Screen position in tile map
+world_pos       long    0   ' Position in tile map (x[31:16]|y[15:0])
 
 tile_color_palettes
             ' Tile color palettes
