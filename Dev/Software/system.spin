@@ -9,7 +9,6 @@ CON
     MEM_TILE_MAP_HEIGHT = 34                        ' Number of visible vertical tiles in tile map
     NUM_TILE_PALETTES = 5                           ' Number of tile palettes
     NUM_SPRITE_PALETTES = 3                         ' Number of sprite palettes
-    MAX_SPR_REN = 16                                ' Number of maximum sprites on a scanline
     SPR_SZ_S = 8                                    ' Number of pixels wide/tall for small sprites
     SPR_SZ_L = 16                                   ' Number of pixels wide/tall for large sprites
     VID_BUFFER_SIZE = 80                            ' Number of scanline segments in video buffer

@@ -191,7 +191,6 @@ shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         ' Render sprites
         mov             index,  #system#SAT_SIZE    ' Initialize size of sprite attribute table
         mov             tmindx, satptr              ' Initialize sprite attribute table index
-        mov             spindx, #0                  ' Initialize number of rendered sprites on this scanline
 
 sprites ' Load sprite attributes
         rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
@@ -267,9 +266,6 @@ sprites ' Load sprite attributes
 :slbput mov             0-0,    tmpslb                  ' Re-store target scanline buffer segment
 :trans  shr             curpt,  #4                      ' Shift palette line right 4 bits to next pixel
         djnz            findx,  #:sprite                ' Repeat for all pixels on sprite palette line
-        add             spindx, #1                      ' Increment rendered sprite counter
-        cmp             spindx, #system#MAX_SPR_REN wz  ' Check if max rendered sprites reached
-        if_z  jmp       #maxsp                          ' If max sprites reached skip rest of sprites
 :skip   add             tmindx, #4                      ' Increment pointer to next sprite in SAT
         djnz            index,  #sprites                ' Repeat for all sprites in SAT
 
@@ -369,7 +365,6 @@ curcp       res     1   ' Current color palette
 spxpos      res     1   ' Sprite horizontal position
 spypos      res     1   ' Sprite vertical position
 spyoff      res     1   ' Sprite vertical pixel palette offset
-spindx      res     1   ' Container for number of rendered sprites on current scanline
 
 ' Other pointers
 horpos      res     1   ' Container for current horizontal screen position
