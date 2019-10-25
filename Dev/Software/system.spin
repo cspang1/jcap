@@ -12,12 +12,12 @@ CON
 
     ' Display system attributes
     GFX_BUFFER_SIZE = 1+((MEM_TILE_MAP_WIDTH*MEM_TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+NUM_SPRITES*4)/4   ' Number of LONGs in graphics resources buffer
-    VID_BUFFER_SIZE = 80                                                                                                                    ' Number of scanline segments in video buffer
-    MAX_VIS_HOR_POS = VIS_TILE_MAP_WIDTH * 8
-    MAX_MEM_HOR_POS = MEM_TILE_MAP_WIDTH * 8
-    MAX_VIS_VER_POS = VIS_TILE_MAP_HEIGHT * 8
-    MAX_MEM_VER_POS = MEM_TILE_MAP_HEIGHT * 8
-    MAX_SPR_HOR_POS = 512
-    MAX_SPR_VER_POS = 256
+    VID_BUFFER_SIZE = 80                            ' Number of scanline segments in video buffer
+    MAX_VIS_HOR_POS = VIS_TILE_MAP_WIDTH * 8 + 16   ' Max visible horizontal position, accounting for 16 px wrap buffer left side of screen
+    MAX_MEM_HOR_POS = MEM_TILE_MAP_WIDTH * 8        ' Max screen horizontal position in memory
+    MAX_VIS_VER_POS = VIS_TILE_MAP_HEIGHT * 8       ' Max visible vertical position
+    MAX_MEM_VER_POS = MEM_TILE_MAP_HEIGHT * 8       ' Max screen horizontal position in memory
+    MAX_SPR_HOR_POS = 512                           ' Max horizontal sprite position in memory
+    MAX_SPR_VER_POS = 256                           ' Max vertical sprite position in memory
 
 PUB null

@@ -13,7 +13,7 @@ CON
     maxSprRen = 16      ' Maximum number of sprites rendered per scanline
     sprSzX = 8          ' Horizontal size of sprites
     sprSzY = 8          ' Vertical size of sprites
-    buff_size = system#VID_BUFFER_SIZE+2
+    buff_size = system#VID_BUFFER_SIZE+8
 
 OBJ
     system: "system"    ' Import system settings
@@ -189,14 +189,14 @@ px6     shl             curpt,  #4      ' Shift palette tile left 4 bits
 px7     shl             curpt,  #4      ' Shift palette tile left 4 bits
 
         ' Store tile pixels
-shbuf1  mov             slbuff+0, pxbuf1    'Allocate space for color
+shbuf1  mov             slbuff+4, pxbuf1    'Allocate space for color
         add             shbuf1, d1          ' Increment scanline buffer OR position
-shbuf2  mov             slbuff+1, pxbuf2    ' Allocate space for color
+shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         add             shbuf2, d1          ' Increment scanline buffer OR position
 
         djnz            index , #tile       ' Repeat for all tiles in scanline
-        movd            shbuf1, #slbuff+0   ' Reset shbuf destination address
-        movd            shbuf2, #slbuff+1   ' Reset shbuf destination address
+        movd            shbuf1, #slbuff+4   ' Reset shbuf destination address
+        movd            shbuf2, #slbuff+5   ' Reset shbuf destination address
 
         ' Render sprites
         mov             index,  #numSprites ' Initialize size of sprite attribute table
@@ -304,8 +304,8 @@ gettsl  rdlong          temp,   cslptr      ' Read target scanline index from Ma
         if_nz jmp       #gettsl             ' If not, re-read target scanline
 
         ' Write scanline buffer to video buffer in Main RAM
-        movd            long0,  #ptr-3                      ' last long in cog buffer
-        movd            long1,  #ptr-4                      ' second-to-last long in cog buffer
+        movd            long0,  #ptr-5                      ' last long in cog buffer
+        movd            long1,  #ptr-6                      ' second-to-last long in cog buffer
         add             ptr,    #system#VID_BUFFER_SIZE*4-1 ' last byte in hub buffer (8n + 7)
         movi            ptr,    #system#VID_BUFFER_SIZE-2   ' add magic marker
 long0   wrlong          0-0,    ptr                         ' |

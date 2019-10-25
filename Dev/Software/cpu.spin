@@ -96,10 +96,10 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
             long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | (447 << 16)
         else
             long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | ((xsp - 1) << 16)
-    if x == 320
+    if x == 336
         x := 9
     elseif x == 8
-        x := 319
+        x := 335
     x <<= 15
     temp |= (x | mir | dir)
     longmove(@sprite_atts, @temp, 1)
