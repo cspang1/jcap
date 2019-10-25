@@ -138,12 +138,42 @@ sprite_rock   long      $0_0_0_0_0_0_0_0        ' Sprite 1
               long      $1_1_1_0_0_0_0_0
               long      $6_6_0_0_0_0_0_0
 
-              ' Blank sprite
-sprite_blank  long      $5_5_5_5_5_5_5_5        ' Sprite 2
-              long      $F_F_F_F_F_F_F_F
-              long      $4_4_4_4_4_4_4_4
-              long      $F_F_F_F_F_F_F_F
-              long      $6_6_6_6_6_6_6_6
-              long      $F_F_F_F_F_F_F_F
-              long      $8_8_8_8_8_8_8_8
-              long      $F_F_F_F_F_F_F_F
+              ' Mario top left sprite
+mario_tl      long      $0_0_0_0_0_1_1_1        ' Sprite 2
+              long      $0_0_0_0_1_1_1_1
+              long      $0_0_0_0_2_2_2_3
+              long      $0_0_0_2_3_2_3_3
+              long      $0_0_0_2_3_2_2_3
+              long      $0_0_0_2_2_3_3_3
+              long      $0_0_0_0_0_3_3_3
+              long      $0_0_0_0_2_2_1_2
+
+              ' Mario top right sprite
+mario_tr      long      $1_1_0_0_0_0_0_0        ' Sprite 3
+              long      $1_1_1_1_1_0_0_0
+              long      $3_2_3_0_0_0_0_0
+              long      $3_2_3_3_3_0_0_0
+              long      $3_3_2_3_3_3_0_0
+              long      $3_2_2_2_2_0_0_0
+              long      $3_3_3_3_0_0_0_0
+              long      $2_2_0_0_0_0_0_0
+
+              ' Mario bottom left sprite
+mario_bl      long      $0_0_0_2_2_2_1_2        ' Sprite 4
+              long      $0_0_2_2_2_2_1_1
+              long      $0_0_3_3_2_1_3_1
+              long      $0_0_3_3_3_1_1_1
+              long      $0_0_3_3_1_1_1_1
+              long      $0_0_0_0_1_1_1_0
+              long      $0_0_0_2_2_2_0_0
+              long      $0_0_2_2_2_2_0_0
+
+              ' Mario bottom right sprite
+mario_br      long      $2_1_2_2_2_0_0_0        ' Sprite 5
+              long      $1_1_2_2_2_2_0_0
+              long      $1_3_1_2_3_3_0_0
+              long      $1_1_1_3_3_3_0_0
+              long      $1_1_1_1_3_3_0_0
+              long      $0_1_1_1_0_0_0_0
+              long      $0_0_2_2_2_0_0_0
+              long      $0_0_2_2_2_2_0_0
