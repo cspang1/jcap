@@ -37,18 +37,18 @@ VAR
 
 PUB main | rx1, rx2
     ' Initialize graphics system pointers
-    gfx_buffer_base_ := @gfx_buff                                                 ' Point graphics buffer base to graphics buffer
-    gfx_buffer_size_ := system#GFX_BUFFER_SIZE                                           ' Set the size of the graphics resources buffer
-    cur_scanline_base_ := @cur_scanline                                           ' Point current scanline base to current scanline
-    data_ready_base_ := @data_ready                                               ' Point data ready base to data ready indicator
-    scanline_buff_base_ := @scanline_buff                                         ' Point video buffer base to video buffer
-    horizontal_position_ := gfx_buffer_base_                                      ' Point tile color palette base to base of tile color palettes
-    tcolor_palette_base_ := horizontal_position_ + 4                                      ' Point tile color palette base to base of tile color palettes
-    scolor_palette_base_ := tcolor_palette_base_+system#NUM_TILE_COLOR_PALETTES*4*4      ' Point sprite color palette base to base of sprite color palettes
-    sprite_att_base_ := scolor_palette_base_+system#NUM_SPRITE_COLOR_PALETTES*4*4        ' Point sprite attribute table base to base of sprite attribute table
-    tile_map_base_ := sprite_att_base_+system#NUM_SPRITES*4                              ' Point tile map base to base of tile maps
-    tile_palette_base_ := @tile_palettes                                          ' Point tile palette base to base of tile palettes
-    sprite_palette_base_ := @sprite_palettes                                      ' Point sprite palette base to base of sprite palettes
+    gfx_buffer_base_ := @gfx_buff                                                   ' Point graphics buffer base to graphics buffer
+    gfx_buffer_size_ := system#GFX_BUFFER_SIZE                                      ' Set the size of the graphics resources buffer
+    cur_scanline_base_ := @cur_scanline                                             ' Point current scanline base to current scanline
+    data_ready_base_ := @data_ready                                                 ' Point data ready base to data ready indicator
+    scanline_buff_base_ := @scanline_buff                                           ' Point video buffer base to video buffer
+    horizontal_position_ := gfx_buffer_base_                                        ' Point tile color palette base to base of tile color palettes
+    tcolor_palette_base_ := horizontal_position_ + 4                                ' Point tile color palette base to base of tile color palettes
+    scolor_palette_base_ := tcolor_palette_base_+system#NUM_TILE_COLOR_PALETTES*4*4 ' Point sprite color palette base to base of sprite color palettes
+    sprite_att_base_ := scolor_palette_base_+system#NUM_SPRITE_COLOR_PALETTES*4*4   ' Point sprite attribute table base to base of sprite attribute table
+    tile_map_base_ := sprite_att_base_+system#SAT_SIZE*4                            ' Point tile map base to base of tile maps
+    tile_palette_base_ := @tile_palettes                                            ' Point tile palette base to base of tile palettes
+    sprite_palette_base_ := @sprite_palettes                                        ' Point sprite palette base to base of sprite palettes
 
     ' Start subsystems
     rx1 := constant(NEGX|0)

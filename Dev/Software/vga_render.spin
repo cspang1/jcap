@@ -6,21 +6,12 @@
                   to be displayed by the vga_display routine
 }}
 
-CON
-    ' Graphics system attributes
-    numRenderCogs = 6   ' Number of cogs used for rendering
-    numSprites = 64     ' Number of sprites in the sprite attribute table
-    maxSprRen = 16      ' Maximum number of sprites rendered per scanline
-    sprSzX = 8          ' Horizontal size of sprites
-    sprSzY = 8          ' Vertical size of sprites
-    buff_size = system#VID_BUFFER_SIZE+8
-
 OBJ
     system: "system"    ' Import system settings
 
 VAR
     ' Cog attributes
-    long    cog_[numRenderCogs] ' Array containing IDs of rendering cogs
+    long    cog_[system#NUM_REN_COGS] ' Array containing IDs of rendering cogs
 
     ' Graphics system attributes
     long    var_addr_base_  ' Variable for pointer to base address of Main RAM variables
@@ -37,16 +28,16 @@ PUB start(varAddrBase) | cIndex ' Function to start renderer with pointer to Mai
     ' Create cog semaphore
     cog_sem_ := locknew ' Create new lock
 
-    repeat cIndex from 0 to numRenderCogs - 2                       ' Iterate over cogs
+    repeat cIndex from 0 to system#NUM_REN_COGS - 2                 ' Iterate over cogs
         ifnot cog_[cIndex] := cognew(@render, @var_addr_base_) + 1  ' Initialize cog running "render" routine with reference to start of variables
             stop                                                    ' Stop render cogs if running
 
     coginit(COGID, @render, @var_addr_base_)    ' Start final render cog in cog 0
 
-PUB stop | cIndex                               ' Function to stop VGA driver
-    repeat cIndex from 0 to numRenderCogs - 1   ' Loop through cogs
-        if cog_[cIndex]                         ' If cog is running
-            cogstop(cog_[cIndex]~ - 1)          ' Stop the cog
+PUB stop | cIndex                                   ' Function to stop VGA driver
+    repeat cIndex from 0 to system#NUM_REN_COGS - 1 ' Loop through cogs
+        if cog_[cIndex]                             ' If cog is running
+            cogstop(cog_[cIndex]~ - 1)              ' Stop the cog
 
 DAT
         org             0
@@ -193,15 +184,14 @@ shbuf1  mov             slbuff+4, pxbuf1    'Allocate space for color
         add             shbuf1, d1          ' Increment scanline buffer OR position
 shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         add             shbuf2, d1          ' Increment scanline buffer OR position
-
         djnz            index , #tile       ' Repeat for all tiles in scanline
         movd            shbuf1, #slbuff+4   ' Reset shbuf destination address
         movd            shbuf2, #slbuff+5   ' Reset shbuf destination address
 
         ' Render sprites
-        mov             index,  #numSprites ' Initialize size of sprite attribute table
-        mov             tmindx, satptr      ' Initialize sprite attribute table index
-        mov             spindx, #0          ' Initialize number of rendered sprites on this scanline
+        mov             index,  #system#SAT_SIZE    ' Initialize size of sprite attribute table
+        mov             tmindx, satptr              ' Initialize sprite attribute table index
+        mov             spindx, #0                  ' Initialize number of rendered sprites on this scanline
 
 sprites ' Load sprite attributes
         rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
@@ -211,7 +201,7 @@ sprites ' Load sprite attributes
         mov             spypos, temp        ' Store sprite vertical position        
 
         ' Check if sprite is on scanline vertically
-        add             temp,   #SprSzY-1                   ' Calculate sprite vertical position upper bound
+        add             temp,   #system#SPR_SZ_S-1          ' Calculate sprite vertical position upper bound
         cmp             temp,   cursl wc                    ' Check sprite upper bound
         if_nc cmp       cursl,  spypos wc                   ' Check sprite lower bound
         if_nc jmp       #:contx                             ' Check sprite horizontally within scanline
@@ -220,11 +210,11 @@ sprites ' Load sprite attributes
         if_nc jmp       #:skip                              ' Skip sprite
 
         ' Calculate vertical sprite pixel palette offset
-        mov             spyoff, #SprSzY-1   ' Copy sprite vertical size to sprite vertical offset
-        sub             temp,   cursl       ' Subtract current scanline from sprite lower bound
-        sub             spyoff, temp        ' Subtract vertical sprite position from vertical sprite size
-:contx  if_nc mov       spyoff, cursl       ' Store current scanline into sprite offset
-        if_nc sub       spyoff, spypos      ' Subtract vertical sprite position from sprite offset
+        mov             spyoff, #system#SPR_SZ_S-1  ' Copy sprite vertical size to sprite vertical offset
+        sub             temp,   cursl               ' Subtract current scanline from sprite lower bound
+        sub             spyoff, temp                ' Subtract vertical sprite position from vertical sprite size
+:contx  if_nc mov       spyoff, cursl               ' Store current scanline into sprite offset
+        if_nc sub       spyoff, spypos              ' Subtract vertical sprite position from sprite offset
 
         ' Check if sprite is within scanline horizontally
         mov             spxpos, curmt       ' Copy sprite attributes to temp variable
@@ -235,53 +225,53 @@ sprites ' Load sprite attributes
         if_z_or_c jmp   #:skip              ' Skip sprite if invisible or out of bounds
 
         ' Retrieve sprite pixel palette line
-        mov             temp,   curmt       ' Copy sprite attributes to temp variable
-        shr             temp,   #24         ' Align sprite pixel palette attribute to LSB
-        shl             temp,   #5          ' Calculate sprite pixel palette Main RAM location offset
-        add             temp,   spptr       ' Calculate sprite pixel palette Main RAM base location
-        test            curmt,  #8 wz       ' Check sprite mirrored vertically
-        if_nz subs      spyoff, #SprSzY-1   ' If so calculate inverted offset...
-        if_nz abs       spyoff, spyoff      ' And calculate final absolute offset
-        shl             spyoff, #2          ' Calculate vertical sprite pixel palette offset
-        add             temp,   spyoff      ' Calculate final sprite pixel palette Main RAM location
-        rdlong          curpt,  temp        ' Load sprite pixel palette line from Main RAM
-        test            curmt,  #4 wc       ' Check sprite mirrored horizontally
-        sub             spxpos, #1          ' Pre-decrement horizontal sprite position
+        mov             temp,   curmt               ' Copy sprite attributes to temp variable
+        shr             temp,   #24                 ' Align sprite pixel palette attribute to LSB
+        shl             temp,   #5                  ' Calculate sprite pixel palette Main RAM location offset
+        add             temp,   spptr               ' Calculate sprite pixel palette Main RAM base location
+        test            curmt,  #8 wz               ' Check sprite mirrored vertically
+        if_nz subs      spyoff, #system#SPR_SZ_S-1  ' If so calculate inverted offset...
+        if_nz abs       spyoff, spyoff              ' And calculate final absolute offset
+        shl             spyoff, #2                  ' Calculate vertical sprite pixel palette offset
+        add             temp,   spyoff              ' Calculate final sprite pixel palette Main RAM location
+        rdlong          curpt,  temp                ' Load sprite pixel palette line from Main RAM
+        test            curmt,  #4 wc               ' Check sprite mirrored horizontally
+        sub             spxpos, #1                  ' Pre-decrement horizontal sprite position
 
         ' Retrieve sprite color palette
         and             curmt,  #112    ' Mask out color palette index * 16
         add             curmt,  scpptr  ' cpindx * 16 += scpptr
 
         ' Parse sprite pixel palette line
-        mov             findx,  #sprSzX         ' Store sprite horizontal size into index
-:sprite mov             temp,   curpt           ' Load current sprite pixel palette line into temp variable
-        and             temp,   #15 wz          ' Mask out current pixel
-        if_z  jmp       #:trans                 ' Skip if pixel is transparent
-        add             temp,   curmt           ' Calculate color palette offset
-        rdbyte          curcp,  temp            ' Load color
-        mov             temp,   spxpos          ' Store sprite horizontal position into temp variable
-        if_c add        temp,   #sprSzX+1       ' If so store sprite horizontal size into temp variable
-        sumc            temp,   findx           ' Calculate final offset
-        mov             slboff, temp            ' Store scanline buffer offset
-        shr             slboff, #2              ' slboff /= 4
-        add             slboff, #slbuff         ' slboff += @slbuff
-        movs            :slbget, slboff         ' Move target scanline buffer segment source
-        movd            :slbput, slboff         ' Move target scanline buffer segment destination
-        shl             temp,   #3              ' temp *= 8
-        shl             curcp,  temp            ' Shift pixel color to calculated pixel location
-:slbget mov             tmpslb, 0-0             ' Store target scanline buffer segment into temp variable
-        mov             slboff, pxmask          ' Temporarily store scanline buffer segment mask
-        rol             slboff, temp            ' Rotate mask to calculated pixel location
-        and             tmpslb, slboff          ' Mask away calculated pixel location
-        or              tmpslb, curcp           ' Insert pixel
-:slbput mov             0-0,    tmpslb          ' Re-store target scanline buffer segment
-:trans  shr             curpt,  #4              ' Shift palette line right 4 bits to next pixel
-        djnz            findx,  #:sprite        ' Repeat for all pixels on sprite palette line
-        add             spindx, #1              ' Increment rendered sprite counter
-        cmp             spindx, #maxSprRen wz   ' Check if max rendered sprites reached
-        if_z  jmp       #maxsp                  ' If max sprites reached skip rest of sprites
-:skip   add             tmindx, #4              ' Increment pointer to next sprite in SAT
-        djnz            index,  #sprites        ' Repeat for all sprites in SAT
+        mov             findx,  #system#SPR_SZ_S        ' Store sprite horizontal size into index
+:sprite mov             temp,   curpt                   ' Load current sprite pixel palette line into temp variable
+        and             temp,   #15 wz                  ' Mask out current pixel
+        if_z  jmp       #:trans                         ' Skip if pixel is transparent
+        add             temp,   curmt                   ' Calculate color palette offset
+        rdbyte          curcp,  temp                    ' Load color
+        mov             temp,   spxpos                  ' Store sprite horizontal position into temp variable
+        if_c add        temp,   #system#SPR_SZ_S+1      ' If so store sprite horizontal size into temp variable
+        sumc            temp,   findx                   ' Calculate final offset
+        mov             slboff, temp                    ' Store scanline buffer offset
+        shr             slboff, #2                      ' slboff /= 4
+        add             slboff, #slbuff                 ' slboff += @slbuff
+        movs            :slbget, slboff                 ' Move target scanline buffer segment source
+        movd            :slbput, slboff                 ' Move target scanline buffer segment destination
+        shl             temp,   #3                      ' temp *= 8
+        shl             curcp,  temp                    ' Shift pixel color to calculated pixel location
+:slbget mov             tmpslb, 0-0                     ' Store target scanline buffer segment into temp variable
+        mov             slboff, pxmask                  ' Temporarily store scanline buffer segment mask
+        rol             slboff, temp                    ' Rotate mask to calculated pixel location
+        and             tmpslb, slboff                  ' Mask away calculated pixel location
+        or              tmpslb, curcp                   ' Insert pixel
+:slbput mov             0-0,    tmpslb                  ' Re-store target scanline buffer segment
+:trans  shr             curpt,  #4                      ' Shift palette line right 4 bits to next pixel
+        djnz            findx,  #:sprite                ' Repeat for all pixels on sprite palette line
+        add             spindx, #1                      ' Increment rendered sprite counter
+        cmp             spindx, #system#MAX_SPR_REN wz  ' Check if max rendered sprites reached
+        if_z  jmp       #maxsp                          ' If max sprites reached skip rest of sprites
+:skip   add             tmindx, #4                      ' Increment pointer to next sprite in SAT
+        djnz            index,  #sprites                ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
 maxsp   mov             index,  numSegs     ' Initialize current scanline segment
@@ -303,34 +293,34 @@ long1   wrlong          0-0,    ptr                         ' |
         sub             long1,  d1                          ' |
         if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
 
-        add             cursl,  #numRenderCogs  ' Increment current scanline for next render
-        cmp             cursl,  numLines wc     ' Check if at bottom of screen
-        if_nc mov       cursl,  initsl          ' Reinitialize current scanline if so
-waitdat if_nc rdlong    temp,   datptr wz       ' Check if graphics resources ready
-        if_a  jmp       #waitdat                ' Wait for graphics resources to be ready
-        jmp             #slgen                  ' Generate next scanline
+        add             cursl,  #system#NUM_REN_COGS    ' Increment current scanline for next render
+        cmp             cursl,  numLines wc             ' Check if at bottom of screen
+        if_nc mov       cursl,  initsl                  ' Reinitialize current scanline if so
+waitdat if_nc rdlong    temp,   datptr wz               ' Check if graphics resources ready
+        if_a  jmp       #waitdat                        ' Wait for graphics resources to be ready
+        jmp             #slgen                          ' Generate next scanline
 
         ' Tile loading routine
-tld     djnz            remtil, #:next          ' Check if need to wrap to beginning
-        if_z mov        tmindx, initti          ' If so wrap to beginning
-:next   rdword          curmt,  tmindx          ' Load current map tile from Main RAM
-        mov             cpindx, curmt           ' Store map tile into color palette index
-        and             curmt,  #255            ' Isolate palette tile index of map tile
-        shr             cpindx, #8              ' Isolate color palette index of map tile
-        shl             cpindx, #4              ' cpindx *= 16
-        add             cpindx, tcpptr          ' cpindx += tcpptr
-        mov             phsb,   possl           ' Initialize tile palette index
-        and             phsb,   #7              ' tpindx %= 8
-        shl             phsb,   #2              ' tpindx *= 4
-        shl             curmt,  #5              ' tilePaletteIndex *= 32
-        add             phsb,   curmt           ' tpindx += paletteTileIndex
-        rdlong          curpt,  phsb            ' Load current palette tile from Main RAM
-        add             tmindx, #2              ' Increment pointer to tile in tile map
+tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
+        if_z mov        tmindx, initti  ' If so wrap to beginning
+:next   rdword          curmt,  tmindx  ' Load current map tile from Main RAM
+        mov             cpindx, curmt   ' Store map tile into color palette index
+        and             curmt,  #255    ' Isolate palette tile index of map tile
+        shr             cpindx, #8      ' Isolate color palette index of map tile
+        shl             cpindx, #4      ' cpindx *= 16
+        add             cpindx, tcpptr  ' cpindx += tcpptr
+        mov             phsb,   possl   ' Initialize tile palette index
+        and             phsb,   #7      ' tpindx %= 8
+        shl             phsb,   #2      ' tpindx *= 4
+        shl             curmt,  #5      ' tilePaletteIndex *= 32
+        add             phsb,   curmt   ' tpindx += paletteTileIndex
+        rdlong          curpt,  phsb    ' Load current palette tile from Main RAM
+        add             tmindx, #2      ' Increment pointer to tile in tile map
 tld_ret ret
 
         ' Instructions for dynamic tile shifting
-tldcall call            #tld
-shlcall shl             curpt,  #4
+tldcall call            #tld        ' Tile load instr call
+shlcall shl             curpt,  #4  ' Shift left instr call
 
 ' Video attributes
 maxHor      long    system#MAX_MEM_HOR_POS      ' Maximum horizontal position
@@ -364,8 +354,8 @@ ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile loa
             long    px3, px2, px1, px0
 
 ' Scanline buffer
-slbuff      res     buff_size   ' Buffer containing scanline
-ptr         res     1
+slbuff      res     system#VID_BUFFER_SIZE+8    ' Buffer containing scanline
+ptr         res     1                           ' Data pointer assisting scanline buffer cog->hub tx
 
 ' Tile pointers
 tmindx      res     1   ' Tile map index

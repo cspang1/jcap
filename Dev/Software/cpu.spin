@@ -26,7 +26,7 @@ VAR
     long  gfx_buffer_size_        ' Container for graphics resources buffer size
 
     ' TEST RESOURCE POINTERS
-    long  satts[system#NUM_SPRITES]
+    long  satts[system#SAT_SIZE]
 
 PUB main | time,trans,cont,temp,x,y
     ' Initialize variables
@@ -53,11 +53,11 @@ PUB main | time,trans,cont,temp,x,y
         satts[temp] := (%00000010 << 24) | (x << 15)
         x += 16
         temp += 1
-    repeat system#NUM_SPRITES-y
+    repeat system#SAT_SIZE-y
         satts[temp] := (%111110000 << 15) | (%11110111 << 7)
         temp += 1
 
-    longmove(@sprite_atts, @satts, system#NUM_SPRITES)
+    longmove(@sprite_atts, @satts, system#SAT_SIZE)
 
     time := cnt
     
@@ -73,7 +73,7 @@ PUB main | time,trans,cont,temp,x,y
             up_down(y)
         cont := tilt_state
         if (tilt_state & 1) == 0
-            longfill(@sprite_atts, 0, system#NUM_SPRITES)
+            longfill(@sprite_atts, 0, system#SAT_SIZE)
 
 pri left_right(x_but) | x,dir,mir,temp,xsp
     x := long[@sprite_atts][0]
@@ -164,7 +164,7 @@ s_palette1  byte    %00000011,%00110011,%11111111,%11000011                    '
             byte    %00000011,%00110011,%11111111,%11000011
 
             ' Sprite attribute table
-sprite_atts long    0[system#NUM_SPRITES]
+sprite_atts long    0[system#SAT_SIZE]
 
 tile_maps
             ' Main tile map
