@@ -44,14 +44,14 @@ PUB main | time,trans,cont,temp,x,y
     '     sprite         x position       y position    color v h size
     '|<------------->|<--------------->|<------------->|<--->|-|-|<->|
     ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-    '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|sz-|
+    '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
     temp := 0
-    x := 0
+    x := 16
     y := 16
     repeat y
         satts[temp] := (%00000010 << 24) | (x << 15)
-        x += 8
+        x += 16
         temp += 1
     repeat system#NUM_SPRITES-y
         satts[temp] := (%111110000 << 15) | (%11110111 << 7)
@@ -97,8 +97,8 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
         else
             long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | ((xsp - 1) << 16)
     if x == 320
-        x := 505
-    elseif x == 504
+        x := 9
+    elseif x == 8
         x := 319
     x <<= 15
     temp |= (x | mir | dir)

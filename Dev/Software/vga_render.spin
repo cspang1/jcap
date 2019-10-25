@@ -211,13 +211,13 @@ sprites ' Load sprite attributes
         mov             spypos, temp        ' Store sprite vertical position        
 
         ' Check if sprite is on scanline vertically
-        add             temp,   #SprSzY-1   ' Calculate sprite vertical position upper bound
-        cmp             temp,   cursl wc    ' Check sprite upper bound
-        if_nc cmp       cursl,  spypos wc   ' Check sprite lower bound
-        if_nc jmp       #:contx             ' Check sprite horizontally within scanline
-        cmpsub          temp,   #256 wc     ' Force wrap (carry if wrapped)
-        if_c  cmpx      cursl,  temp wc     ' Re-check bounds
-        if_nc jmp       #:skip              ' Skip sprite
+        add             temp,   #SprSzY-1                   ' Calculate sprite vertical position upper bound
+        cmp             temp,   cursl wc                    ' Check sprite upper bound
+        if_nc cmp       cursl,  spypos wc                   ' Check sprite lower bound
+        if_nc jmp       #:contx                             ' Check sprite horizontally within scanline
+        cmpsub          temp,   #system#MAX_SPR_VER_POS wc  ' Force wrap (carry if wrapped)
+        if_c  cmpx      cursl,  temp wc                     ' Re-check bounds
+        if_nc jmp       #:skip                              ' Skip sprite
 
         ' Calculate vertical sprite pixel palette offset
         mov             spyoff, #SprSzY-1   ' Copy sprite vertical size to sprite vertical offset
@@ -298,24 +298,22 @@ sprites ' Load sprite attributes
         ' Wait for target scanline
 maxsp   mov             index,  numSegs     ' Initialize current scanline segment
         mov             curvb,  slbptr      ' Initialize Main RAM video buffer memory location
-        mov             ptr,    curvb
+        mov             ptr,    curvb       ' Initialize transfer counter
 gettsl  rdlong          temp,   cslptr      ' Read target scanline index from Main RAM
         cmp             temp,   cursl wz    ' Check if current scanline is being requested for display
         if_nz jmp       #gettsl             ' If not, re-read target scanline
 
         ' Write scanline buffer to video buffer in Main RAM
-
-        movd            long0,  #ptr-3          ' last long in cog buffer
-        movd            long1,  #ptr-4          ' second-to-last long in cog buffer
-        add             ptr,    #system#VID_BUFFER_SIZE*4-1  ' last byte in hub buffer (8n + 7)
-        movi            ptr,    #system#VID_BUFFER_SIZE-2    ' add magic marker
-
-long0   wrlong          0-0,    ptr             ' |
-        sub             long0,  d1              ' |
-        sub             ptr,    i2s7 wc         ' |
-long1   wrlong          0-0,    ptr             ' |
-        sub             long1,  d1              ' |
-        if_nc djnz      ptr,    #long0          ' sub #7/djnz (Thanks Phil!)
+        movd            long0,  #ptr-3                      ' last long in cog buffer
+        movd            long1,  #ptr-4                      ' second-to-last long in cog buffer
+        add             ptr,    #system#VID_BUFFER_SIZE*4-1 ' last byte in hub buffer (8n + 7)
+        movi            ptr,    #system#VID_BUFFER_SIZE-2   ' add magic marker
+long0   wrlong          0-0,    ptr                         ' |
+        sub             long0,  d1                          ' |
+        sub             ptr,    i2s7 wc                     ' |
+long1   wrlong          0-0,    ptr                         ' |
+        sub             long1,  d1                          ' |
+        if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
 
         add             cursl,  #numRenderCogs  ' Increment current scanline for next render
         cmp             cursl,  numLines wc     ' Check if at bottom of screen
