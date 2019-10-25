@@ -227,22 +227,12 @@ sprites ' Load sprite attributes
         if_nc sub       spyoff, spypos      ' Subtract vertical sprite position from sprite offset
 
         ' Check if sprite is within scanline horizontally
-        mov             temp,   curmt       ' Copy sprite attributes to temp variable
-        shr             temp,   #15         ' Shift horizontal position to LSB
-        and             temp,   #511        ' Mask out horizontal position
-        mov             spxpos, temp        ' Store sprite horizontal position
+        mov             spxpos, curmt       ' Copy sprite attributes to temp variable
+        shr             spxpos, #15         ' Shift horizontal position to LSB
+        and             spxpos, #511        ' Mask out horizontal position
+        cmp             spxpos, #0 wz       ' Check sprite invisible
         cmp             maxVis, spxpos wc   ' Check sprite upper bound
-        if_nc jmp       #:cont              ' Render sprite
-        add             temp,   #sprSzX-1   ' Calculate sprite horizontal position upper bound
-        cmpsub          temp,   maxHor wc   ' Force wrap (carry if wrapped)
-        if_nc jmp       #:skip              ' Skip sprite
-
-        ' Calculate horizontal scanline buffer offset
-        mov             spxoff, #sprSzX-1   ' Copy sprite horizontal size to sprite horizontal offset
-        sub             spxoff, temp        ' Subtract horizontal sprite position from horizontal sprite size
-        mov             spxpos, #0          ' Move sprite horizontal position to origin
-:cont   if_nc mov       spxoff, #0          ' Start rendering the sprite at its origin
-        shl             spxoff, #2          ' Calculate horizontal sprite pixel palette offset
+        if_z_or_c jmp   #:skip              ' Skip sprite if invisible or out of bounds
 
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt       ' Copy sprite attributes to temp variable
@@ -256,8 +246,6 @@ sprites ' Load sprite attributes
         add             temp,   spyoff      ' Calculate final sprite pixel palette Main RAM location
         rdlong          curpt,  temp        ' Load sprite pixel palette line from Main RAM
         test            curmt,  #4 wc       ' Check sprite mirrored horizontally
-        if_nc shl       curpt,  spxoff      ' Shift sprite pixel palette line left to compensate for wrapping
-        if_c shr        curpt,  spxoff      ' Shift sprite pixel palette line right to compensate for mirrored wrapping
         sub             spxpos, #1          ' Pre-decrement horizontal sprite position
 
         ' Retrieve sprite color palette
@@ -390,7 +378,6 @@ curcp       res     1   ' Current color palette
 ' Sprite pointers
 spxpos      res     1   ' Sprite horizontal position
 spypos      res     1   ' Sprite vertical position
-spxoff      res     1   ' Sprite horizontal pixel palette offset
 spyoff      res     1   ' Sprite vertical pixel palette offset
 spindx      res     1   ' Container for number of rendered sprites on current scanline
 
