@@ -48,9 +48,9 @@ PUB main | time,trans,cont,temp,x,y
 
     temp := 0
     x := 16
-    y := 16
+    y := 14
     repeat y
-        satts[temp] := (%00000010 << 24) | (x << 15) | 2
+        satts[temp] := (%00000010 << 24) | (x << 15) | (16 << 7) | 2 | 1
         x += 16
         temp += 1
     repeat system#SAT_SIZE-y
@@ -78,7 +78,6 @@ PUB main | time,trans,cont,temp,x,y
 pri left_right(x_but) | x,dir,mir,temp,xsp
     x := long[@sprite_atts][0]
     temp := x & %00000000000000000111111111111011
-    'dir := 1 << 24
     dir := 2 << 24
     x >>= 15
     x &= %111111111
@@ -114,7 +113,6 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
 pri up_down(y_but) | y,dir,mir,temp,ysp
     y := long[@sprite_atts][0]
     temp := y & %00000000111111111000000001110111
-    'dir := 0 << 24
     dir := 2 << 24
     y >>= 7
     y &= %11111111
@@ -133,10 +131,16 @@ pri up_down(y_but) | y,dir,mir,temp,ysp
             long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | 271
         else
             long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | (ysp - 1)
-    if y == 240
-        y := 249
-    elseif y == 248
-        y := 239
+    if temp & 1 == 1
+        if y == 240
+            y := 1
+        elseif y == 0
+            y := 239
+    else
+        if y == 240
+            y := 9
+        elseif y == 8
+            y := 239
     y <<= 7
     temp |= (y | mir | dir)
     longmove(@sprite_atts, @temp, 1)

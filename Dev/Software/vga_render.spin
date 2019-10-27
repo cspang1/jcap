@@ -224,8 +224,8 @@ sprites ' Load sprite attributes
         if_be           jmp   #:skip        ' Skip sprite if invisible or out of bounds
         test            curmt,  #2 wc       ' Check if sprite is wide
         if_c mov        widesp, #2          ' If so increment wide sprite index
+        if_c mov        wmmod,  #8          ' And set sprite position modifier
         if_nc mov       widesp, #1          ' Otherwise only render one sprite palette line
-        if_c mov        wmmod,  #8
 
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt               ' Copy sprite attributes to temp variable
