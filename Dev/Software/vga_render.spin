@@ -196,7 +196,9 @@ sprites ' Load sprite attributes
         rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
         mov             temp,   curmt       ' Copy sprite attributes to temp variable
         shr             temp,   #7          ' Shift vertical position to LSB
-        and             temp,   #255        ' Mask out vertical position
+        and             temp,   #255 wz     ' Mask out vertical position, checking invisibility
+        cmp             maxVVis, temp wc    ' Check sprite upper bound
+        if_be jmp       #:skip              ' Skip sprite if invisible or out of bounds
         mov             spypos, temp        ' Store sprite vertical position        
 
         ' Check if sprite is on scanline vertically
@@ -218,10 +220,9 @@ sprites ' Load sprite attributes
         ' Check if sprite is within scanline horizontally
         mov             spxpos, curmt       ' Copy sprite attributes to temp variable
         shr             spxpos, #15         ' Shift horizontal position to LSB
-        and             spxpos, #511        ' Mask out horizontal position
-        cmp             spxpos, #0 wz       ' Check sprite invisible
-        cmp             maxVis, spxpos wc   ' Check sprite upper bound
-        if_be           jmp   #:skip        ' Skip sprite if invisible or out of bounds
+        and             spxpos, #511 wz     ' Mask out horizontal position, checking invisivility
+        cmp             maxHVis, spxpos wc  ' Check sprite upper bound
+        if_be jmp       #:skip              ' Skip sprite if invisible or out of bounds
         test            curmt,  #2 wc       ' Check if sprite is wide
         if_c mov        widesp, #2          ' If so increment wide sprite index
         if_c mov        wmmod,  #8          ' And set sprite position modifier
@@ -331,8 +332,9 @@ shlcall shl             curpt,  #4  ' Shift left instr call
 
 ' Video attributes
 maxHor      long    system#MAX_MEM_HOR_POS      ' Maximum horizontal position
-maxVis      long    system#MAX_VIS_HOR_POS-1    ' Maximum visible horizontal position
-numLines    long    system#MAX_VIS_VER_POS      ' Number of rendered scanlines
+maxHVis     long    system#MAX_VIS_HOR_POS-1    ' Maximum visible horizontal position
+maxVVis     long    system#MAX_VIS_VER_POS-1    ' Maximum visible vertical position
+numLines    long    system#MAX_VIS_VER_POS-16   ' Number of rendered scanlines
 numMemLines long    system#MAX_MEM_VER_POS      ' Number of scanlines in memory
 numSegs     long    system#VID_BUFFER_SIZE      ' Number of scanline segments
 numTiles    long    system#VIS_TILE_MAP_WIDTH   ' Number of tiles per scanline
