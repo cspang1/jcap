@@ -203,7 +203,7 @@ sprites ' Load sprite attributes
         add             temp,   #system#SPR_SZ_S-1          ' Calculate sprite vertical position upper bound
         cmp             temp,   cursl wc                    ' Check sprite upper bound
         if_nc cmp       cursl,  spypos wc                   ' Check sprite lower bound
-        if_nc jmp       #:contx                             ' Check sprite horizontally within scanline
+        if_nc jmp       #:cont                              ' Check sprite horizontally within scanline
         cmpsub          temp,   #system#MAX_SPR_VER_POS wc  ' Force wrap (carry if wrapped)
         if_c  cmpx      cursl,  temp wc                     ' Re-check bounds
         if_nc jmp       #:skip                              ' Skip sprite
@@ -212,7 +212,7 @@ sprites ' Load sprite attributes
         mov             spyoff, #system#SPR_SZ_S-1  ' Copy sprite vertical size to sprite vertical offset
         sub             temp,   cursl               ' Subtract current scanline from sprite lower bound
         sub             spyoff, temp                ' Subtract vertical sprite position from vertical sprite size
-:contx  if_nc mov       spyoff, cursl               ' Store current scanline into sprite offset
+:cont   if_nc mov       spyoff, cursl               ' Store current scanline into sprite offset
         if_nc sub       spyoff, spypos              ' Subtract vertical sprite position from sprite offset
 
         ' Check if sprite is within scanline horizontally
@@ -221,7 +221,11 @@ sprites ' Load sprite attributes
         and             spxpos, #511        ' Mask out horizontal position
         cmp             spxpos, #0 wz       ' Check sprite invisible
         cmp             maxVis, spxpos wc   ' Check sprite upper bound
-        if_z_or_c jmp   #:skip              ' Skip sprite if invisible or out of bounds
+        if_be           jmp   #:skip        ' Skip sprite if invisible or out of bounds
+        test            curmt,  #2 wc       ' Check if sprite is wide
+        if_c mov        widesp, #2          ' If so increment wide sprite index
+        if_nc mov       widesp, #1          ' Otherwise only render one sprite palette line
+        if_c mov        wmmod,  #8
 
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt               ' Copy sprite attributes to temp variable
@@ -234,6 +238,11 @@ sprites ' Load sprite attributes
         shl             spyoff, #2                  ' Calculate vertical sprite pixel palette offset
         add             temp,   spyoff              ' Calculate final sprite pixel palette Main RAM location
         rdlong          curpt,  temp                ' Load sprite pixel palette line from Main RAM
+        add             temp,   #32                 ' Increment to retrieve next palette line
+        and             curmt,  #6 wz, wc, nr       ' Check sprite wide and mirrored horizontally
+        rdlong          nxtpt,  temp                ' Read next palette line
+        if_a add        spxpos, #8                  ' If so pre-increment sprite position
+        if_a mov        wmmod,  neg8                ' Set wide/mir mod amount
         test            curmt,  #4 wc               ' Check sprite mirrored horizontally
         sub             spxpos, #1                  ' Pre-decrement horizontal sprite position
 
@@ -242,32 +251,35 @@ sprites ' Load sprite attributes
         add             curmt,  scpptr  ' cpindx * 16 += scpptr
 
         ' Parse sprite pixel palette line
-        mov             findx,  #system#SPR_SZ_S        ' Store sprite horizontal size into index
-:sprite mov             temp,   curpt                   ' Load current sprite pixel palette line into temp variable
-        and             temp,   #15 wz                  ' Mask out current pixel
-        if_z  jmp       #:trans                         ' Skip if pixel is transparent
-        add             temp,   curmt                   ' Calculate color palette offset
-        rdbyte          curcp,  temp                    ' Load color
-        mov             temp,   spxpos                  ' Store sprite horizontal position into temp variable
-        if_c add        temp,   #system#SPR_SZ_S+1      ' If so store sprite horizontal size into temp variable
-        sumc            temp,   findx                   ' Calculate final offset
-        mov             slboff, temp                    ' Store scanline buffer offset
-        shr             slboff, #2                      ' slboff /= 4
-        add             slboff, #slbuff                 ' slboff += @slbuff
-        movs            :slbget, slboff                 ' Move target scanline buffer segment source
-        movd            :slbput, slboff                 ' Move target scanline buffer segment destination
-        shl             temp,   #3                      ' temp *= 8
-        shl             curcp,  temp                    ' Shift pixel color to calculated pixel location
-:slbget mov             tmpslb, 0-0                     ' Store target scanline buffer segment into temp variable
-        mov             slboff, pxmask                  ' Temporarily store scanline buffer segment mask
-        rol             slboff, temp                    ' Rotate mask to calculated pixel location
-        and             tmpslb, slboff                  ' Mask away calculated pixel location
-        or              tmpslb, curcp                   ' Insert pixel
-:slbput mov             0-0,    tmpslb                  ' Re-store target scanline buffer segment
-:trans  shr             curpt,  #4                      ' Shift palette line right 4 bits to next pixel
-        djnz            findx,  #:sprite                ' Repeat for all pixels on sprite palette line
-:skip   add             tmindx, #4                      ' Increment pointer to next sprite in SAT
-        djnz            index,  #sprites                ' Repeat for all sprites in SAT
+:wide   mov             findx,  #8                  ' Store sprite horizontal size into index
+:sprite mov             temp,   curpt               ' Load current sprite pixel palette line into temp variable
+        and             temp,   #15                 ' Mask out current pixel
+        tjz             temp,   #:trans             ' Skip if pixel is transparent
+        add             temp,   curmt               ' Calculate color palette offset
+        rdbyte          curcp,  temp                ' Load color
+        mov             temp,   spxpos              ' Store sprite horizontal position into temp variable
+        if_c add        temp,   #system#SPR_SZ_S+1  ' If mirrored horizontally add sprite size to position
+        sumc            temp,   findx               ' Calculate final offset
+        mov             slboff, temp                ' Store scanline buffer offset
+        shr             slboff, #2                  ' slboff /= 4
+        add             slboff, #slbuff             ' slboff += @slbuff
+        movs            :slbget, slboff             ' Move target scanline buffer segment source
+        movd            :slbput, slboff             ' Move target scanline buffer segment destination
+        shl             temp,   #3                  ' temp *= 8
+        shl             curcp,  temp                ' Shift pixel color to calculated pixel location
+:slbget mov             tmpslb, 0-0                 ' Store target scanline buffer segment into temp variable
+        mov             slboff, pxmask              ' Temporarily store scanline buffer segment mask
+        rol             slboff, temp                ' Rotate mask to calculated pixel location
+        and             tmpslb, slboff              ' Mask away calculated pixel location
+        or              tmpslb, curcp               ' Insert pixel
+:slbput mov             0-0,    tmpslb              ' Re-store target scanline buffer segment
+:trans  shr             curpt,  #4                  ' Shift palette line right 4 bits to next pixel
+        djnz            findx,  #:sprite            ' Repeat for all pixels on sprite palette line
+        mov             curpt,  nxtpt               ' Move next palette tile into current
+        adds            spxpos, wmmod               ' Compensate for mirrored wideness
+        djnz            widesp, #:wide              ' Render rest of wide sprite if applicable
+:skip   add             tmindx, #4                  ' Increment pointer to next sprite in SAT
+        djnz            index,  #sprites            ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
 maxsp   mov             index,  numSegs     ' Initialize current scanline segment
@@ -288,7 +300,6 @@ long0   wrlong          0-0,    ptr                         ' |
 long1   wrlong          0-0,    ptr                         ' |
         sub             long1,  d1                          ' |
         if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
-
         add             cursl,  #system#NUM_REN_COGS    ' Increment current scanline for next render
         cmp             cursl,  numLines wc             ' Check if at bottom of screen
         if_nc mov       cursl,  initsl                  ' Reinitialize current scanline if so
@@ -348,6 +359,7 @@ pxmask      long    $FFFFFF00               ' Mask for pixels in scanline buffer
 vpmask      long    $FFFF                   ' Mask for vertical game world position
 ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile load logic
             long    px3, px2, px1, px0
+neg8        long    -8                      ' Value to modify sprite position given wide+mirrored
 
 ' Scanline buffer
 slbuff      res     system#VID_BUFFER_SIZE+8    ' Buffer containing scanline
@@ -359,6 +371,7 @@ tpindx      res     1   ' Tile palette index
 cpindx      res     1   ' Color palette index
 curmt       res     1   ' Current map tile
 curpt       res     1   ' Current palette tile
+nxtpt       res     1   ' Next palette tile
 curcp       res     1   ' Current color palette
 
 ' Sprite pointers
@@ -381,6 +394,8 @@ pxbuf2      res     1   ' Container for temporary pixel buffer
 findx       res     1   ' Container for full-tile index
 slboff      res     1   ' Container for scanline buffer offset
 tmpslb      res     1   ' Container for temporary scanline buffer segment
+widesp      res     1   ' Container for wide sprite index
+wmmod       res     1   ' Container for wide/mirrored sprite mod
 temp        res     1   ' Container for temporary variables
 
         fit
