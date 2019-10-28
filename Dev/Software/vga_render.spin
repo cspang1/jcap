@@ -200,14 +200,22 @@ sprites ' Load sprite vertical position and check visibility
         cmp             maxVVis, spypos wc  ' Check sprite upper bound
         if_be jmp       #:skip              ' Skip sprite if invisible or out of bounds
         test            curmt,  #1 wc
-        if_c mov        spysiz, #system#SPR_SZ_L
-        if_nc mov       spysiz, #system#SPR_SZ_S
+        if_c mov        spysiz, #system#SPR_SZ_L-1
+        if_nc mov       spysiz, #system#SPR_SZ_S-1
         mov             temp,   cursl
         add             temp,   #16
         sub             temp,   spypos
         cmp             temp,   spysiz wc, wz
         if_a jmp        #:skip
-
+        test            curmt,  #8 wc
+        if_c mov        spyoff, spysiz
+        if_c sub        spyoff, temp
+        if_nc mov       spyoff, temp
+        mov             temp,   spyoff
+        shr             temp,   #3
+        shl             temp,   #3
+        add             spyoff, temp
+        shl             spyoff, #2
 
         ' Check if sprite is within scanline horizontally
         mov             spxpos, curmt       ' Copy sprite attributes to temp variable
@@ -221,23 +229,19 @@ sprites ' Load sprite vertical position and check visibility
         if_nc mov       widesp, #1          ' Otherwise only render one sprite palette line
 
         ' Retrieve sprite pixel palette line
-        mov             temp,   curmt               ' Copy sprite attributes to temp variable
-        shr             temp,   #24                 ' Align sprite pixel palette attribute to LSB
-        shl             temp,   #5                  ' Calculate sprite pixel palette Main RAM location offset
-        add             temp,   spptr               ' Calculate sprite pixel palette Main RAM base location
-        test            curmt,  #8 wz               ' Check sprite mirrored vertically
-        if_nz subs      spyoff, #system#SPR_SZ_S-1  ' If so calculate inverted offset...
-        if_nz abs       spyoff, spyoff              ' And calculate final absolute offset
-        shl             spyoff, #2                  ' Calculate vertical sprite pixel palette offset
-        add             temp,   spyoff              ' Calculate final sprite pixel palette Main RAM location
-        rdlong          curpt,  temp                ' Load sprite pixel palette line from Main RAM
-        add             temp,   #32                 ' Increment to retrieve next palette line
-        and             curmt,  #6 wz, wc, nr       ' Check sprite wide and mirrored horizontally
-        rdlong          nxtpt,  temp                ' Read next palette line
-        if_a add        spxpos, #8                  ' If so pre-increment sprite position
-        if_a mov        wmmod,  neg8                ' Set wide/mir mod amount
-        test            curmt,  #4 wc               ' Check sprite mirrored horizontally
-        sub             spxpos, #1                  ' Pre-decrement horizontal sprite position
+        mov             temp,   curmt           ' Copy sprite attributes to temp variable
+        shr             temp,   #24             ' Align sprite pixel palette attribute to LSB
+        shl             temp,   #5              ' Calculate sprite pixel palette Main RAM location offset
+        add             temp,   spptr           ' Calculate sprite pixel palette Main RAM base location
+        add             temp,   spyoff          ' Calculate final sprite pixel palette Main RAM location
+        rdlong          curpt,  temp            ' Load sprite pixel palette line from Main RAM
+        add             temp,   #32             ' Increment to retrieve next palette line
+        and             curmt,  #6 wz, wc, nr   ' Check sprite wide and mirrored horizontally
+        rdlong          nxtpt,  temp            ' Read next palette line
+        if_a add        spxpos, #8              ' If so pre-increment sprite position
+        if_a mov        wmmod,  neg8            ' Set wide/mir mod amount
+        test            curmt,  #4 wc           ' Check sprite mirrored horizontally
+        sub             spxpos, #1              ' Pre-decrement horizontal sprite position
 
         ' Retrieve sprite color palette
         and             curmt,  #112    ' Mask out color palette index * 16

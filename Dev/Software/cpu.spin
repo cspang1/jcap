@@ -28,7 +28,7 @@ VAR
     ' TEST RESOURCE POINTERS
     long  satts[system#SAT_SIZE]
 
-PUB main | time,trans,cont,temp,x,y
+PUB main | time,trans,cont,temp,x,y,z,q
     ' Initialize variables
     input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
@@ -47,13 +47,18 @@ PUB main | time,trans,cont,temp,x,y
     '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
     temp := 0
-    x := 16
-    y := 14
-    repeat y
-        satts[temp] := (%00000010 << 24) | (x << 15) | (16 << 7) | 2 | 1
-        x += 16
-        temp += 1
-    repeat system#SAT_SIZE-y
+    x := 16 ' starting horizontal pos
+    y := 232 'starting vertical pos
+    z := 16 'sprites per line
+    q := 4 'n lines
+    repeat q
+        repeat z
+            satts[temp] := (%00000110 << 24) | (x << 15) | (y << 7) | (((temp+1)//2) << 4) '| 2 | 1
+            x += 8
+            temp += 1
+        y += 8
+        x := 16
+    repeat system#SAT_SIZE-z*q
         satts[temp] := (%111110000 << 15) | (%11110111 << 7)
         temp += 1
 
@@ -78,7 +83,7 @@ PUB main | time,trans,cont,temp,x,y
 pri left_right(x_but) | x,dir,mir,temp,xsp
     x := long[@sprite_atts][0]
     temp := x & %00000000000000000111111111111011
-    dir := 2 << 24
+    dir := 6 << 24
     x >>= 15
     x &= %111111111
     xsp := long[@world_pos][0] >> 16
@@ -113,7 +118,7 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
 pri up_down(y_but) | y,dir,mir,temp,ysp
     y := long[@sprite_atts][0]
     temp := y & %00000000111111111000000001110111
-    dir := 2 << 24
+    dir := 6 << 24
     y >>= 7
     y &= %11111111
     ysp := long[@world_pos][0] & $FFFF
@@ -132,15 +137,15 @@ pri up_down(y_but) | y,dir,mir,temp,ysp
         else
             long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | (ysp - 1)
     if temp & 1 == 1
-        if y == 240
+        if y == 255
             y := 1
         elseif y == 0
-            y := 239
+            y := 254
     else
-        if y == 240
+        if y == 255
             y := 9
         elseif y == 8
-            y := 239
+            y := 254
     y <<= 7
     temp |= (y | mir | dir)
     longmove(@sprite_atts, @temp, 1)
