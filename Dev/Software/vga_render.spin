@@ -192,30 +192,22 @@ shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         mov             index,  #system#SAT_SIZE    ' Initialize size of sprite attribute table
         mov             tmindx, satptr              ' Initialize sprite attribute table index
 
-sprites ' Load sprite attributes
+sprites ' Load sprite vertical position and check visibility
         rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
-        mov             temp,   curmt       ' Copy sprite attributes to temp variable
-        shr             temp,   #7          ' Shift vertical position to LSB
-        and             temp,   #255 wz     ' Mask out vertical position, checking invisibility
-        cmp             maxVVis, temp wc    ' Check sprite upper bound
+        mov             spypos, curmt       ' Copy sprite attributes to temp variable
+        shr             spypos, #7          ' Shift vertical position to LSB
+        and             spypos, #255 wz     ' Mask out vertical position, checking invisibility
+        cmp             maxVVis, spypos wc  ' Check sprite upper bound
         if_be jmp       #:skip              ' Skip sprite if invisible or out of bounds
-        mov             spypos, temp        ' Store sprite vertical position        
+        test            curmt,  #1 wc
+        if_c mov        spysiz, #system#SPR_SZ_L
+        if_nc mov       spysiz, #system#SPR_SZ_S
+        mov             temp,   cursl
+        add             temp,   #16
+        sub             temp,   spypos
+        cmp             temp,   spysiz wc, wz
+        if_a jmp        #:skip
 
-        ' Check if sprite is on scanline vertically
-        add             temp,   #system#SPR_SZ_S-1          ' Calculate sprite vertical position upper bound
-        cmp             temp,   cursl wc                    ' Check sprite upper bound
-        if_nc cmp       cursl,  spypos wc                   ' Check sprite lower bound
-        if_nc jmp       #:cont                              ' Check sprite horizontally within scanline
-        cmpsub          temp,   #system#MAX_SPR_VER_POS wc  ' Force wrap (carry if wrapped)
-        if_c  cmpx      cursl,  temp wc                     ' Re-check bounds
-        if_nc jmp       #:skip                              ' Skip sprite
-
-        ' Calculate vertical sprite pixel palette offset
-        mov             spyoff, #system#SPR_SZ_S-1  ' Copy sprite vertical size to sprite vertical offset
-        sub             temp,   cursl               ' Subtract current scanline from sprite lower bound
-        sub             spyoff, temp                ' Subtract vertical sprite position from vertical sprite size
-:cont   if_nc mov       spyoff, cursl               ' Store current scanline into sprite offset
-        if_nc sub       spyoff, spypos              ' Subtract vertical sprite position from sprite offset
 
         ' Check if sprite is within scanline horizontally
         mov             spxpos, curmt       ' Copy sprite attributes to temp variable
@@ -283,7 +275,7 @@ sprites ' Load sprite attributes
         djnz            index,  #sprites            ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
-maxsp   mov             index,  numSegs     ' Initialize current scanline segment
+        mov             index,  numSegs     ' Initialize current scanline segment
         mov             curvb,  slbptr      ' Initialize Main RAM video buffer memory location
         mov             ptr,    curvb       ' Initialize transfer counter
 gettsl  rdlong          temp,   cslptr      ' Read target scanline index from Main RAM
@@ -301,12 +293,12 @@ long0   wrlong          0-0,    ptr                         ' |
 long1   wrlong          0-0,    ptr                         ' |
         sub             long1,  d1                          ' |
         if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
-        add             cursl,  #system#NUM_REN_COGS    ' Increment current scanline for next render
-        cmp             cursl,  numLines wc             ' Check if at bottom of screen
-        if_nc mov       cursl,  initsl                  ' Reinitialize current scanline if so
-waitdat if_nc rdlong    temp,   datptr wz               ' Check if graphics resources ready
-        if_a  jmp       #waitdat                        ' Wait for graphics resources to be ready
-        jmp             #slgen                          ' Generate next scanline
+        add             cursl,  #system#NUM_REN_COGS        ' Increment current scanline for next render
+        cmp             cursl,  numLines wc                 ' Check if at bottom of screen
+        if_nc mov       cursl,  initsl                      ' Reinitialize current scanline if so
+waitdat if_nc rdlong    temp,   datptr wz                   ' Check if graphics resources ready
+        if_a  jmp       #waitdat                            ' Wait for graphics resources to be ready
+        jmp             #slgen                              ' Generate next scanline
 
         ' Tile loading routine
 tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
@@ -379,6 +371,7 @@ curcp       res     1   ' Current color palette
 ' Sprite pointers
 spxpos      res     1   ' Sprite horizontal position
 spypos      res     1   ' Sprite vertical position
+spysiz      res     1   ' Sprite vertical size
 spyoff      res     1   ' Sprite vertical pixel palette offset
 
 ' Other pointers
