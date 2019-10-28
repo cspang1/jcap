@@ -193,29 +193,20 @@ shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         mov             tmindx, satptr              ' Initialize sprite attribute table index
 
 sprites ' Load sprite vertical position and check visibility
-        rdlong          curmt,  tmindx      ' Load sprite attributes from Main RAM
-        mov             spypos, curmt       ' Copy sprite attributes to temp variable
-        shr             spypos, #7          ' Shift vertical position to LSB
-        and             spypos, #255 wz     ' Mask out vertical position, checking invisibility
-        cmp             maxVVis, spypos wc  ' Check sprite upper bound
-        if_be jmp       #:skip              ' Skip sprite if invisible or out of bounds
-        test            curmt,  #1 wc
-        if_c mov        spysiz, #system#SPR_SZ_L-1
-        if_nc mov       spysiz, #system#SPR_SZ_S-1
-        mov             temp,   cursl
-        add             temp,   #16
-        sub             temp,   spypos
-        cmp             temp,   spysiz wc, wz
-        if_a jmp        #:skip
-        test            curmt,  #8 wc
-        if_c mov        spyoff, spysiz
-        if_c sub        spyoff, temp
-        if_nc mov       spyoff, temp
-        mov             temp,   spyoff
-        shr             temp,   #3
-        shl             temp,   #3
-        add             spyoff, temp
-        shl             spyoff, #2
+        rdlong          curmt,  tmindx              ' Load sprite attributes from Main RAM
+        mov             spypos, curmt               ' Copy sprite attributes to temp variable
+        shr             spypos, #7                  ' Shift vertical position to LSB
+        and             spypos, #255 wz             ' Mask out vertical position, checking invisibility
+        cmp             maxVVis, spypos wc          ' Check sprite upper bound
+        if_be jmp       #:skip                      ' Skip sprite if invisible or out of bounds
+        test            curmt,  #1 wc               ' Check sprite tall
+        if_c mov        spysiz, #system#SPR_SZ_L-1  ' If so set vertical size as large
+        if_nc mov       spysiz, #system#SPR_SZ_S-1  ' Else set as small
+        mov             temp,   cursl               ' Temporarily store current scanline
+        add             temp,   #16                 ' Compensate for off-screen top area
+        sub             temp,   spypos              ' Find difference from position
+        cmp             temp,   spysiz wc, wz       ' Check if visible
+        if_a jmp        #:skip                      ' Skip if not
 
         ' Check if sprite is within scanline horizontally
         mov             spxpos, curmt       ' Copy sprite attributes to temp variable
@@ -227,6 +218,16 @@ sprites ' Load sprite vertical position and check visibility
         if_c mov        widesp, #2          ' If so increment wide sprite index
         if_c mov        wmmod,  #8          ' And set sprite position modifier
         if_nc mov       widesp, #1          ' Otherwise only render one sprite palette line
+
+        ' Finalize vertical offset calculations
+        test            curmt,  #8 wc   ' Check sprite mirrored vertically
+        if_c mov        spyoff, spysiz  ' If so grab vertical sprite size
+        if_c sub        spyoff, temp    ' If so find difference from offset
+        if_nc mov       spyoff, temp    ' Else grab offset
+        mov             temp,   spyoff  ' Store offset temporarily
+        and             temp,   neg8    ' Perform floor(offset/8)*8
+        add             spyoff, temp    ' Combine
+        shl             spyoff, #2      ' *= 4 to get final vertical sprite palette line offset
 
         ' Retrieve sprite pixel palette line
         mov             temp,   curmt           ' Copy sprite attributes to temp variable

@@ -48,18 +48,18 @@ PUB main | time,trans,cont,temp,x,y,z,q
 
     temp := 0
     x := 16 ' starting horizontal pos
-    y := 232 'starting vertical pos
-    z := 16 'sprites per line
-    q := 4 'n lines
+    y := 128 'starting vertical pos
+    z := 8 'sprites per line
+    q := 8 'n lines
     repeat q
         repeat z
-            satts[temp] := (%00000110 << 24) | (x << 15) | (y << 7) | (((temp+1)//2) << 4) '| 2 | 1
-            x += 8
+            satts[temp] := (2 << 24) | (x << 15) | (y << 7) | 2 | 1
+            x += 16
             temp += 1
-        y += 8
+        y += 16
         x := 16
     repeat system#SAT_SIZE-z*q
-        satts[temp] := (%111110000 << 15) | (%11110111 << 7)
+        satts[temp] := (0 << 15) | (0 << 7)
         temp += 1
 
     longmove(@sprite_atts, @satts, system#SAT_SIZE)
@@ -83,7 +83,7 @@ PUB main | time,trans,cont,temp,x,y,z,q
 pri left_right(x_but) | x,dir,mir,temp,xsp
     x := long[@sprite_atts][0]
     temp := x & %00000000000000000111111111111011
-    dir := 6 << 24
+    dir := 2 << 24
     x >>= 15
     x &= %111111111
     xsp := long[@world_pos][0] >> 16
@@ -118,7 +118,7 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
 pri up_down(y_but) | y,dir,mir,temp,ysp
     y := long[@sprite_atts][0]
     temp := y & %00000000111111111000000001110111
-    dir := 6 << 24
+    dir := 2 << 24
     y >>= 7
     y &= %11111111
     ysp := long[@world_pos][0] & $FFFF
