@@ -180,7 +180,7 @@ px6     shl             curpt,  #4      ' Shift palette tile left 4 bits
 px7     shl             curpt,  #4      ' Shift palette tile left 4 bits
 
         ' Store tile pixels
-shbuf1  mov             slbuff+4, pxbuf1    'Allocate space for color
+shbuf1  mov             slbuff+4, pxbuf1    ' Allocate space for color
         add             shbuf1, d1          ' Increment scanline buffer OR position
 shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         add             shbuf2, d1          ' Increment scanline buffer OR position
