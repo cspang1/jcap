@@ -11,6 +11,7 @@ CON
     NUM_SPRITE_PALETTES = 10                        ' Number of sprite palettes
     SPR_SZ_S = 8                                    ' Number of pixels wide/tall for small sprites
     SPR_SZ_L = 16                                   ' Number of pixels wide/tall for large sprites
+    NUM_PARALLAX_REGS = 5                           ' Max number of parallaxing regions on screen
     VID_BUFFER_SIZE = 80                            ' Number of scanline segments in video buffer
     MAX_VIS_HOR_POS = VIS_TILE_MAP_WIDTH * 8 + 16   ' Max visible horizontal position, accounting for 16 px wrap buffer left side of screen
     MAX_MEM_HOR_POS = MEM_TILE_MAP_WIDTH * 8        ' Max screen horizontal position in memory
@@ -19,6 +20,6 @@ CON
     MAX_SPR_HOR_POS = 512                           ' Max horizontal sprite position in memory
     MAX_SPR_VER_POS = 256                           ' Max vertical sprite position in memory
     NUM_REN_COGS = 6                                ' Number of render cogs instantiated for rendering
-    GFX_BUFFER_SIZE = 1+((MEM_TILE_MAP_WIDTH*MEM_TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+SAT_SIZE*4)/4    ' Number of LONGs in graphics resources buffer
+    GFX_BUFFER_SIZE = NUM_PARALLAX_REGS+((MEM_TILE_MAP_WIDTH*MEM_TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+SAT_SIZE*4)/4    ' Number of LONGs in graphics resources buffer
 
 PUB null

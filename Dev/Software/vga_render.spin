@@ -85,6 +85,7 @@ render
 slgen   'Calculate tile map line memory location
         rdlong          horpos, hspptr      ' Retrieve horizontal screen position
         mov             verpos, horpos      ' Load position into vertical position
+        shr             verpos, #8          ' Shift vertical position to LSB
         and             verpos, vpmask      ' Mask out vertical position
         mov             possl,  cursl       ' Store current scanline into position scanline
         add             possl,  verpos      ' Calculate net vertical position
@@ -100,7 +101,7 @@ slgen   'Calculate tile map line memory location
 
         ' Calculate initial tile offset and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
-        shr             horpos, #16                             ' Align horizontal position w/ LSB
+        shr             horpos, #20                             ' Align horizontal position w/ LSB
         mov             temp,   horpos                          ' Store horizontal screen position in temp variable
         shr             temp,   #3                              ' temp = floor(horpos/8)
         mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' Load pre-incremented width of tile map in memory
@@ -355,7 +356,7 @@ d0          long    1 << 9                  ' Value to increment destination reg
 d1          long    1 << 10                 ' Value to increment destination register
 i2s7        long    2 << 23 | 7             ' Value to summon Cthullu
 pxmask      long    $FFFFFF00               ' Mask for pixels in scanline buffer
-vpmask      long    $FFFF                   ' Mask for vertical game world position
+vpmask      long    $FFF                    ' Mask for vertical game world position
 ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile load logic
             long    px3, px2, px1, px0
 neg8        long    -8                      ' Value to modify sprite position given wide+mirrored

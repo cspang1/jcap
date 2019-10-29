@@ -63,13 +63,14 @@ PUB main | time,trans,cont,temp,x,y,z,q
         temp += 1
 
     longmove(@sprite_atts, @satts, system#SAT_SIZE)
+    long[@plx_pos][0] := 0
 
     time := cnt
     
     ' Main game loop
     repeat
         waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
-        trans := constant(system#GFX_BUFFER_SIZE << 16) | @world_pos{0}            ' register send request
+        trans := constant(system#GFX_BUFFER_SIZE << 16) | @plx_pos{0}            ' register send request
         x := (word[@control_state][0] >> 7) & %10100000
         y := (word[@control_state][0] >> 7) & %01010000
         if x == %10000000 or x == %00100000
@@ -86,21 +87,21 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
     dir := 2 << 24
     x >>= 15
     x &= %111111111
-    xsp := long[@world_pos][0] >> 16
+    xsp := long[@plx_pos][0] >> 20
     if x_but == %10000000
         mir := 0
         x := (x + 1) & %111111111
         if xsp == 447
-            long[@world_pos][0] &= $FFFF
+            long[@plx_pos][0] &= $FFFFF
         else
-            long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | ((xsp + 1) << 16)
+            long[@plx_pos][0] := (long[@plx_pos][0] & $FFFFF) | ((xsp + 1) << 20)
     if x_but == %00100000
         mir := 1 << 2
         x := (x - 1) & %111111111
         if xsp == 0
-            long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | (447 << 16)
+            long[@plx_pos][0] := (long[@plx_pos][0] & $FFFFF) | (447 << 20)
         else
-            long[@world_pos][0] := (long[@world_pos][0] & $FFFF) | ((xsp - 1) << 16)
+            long[@plx_pos][0] := (long[@plx_pos][0] & $FFFFF) | ((xsp - 1) << 20)
     if temp & 2 == 2
         if x == 336
             x := 1
@@ -121,21 +122,21 @@ pri up_down(y_but) | y,dir,mir,temp,ysp
     dir := 2 << 24
     y >>= 7
     y &= %11111111
-    ysp := long[@world_pos][0] & $FFFF
+    ysp := (long[@plx_pos][0] & $FFF00) >> 8
     if y_but == %01000000
         mir := 1 << 3
         y := (y + 1) & %11111111
         if ysp == 271
-            long[@world_pos][0] &= ($FFFF << 16)
+            long[@plx_pos][0] &= $FFF000FF
         else
-            long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | (ysp + 1)
+            long[@plx_pos][0] := (long[@plx_pos][0] & $FFF000FF) | ((ysp + 1) << 8)
     if y_but == %00010000
         mir := 0
         y := (y - 1) & %11111111
         if ysp == 0
-            long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | 271
+            long[@plx_pos][0] := (long[@plx_pos][0] & $FFF000FF) | (271 << 8)
         else
-            long[@world_pos][0] := (long[@world_pos][0] & ($FFFF << 16)) | (ysp - 1)
+            long[@plx_pos][0] := (long[@plx_pos][0] & $FFF000FF) | ((ysp - 1) << 8)
     if temp & 1 == 1
         if y == 255
             y := 1
@@ -156,7 +157,7 @@ input_states
 control_state   word    0   ' Control states
 tilt_state      word    0   ' Tilt shift state
 
-world_pos       long    0   ' Position in tile map (x[31:16]|y[15:0])
+plx_pos         long    posx[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
 tile_color_palettes
             ' Tile color palettes
