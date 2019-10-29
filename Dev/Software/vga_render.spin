@@ -82,6 +82,7 @@ render
         ' Start Counter B for tile loading routine
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
+frame
 slgen   'Calculate tile map line memory location
         rdlong          horpos, hspptr      ' Retrieve horizontal screen position
         mov             verpos, horpos      ' Load position into vertical position
@@ -301,10 +302,11 @@ long1   wrlong          0-0,    ptr                         ' |
         if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
         add             cursl,  #system#NUM_REN_COGS        ' Increment current scanline for next render
         cmp             cursl,  numLines wc                 ' Check if at bottom of screen
-        if_nc mov       cursl,  initsl                      ' Reinitialize current scanline if so
-waitdat if_nc rdlong    temp,   datptr wz                   ' Check if graphics resources ready
-        if_a  jmp       #waitdat                            ' Wait for graphics resources to be ready
-        jmp             #slgen                              ' Generate next scanline
+        if_c jmp        #slgen                              ' If not continue to next scanline, otherwise...
+        mov             cursl,  initsl                      ' Reinitialize current scanline
+waitdat rdlong          temp,   datptr wz                   ' Check if graphics resources ready
+        if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
+        jmp             #frame                              ' Generate next frame
 
         ' Tile loading routine
 tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
