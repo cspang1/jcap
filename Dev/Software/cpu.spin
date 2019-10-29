@@ -63,8 +63,8 @@ PUB main | time,trans,cont,temp,x,y,z,q
         temp += 1
 
     longmove(@sprite_atts, @satts, system#SAT_SIZE)
+    longfill(@plx_pos, $FF, system#NUM_PARALLAX_REGS)
     long[@plx_pos][0] := 0
-
     time := cnt
     
     ' Main game loop
@@ -157,7 +157,7 @@ input_states
 control_state   word    0   ' Control states
 tilt_state      word    0   ' Tilt shift state
 
-plx_pos         long    posx[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
+plx_pos         long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
 tile_color_palettes
             ' Tile color palettes

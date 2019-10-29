@@ -68,6 +68,12 @@ render
         rdlong          spptr,  spptr   ' Load sprite palette location
         rdlong          datptr, datptr  ' Load current scanline memory location
 
+        ' Calculate last initial parallax table entry offset
+        mov             plxoff, #system#PARALLAX_MIN-1
+        shl             plxoff, #2
+        mov             temptr, hspptr  ' Store into temporary pointer
+        add             temptr, plxoff
+
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc       ' Attempt to lock semaphore
         if_c  jmp       #:lock          ' Re-attempt to lock semaphore
@@ -82,9 +88,17 @@ render
         ' Start Counter B for tile loading routine
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
-frame
-slgen   'Calculate tile map line memory location
-        rdlong          horpos, hspptr      ' Retrieve horizontal screen position
+frame   ' Initialize parallax positions
+        mov             index,  #system#PARALLAX_MIN    ' Load minimum parallax check iterations
+:initp  rdlong          temp,   temptr      ' Retrieve horizontal screen position
+        and             temp,   #$FF
+        cmp             initsl, temp wc
+        if_nc jmp       #slgen
+        sub             temptr, #4
+        djnz            index,  #:initp
+
+slgen   ' Calculate tile map line memory location
+        rdlong          horpos, temptr      ' Retrieve horizontal screen position
         mov             verpos, horpos      ' Load position into vertical position
         shr             verpos, #8          ' Shift vertical position to LSB
         and             verpos, vpmask      ' Mask out vertical position
@@ -303,6 +317,8 @@ long1   wrlong          0-0,    ptr                         ' |
         add             cursl,  #system#NUM_REN_COGS        ' Increment current scanline for next render
         cmp             cursl,  numLines wc                 ' Check if at bottom of screen
         if_c jmp        #slgen                              ' If not continue to next scanline, otherwise...
+        mov             temptr, hspptr
+        add             temptr, plxoff
         mov             cursl,  initsl                      ' Reinitialize current scanline
 waitdat rdlong          temp,   datptr wz                   ' Check if graphics resources ready
         if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
@@ -399,6 +415,8 @@ slboff      res     1   ' Container for scanline buffer offset
 tmpslb      res     1   ' Container for temporary scanline buffer segment
 widesp      res     1   ' Container for wide sprite index
 wmmod       res     1   ' Container for wide/mirrored sprite mod
+plxoff      res     1   ' Container for initial parallax offset
+temptr      res     1   ' Container for temporary pointer to parallax table
 temp        res     1   ' Container for temporary variables
 
         fit
