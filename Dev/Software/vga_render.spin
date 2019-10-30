@@ -73,6 +73,11 @@ render
         shl             plxoff, #2
         mov             temptr, hspptr  ' Store into temporary pointer
         add             temptr, plxoff
+        mov             maxptr, #system#NUM_PARALLAX_REGS
+        shl             maxptr, #2
+        add             maxptr, hspptr
+        mov             nextsl, cursl
+        add             nextsl, #system#NUM_REN_COGS
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc       ' Attempt to lock semaphore
@@ -89,19 +94,25 @@ render
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
 frame   ' Initialize parallax positions
-        mov             index,  #system#PARALLAX_MIN    ' Load minimum parallax check iterations
 :initp  rdlong          temp,   temptr      ' Retrieve horizontal screen position
+        mov             lstplx, temp
         and             temp,   #$FF
         cmp             initsl, temp wc
-        if_nc jmp       #slgen
+        if_nc jmp       #:cont
         sub             temptr, #4
-        djnz            index,  #:initp
+        jmp             #:initp
+:cont   rdlong          nexthp, temptr
+        mov             nextvp, nexthp
+        shr             nexthp, #20
+        shr             nextvp, #8
+        and             nextvp, vpmask
+        mov             nxtptr, temptr
+        call            #nxt
 
 slgen   ' Calculate tile map line memory location
-        rdlong          horpos, temptr      ' Retrieve horizontal screen position
-        mov             verpos, horpos      ' Load position into vertical position
-        shr             verpos, #8          ' Shift vertical position to LSB
-        and             verpos, vpmask      ' Mask out vertical position
+        cmp             cursl,  nxtpsl wc
+        if_nc call      #nxt
+
         mov             possl,  cursl       ' Store current scanline into position scanline
         add             possl,  verpos      ' Calculate net vertical position
         cmpsub          possl,  numMemLines ' Compensate for wrapping
@@ -116,7 +127,6 @@ slgen   ' Calculate tile map line memory location
 
         ' Calculate initial tile offset and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
-        shr             horpos, #20                             ' Align horizontal position w/ LSB
         mov             temp,   horpos                          ' Store horizontal screen position in temp variable
         shr             temp,   #3                              ' temp = floor(horpos/8)
         mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' Load pre-incremented width of tile map in memory
@@ -315,14 +325,38 @@ long1   wrlong          0-0,    ptr                         ' |
         sub             long1,  d1                          ' |
         if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
         add             cursl,  #system#NUM_REN_COGS        ' Increment current scanline for next render
+        mov             nextsl, cursl
+        add             nextsl, #system#NUM_REN_COGS
         cmp             cursl,  numLines wc                 ' Check if at bottom of screen
         if_c jmp        #slgen                              ' If not continue to next scanline, otherwise...
         mov             temptr, hspptr
         add             temptr, plxoff
         mov             cursl,  initsl                      ' Reinitialize current scanline
+        mov             nextsl, cursl
+        add             nextsl, #system#NUM_REN_COGS
 waitdat rdlong          temp,   datptr wz                   ' Check if graphics resources ready
         if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
         jmp             #frame                              ' Generate next frame
+
+nxt     mov             horpos, nexthp
+        mov             verpos, nextvp
+:fnxt   add             nxtptr, #4
+        cmp             nxtptr, maxptr wc
+        if_nc jmp       #:cont
+        rdlong          nxtpsl, nxtptr
+        mov             nexthp, nxtpsl
+        and             nxtpsl, #$FF
+        cmp             nextsl, nxtpsl wc
+        if_nc mov       lstplx, nexthp
+        if_nc jmp       #:fnxt
+:cont   mov             nexthp, lstplx
+        mov             nextvp, nexthp
+        mov             nxtpsl, nextvp
+        and             nxtpsl, #$FF
+        shr             nextvp, #8
+        and             nextvp, vpmask
+        shr             nexthp, #20
+nxt_ret ret
 
         ' Tile loading routine
 tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
@@ -417,6 +451,13 @@ widesp      res     1   ' Container for wide sprite index
 wmmod       res     1   ' Container for wide/mirrored sprite mod
 plxoff      res     1   ' Container for initial parallax offset
 temptr      res     1   ' Container for temporary pointer to parallax table
+maxptr      res     1
+nxtptr      res     1
+nextsl      res     1
+nexthp      res     1
+nextvp      res     1
+nxtpsl      res     1
+lstplx      res     1
 temp        res     1   ' Container for temporary variables
 
         fit

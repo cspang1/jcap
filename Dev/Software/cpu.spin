@@ -28,7 +28,7 @@ VAR
     ' TEST RESOURCE POINTERS
     long  satts[system#SAT_SIZE]
 
-PUB main | time,trans,cont,temp,x,y,z,q
+PUB main | time,trans,cont,temp,x,y,z,q,plx
     ' Initialize variables
     input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
@@ -47,6 +47,7 @@ PUB main | time,trans,cont,temp,x,y,z,q
     '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
     temp := 0
+    plx := 0
     x := 16 ' starting horizontal pos
     y := 128 'starting vertical pos
     z := 8 'sprites per line
@@ -65,6 +66,7 @@ PUB main | time,trans,cont,temp,x,y,z,q
     longmove(@sprite_atts, @satts, system#SAT_SIZE)
     longfill(@plx_pos, $FF, system#NUM_PARALLAX_REGS)
     long[@plx_pos][0] := 0
+    long[@plx_pos][1] := 128
     time := cnt
     
     ' Main game loop
@@ -77,6 +79,11 @@ PUB main | time,trans,cont,temp,x,y,z,q
             left_right(x)
         if y == %01000000 or y == %00010000
             up_down(y)
+        plx := long[@plx_pos][1] >> 20
+        if plx == 447
+            long[@plx_pos][1] &= $FFFFF
+        else
+            long[@plx_pos][1] := (long[@plx_pos][1] & $FFFFF) | ((plx + 3) << 20)
         cont := tilt_state
         if (tilt_state & 1) == 0
             longfill(@sprite_atts, 0, system#SAT_SIZE)
