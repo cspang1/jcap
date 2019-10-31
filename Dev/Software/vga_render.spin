@@ -68,10 +68,10 @@ render
         rdlong          spptr,  spptr   ' Load sprite palette location
         rdlong          datptr, datptr  ' Load current scanline memory location
 
-        ' Calculate last initial parallax table entry offset
+        ' Calculate initial parallax parameters
         mov             plxoff, #system#PARALLAX_MIN-1
         shl             plxoff, #2
-        mov             temptr, hspptr  ' Store into temporary pointer
+        mov             temptr, hspptr
         add             temptr, plxoff
         mov             maxptr, #system#NUM_PARALLAX_REGS
         shl             maxptr, #2
@@ -91,10 +91,8 @@ render
         ' Start Counter B for tile loading routine
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
-        or              dira,   tester
-
 frame   ' Initialize parallax positions
-:initp  rdlong          temp,   temptr      ' Retrieve horizontal screen position
+:initp  rdlong          temp,   temptr
         and             temp,   #$FF
         cmp             initsl, temp wc
         if_nc jmp       #:cont
@@ -123,7 +121,7 @@ slgen   ' Calculate tile map line memory location
         ' Calculate initial tile offset and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
         mov             temp,   horpos                          ' Store horizontal screen position in temp variable
-        mov             thpos,  temp
+        mov             thpos,  temp                            ' Make copy of horizontal screen position to preserve
         shr             temp,   #3                              ' temp = floor(horpos/8)
         mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' Load pre-incremented width of tile map in memory
         sub             remtil, temp                            ' Subtract offset from map memory width
@@ -398,8 +396,6 @@ ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile loa
             long    px3, px2, px1, px0
 neg8        long    -8                      ' Value to modify sprite position given wide+mirrored
 
-tester      long    |< 15
-
 ' Scanline buffer
 slbuff      res     system#VID_BUFFER_SIZE+8    ' Buffer containing scanline
 ptr         res     1                           ' Data pointer assisting scanline buffer cog->hub tx
@@ -438,12 +434,12 @@ widesp      res     1   ' Container for wide sprite index
 wmmod       res     1   ' Container for wide/mirrored sprite mod
 plxoff      res     1   ' Container for initial parallax offset
 temptr      res     1   ' Container for temporary pointer to parallax table
-maxptr      res     1
-nxtptr      res     1
-nexthp      res     1
-nextvp      res     1
-nxtpsl      res     1
-thpos       res     1
+maxptr      res     1   ' Container for max parallax array pointer
+nxtptr      res     1   ' Container for next parallax array pointer
+nexthp      res     1   ' Container for next horizontal parallax position
+nextvp      res     1   ' Container for next vertical parallax position
+nxtpsl      res     1   ' Container for next parallax change scanline
+thpos       res     1   ' Container for temporary horizontal position
 temp        res     1   ' Container for temporary variables
 
         fit
