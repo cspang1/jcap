@@ -28,7 +28,7 @@ VAR
     ' TEST RESOURCE POINTERS
     long  satts[system#SAT_SIZE]
 
-PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2
+PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2,plx3,plx4,plx5,plx6,plx7,plx8
     ' Initialize variables
     input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
@@ -49,6 +49,12 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2
     temp := 0
     plx1 := 0
     plx2 := 0
+    plx3 := 0
+    plx4 := 0
+    plx5 := 0
+    plx6 := 0
+    plx7 := 0
+    plx8 := 0
     x := 16 ' starting horizontal pos
     y := 128 'starting vertical pos
     z := 8 'sprites per line
@@ -67,8 +73,14 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2
     longmove(@sprite_atts, @satts, system#SAT_SIZE)
     longfill(@plx_pos, $FF, system#NUM_PARALLAX_REGS)
     long[@plx_pos][0] := 0
-    'long[@plx_pos][1] := 60
-    'long[@plx_pos][2] := 180
+    long[@plx_pos][1] := 60
+    long[@plx_pos][2] := 180
+    long[@plx_pos][3] := (0 << 20) | 209
+    long[@plx_pos][4] := (5 << 20) | 210
+    long[@plx_pos][5] := (10 << 20) | 211
+    long[@plx_pos][6] := (15 << 20) | 212
+    long[@plx_pos][7] := (20 << 20) | 213
+    long[@plx_pos][8] := (25 << 20) | 214
     time := cnt
     
     ' Main game loop
@@ -83,14 +95,45 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2
             up_down(y)
         plx1 := long[@plx_pos][1] >> 20
         plx2 := long[@plx_pos][2] >> 20
-        {{if plx1 == 446
+        plx3 := long[@plx_pos][3] >> 20
+        plx4 := long[@plx_pos][4] >> 20
+        plx5 := long[@plx_pos][5] >> 20
+        plx6 := long[@plx_pos][6] >> 20
+        plx7 := long[@plx_pos][7] >> 20
+        plx8 := long[@plx_pos][8] >> 20
+        if plx1 == 446
             long[@plx_pos][1] &= $FFFFF
         else
             long[@plx_pos][1] := (long[@plx_pos][1] & $FFFFF) | ((plx1 + 2) << 20)
         if plx2 == 447
             long[@plx_pos][2] &= $FFFFF
         else
-            long[@plx_pos][2] := (long[@plx_pos][2] & $FFFFF) | ((plx2 + 3) << 20)}}
+            long[@plx_pos][2] := (long[@plx_pos][2] & $FFFFF) | ((plx2 + 3) << 20)
+        if plx3 == 447
+            long[@plx_pos][3] &= $FFFFF
+        else
+            long[@plx_pos][3] := (long[@plx_pos][3] & $FFFFF) | ((plx3 + 1) << 20)
+        if plx4 == 447
+            long[@plx_pos][4] &= $FFFFF
+        else
+            long[@plx_pos][4] := (long[@plx_pos][4] & $FFFFF) | ((plx4 + 1) << 20)
+        if plx5 == 447
+            long[@plx_pos][5] &= $FFFFF
+        else
+            long[@plx_pos][5] := (long[@plx_pos][5] & $FFFFF) | ((plx5 + 1) << 20)
+        if plx6 == 447
+            long[@plx_pos][6] &= $FFFFF
+        else
+            long[@plx_pos][6] := (long[@plx_pos][6] & $FFFFF) | ((plx6 + 1) << 20)
+        if plx7 == 447
+            long[@plx_pos][7] &= $FFFFF
+        else
+            long[@plx_pos][7] := (long[@plx_pos][7] & $FFFFF) | ((plx7 + 1) << 20)
+        if plx8 == 447
+            long[@plx_pos][8] &= $FFFFF
+        else
+            long[@plx_pos][8] := (long[@plx_pos][8] & $FFFFF) | ((plx8 + 1) << 20)
+
         cont := tilt_state
         if (tilt_state & 1) == 0
             longfill(@sprite_atts, 0, system#SAT_SIZE)

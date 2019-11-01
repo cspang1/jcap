@@ -76,8 +76,6 @@ render
         mov             maxptr, #system#NUM_PARALLAX_REGS
         shl             maxptr, #2
         add             maxptr, hspptr
-        mov             nxtsl,  cursl
-        add             nxtsl,  #system#NUM_REN_COGS
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc       ' Attempt to lock semaphore
@@ -89,6 +87,8 @@ render
         lockclr         semptr          ' Clear semaphore
         cogid           temp wz, nr     ' Check if this is the final cog to be initialized
         if_z  lockret   semptr          ' Return lock handle if so
+        mov             nxtsl,  cursl
+        add             nxtsl,  #system#NUM_REN_COGS
 
         ' Start Counter B for tile loading routine
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
@@ -328,7 +328,6 @@ long1   wrlong          0-0,    ptr                         ' |
         mov             cursl,  initsl                      ' Reinitialize current scanline
         mov             nxtsl,  cursl
         add             nxtsl,  #system#NUM_REN_COGS
-        mov             nxtcal, nxtcall
 waitdat rdlong          temp,   datptr wz                   ' Check if graphics resources ready
         if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
         jmp             #frame                              ' Generate next frame
@@ -342,7 +341,6 @@ nxt     mov             horpos, nexthp
         and             nxtpsl, #$FF
         cmp             nxtptr, maxptr wz
         cmp             nxtpsl, nxtsl wc
-        if_z mov        nxtcal, nopcall
         if_z_or_nc jmp  #:cont
         add             nxtptr, #4
         jmp             #:try
@@ -353,7 +351,7 @@ nxt_ret ret
 
         ' Tile loading routine
 tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
-        if_z mov        tmindx, initti  ' If so wrap to beginning
+        mov             tmindx, initti  ' If so wrap to beginning
 :next   rdword          curmt,  tmindx  ' Load current map tile from Main RAM
         mov             cpindx, curmt   ' Store map tile into color palette index
         and             curmt,  #255    ' Isolate palette tile index of map tile

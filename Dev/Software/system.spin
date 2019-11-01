@@ -11,7 +11,7 @@ CON
     NUM_SPRITE_PALETTES = 10                        ' Number of sprite palettes
     SPR_SZ_S = 8                                    ' Number of pixels wide/tall for small sprites
     SPR_SZ_L = 16                                   ' Number of pixels wide/tall for large sprites
-    NUM_PARALLAX_REGS = 2                           ' Max number of parallaxing regions on screen
+    NUM_PARALLAX_REGS = 9                           ' Max number of parallaxing regions on screen
     VID_BUFFER_SIZE = 80                            ' Number of scanline segments in video buffer
     MAX_VIS_HOR_POS = VIS_TILE_MAP_WIDTH * 8 + 16   ' Max visible horizontal position, accounting for 16 px wrap buffer left side of screen
     MAX_MEM_HOR_POS = MEM_TILE_MAP_WIDTH * 8        ' Max screen horizontal position in memory
