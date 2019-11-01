@@ -67,8 +67,8 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2
     longmove(@sprite_atts, @satts, system#SAT_SIZE)
     longfill(@plx_pos, $FF, system#NUM_PARALLAX_REGS)
     long[@plx_pos][0] := 0
-    long[@plx_pos][1] := 60
-    long[@plx_pos][2] := 180
+    'long[@plx_pos][1] := 60
+    'long[@plx_pos][2] := 180
     time := cnt
     
     ' Main game loop
@@ -83,14 +83,14 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2
             up_down(y)
         plx1 := long[@plx_pos][1] >> 20
         plx2 := long[@plx_pos][2] >> 20
-        if plx1 == 446
+        {{if plx1 == 446
             long[@plx_pos][1] &= $FFFFF
         else
             long[@plx_pos][1] := (long[@plx_pos][1] & $FFFFF) | ((plx1 + 2) << 20)
         if plx2 == 447
             long[@plx_pos][2] &= $FFFFF
         else
-            long[@plx_pos][2] := (long[@plx_pos][2] & $FFFFF) | ((plx2 + 3) << 20)
+            long[@plx_pos][2] := (long[@plx_pos][2] & $FFFFF) | ((plx2 + 3) << 20)}}
         cont := tilt_state
         if (tilt_state & 1) == 0
             longfill(@sprite_atts, 0, system#SAT_SIZE)

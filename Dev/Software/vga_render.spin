@@ -76,6 +76,8 @@ render
         mov             maxptr, #system#NUM_PARALLAX_REGS
         shl             maxptr, #2
         add             maxptr, hspptr
+        mov             nxtsl,  cursl
+        add             nxtsl,  #system#NUM_REN_COGS
 
         ' Get initial scanline and set next cogs via semaphore
 :lock   lockset         semptr wc       ' Attempt to lock semaphore
@@ -101,11 +103,9 @@ frame   ' Initialize parallax positions
 :cont   rdlong          nexthp, temptr
         mov             nxtptr, temptr
         add             nxtptr, #4
-        call            #nxt
 
 slgen   ' Calculate tile map line memory location
-        cmp             cursl,  nxtpsl wc
-        if_nc call      #nxt
+nxtcal  call            #nxt
         mov             possl,  cursl       ' Store current scanline into position scanline
         add             possl,  verpos      ' Calculate net vertical position
         cmpsub          possl,  numMemLines ' Compensate for wrapping
@@ -320,10 +320,15 @@ long1   wrlong          0-0,    ptr                         ' |
         if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
         add             cursl,  #system#NUM_REN_COGS        ' Increment current scanline for next render
         cmp             cursl,  numLines wc                 ' Check if at bottom of screen
+        mov             nxtsl,  cursl
+        add             nxtsl,  #system#NUM_REN_COGS
         if_c jmp        #slgen                              ' If not continue to next scanline, otherwise...
         mov             temptr, hspptr
         add             temptr, plxoff
         mov             cursl,  initsl                      ' Reinitialize current scanline
+        mov             nxtsl,  cursl
+        add             nxtsl,  #system#NUM_REN_COGS
+        mov             nxtcal, nxtcall
 waitdat rdlong          temp,   datptr wz                   ' Check if graphics resources ready
         if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
         jmp             #frame                              ' Generate next frame
@@ -333,12 +338,17 @@ nxt     mov             horpos, nexthp
         shr             horpos, #20
         shr             verpos, #8
         and             verpos, vpmask
-        cmp             nxtptr, maxptr wc
-        if_nc mov       nxtpsl, #$FF
-        if_c rdlong     nxtpsl, nxtptr
-        if_c mov        nexthp, nxtpsl
-        if_c and        nxtpsl, #$FF
-        if_c add        nxtptr, #4
+:try    rdlong          nxtpsl, nxtptr
+        and             nxtpsl, #$FF
+        cmp             nxtptr, maxptr wz
+        cmp             nxtpsl, nxtsl wc
+        if_z mov        nxtcal, nopcall
+        if_z_or_nc jmp  #:cont
+        add             nxtptr, #4
+        jmp             #:try
+:cont   sub             nxtptr, #4
+        rdlong          nxtpsl, nxtptr
+        mov             nexthp, nxtpsl
 nxt_ret ret
 
         ' Tile loading routine
@@ -360,6 +370,8 @@ tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
 tld_ret ret
 
         ' Instructions for dynamic tile shifting
+nxtcall call            #nxt
+nopcall nop
 tldcall call            #tld        ' Tile load instr call
 shlcall shl             curpt,  #4  ' Shift left instr call
 
@@ -422,6 +434,7 @@ initti      res     1   ' Container for current row's initial tile
 remtil      res     1   ' Container for remaining number of tiles to render before wrapping
 initsl      res     1   ' Container for initial scanline
 cursl       res     1   ' Container for current cog scanline
+nxtsl       res     1   ' Container for next cog scanline
 possl       res     1   ' Container for current psotion scanline
 curvb       res     1   ' Container for current video buffer Main RAM location being written
 index       res     1   ' Container for temporary index
