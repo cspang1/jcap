@@ -35,7 +35,7 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2,plx3,plx4,plx5,plx6,plx7,plx8
     gfx_buffer_size_ := system#GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
 
     ' Start subsystems
-    trans := constant(NEGX|15)                              ' link setup
+    trans := constant(NEGX|TX_PIN)                              ' link setup
     gfx_tx.start(@trans, VS_PIN, TX_PIN)                    ' Start graphics resource transfer system
     repeat while trans
 
@@ -87,8 +87,8 @@ PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2,plx3,plx4,plx5,plx6,plx7,plx8
     repeat
         waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
         trans := constant(system#GFX_BUFFER_SIZE << 16) | @plx_pos{0}            ' register send request
-        x := (word[@control_state][0] >> 7) & %10100000
-        y := (word[@control_state][0] >> 7) & %01010000
+        x := (word[@control_state][0] >> 3) & %10100000
+        y := (word[@control_state][0] >> 3) & %01010000
         if x == %10000000 or x == %00100000
             left_right(x)
         if y == %01000000 or y == %00010000
@@ -218,18 +218,18 @@ plx_pos         long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]
 
 tile_color_palettes
             ' Tile color palettes
-t_palette0  byte    %00000011,%11000011,%00001111,%11111111                    ' Tile color palette 0
+t_palette0  byte    %00000000,%11000011,%10010010,%11111111                    ' Tile color palette 0
             byte    %11110011,%00111111,%11001111,%11000011
             byte    %11010011,%00110111,%01001111,%01111011
             byte    %11010111,%01110111,%01011111,%00000011
-t_palette1  byte    %00000011,%11110011,%11001111,%11000011                    ' Tile color palette 1
+t_palette1  byte    %00000000,%11110000,%11001111,%11000011                    ' Tile color palette 1
             byte    %00000011,%00110011,%11111111,%11000011
             byte    %00000011,%00110011,%11111111,%11000011
             byte    %00000011,%00110011,%11111111,%11000011
 
 sprite_color_palettes
             ' Sprite color palettes
-s_palette0  byte    %00000011,%00110011,%11000011,%11111111                    ' Tile color palette 0
+s_palette0  byte    %00000000,%11100000,%00011100,%11111010                    ' Tile color palette 0
             byte    %11110011,%00111111,%11001111,%11000011
             byte    %11010011,%00110111,%01001111,%01111011
             byte    %11010111,%01110111,%01011111,%00000011

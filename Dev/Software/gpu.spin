@@ -11,8 +11,8 @@ CON
     _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
     ' Pin settings
-    VS_PIN = 26
-    RX_PIN = 0
+    VS_PIN = 0
+    RX_PIN = 1
 
 OBJ
     system        : "system"      ' Import system settings
@@ -51,7 +51,7 @@ PUB main | rx1, rx2
     sprite_palette_base_ := @sprite_palettes                                        ' Point sprite palette base to base of sprite palettes
 
     ' Start subsystems
-    rx1 := constant(NEGX|0)
+    rx1 := constant(NEGX|RX_PIN)
     rx2 := constant(system#GFX_BUFFER_SIZE << 16) | @gfx_buff
     gfx_rx.start(@rx1, VS_PIN, RX_PIN)                       ' Start video data RX driver
     repeat while rx1

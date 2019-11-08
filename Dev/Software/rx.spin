@@ -90,7 +90,7 @@ rx              jmpret  $, #:setup              ' once
 ' initialised data and/or presets
 
 rx_mask         long    1                       ' pin mask (incoming data)
-vs_mask         long    |< 26                   ' VSync signal output pin
+vs_mask         long    |< 0                    ' VSync signal output pin
 
 ' uninitialised data and/or gfx_addroraries
 

@@ -47,10 +47,10 @@ The "dsin" subroutine performs the individual clock pulses to retrieve the bits 
         and             inputs, #1              ' Isolate tilt state
         wrword          inputs, tptr            ' Write tilt state to Main RAM 
         jmp             #:poll                  ' Loop infinitely
-Pin_CP        long      |< 25                   ' 74HC165 clock pin bitmask
-Pin_PL_n      long      |< 26                   ' 74HC165 parallel load pin bitmask
-Pin_outs      long      |< 25 | |< 26           ' Set output pin bitmask
-Pin_Q7        long      |< 27                   ' 74HC165 serial output pin bitmask
+Pin_CP        long      |< 1                    ' 74HC165 clock pin bitmask
+Pin_PL_n      long      |< 0                    ' 74HC165 parallel load pin bitmask
+Pin_outs      long      |< 1 | |< 0             ' Set output pin bitmask
+Pin_Q7        long      |< 2                    ' 74HC165 serial output pin bitmask
 iptr          res       1                       ' Pointer to input_state register in Main RAM
 tptr          res       1                       ' Pointer to tilt_state register in Main RAM
 pcnt          res       1                       ' 74HC165 clock pulse pcnt
