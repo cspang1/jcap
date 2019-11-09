@@ -36,6 +36,12 @@ VAR
     long  sprite_palette_base_    ' Register pointing to base of sprite palettes
 
 PUB main | rx1, rx2
+    ' Set pins
+    dira[2..15]~~
+    dira[26..27]~~
+    outa[2..15]~
+    outa[26..27]~
+
     ' Initialize graphics system pointers
     gfx_buffer_base_ := @gfx_buff                                                   ' Point graphics buffer base to graphics buffer
     gfx_buffer_size_ := system#GFX_BUFFER_SIZE                                      ' Set the size of the graphics resources buffer

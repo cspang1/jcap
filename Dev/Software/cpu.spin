@@ -29,6 +29,14 @@ VAR
     long  satts[system#SAT_SIZE]
 
 PUB main | time,trans,cont,temp,x,y,z,q,plx1,plx2,plx3,plx4,plx5,plx6,plx7,plx8
+    ' Set pins
+    dira[3..7]~~
+    dira[8..13]~~
+    dira[16..27]~~
+    outa[3..7]~
+    outa[8..13]~
+    outa[16..27]~
+
     ' Initialize variables
     input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
