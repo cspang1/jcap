@@ -36,7 +36,7 @@ VAR
     long  sprite_palette_base_    ' Register pointing to base of sprite palettes
 
 PUB main | rx1, rx2
-    ' Set pins
+    ' Set unused pin states
     dira[2..15]~~
     dira[26..27]~~
     outa[2..15]~
@@ -74,14 +74,32 @@ gfx_buff      long      0[system#GFX_BUFFER_SIZE]      ' Graphics resources buff
 
 tile_palettes
               ' Empty tile
-tile_blank    long      $0_0_0_0_0_0_0_0        ' Tile 0
-              long      $0_0_0_0_0_0_0_0
-              long      $0_0_0_0_0_0_0_0
-              long      $0_0_0_0_0_0_0_0
-              long      $0_0_0_0_0_0_0_0
-              long      $0_0_0_0_0_0_0_0
-              long      $0_0_0_0_0_0_0_0
-              long      $0_0_0_0_0_0_0_0
+tile_blank    long      $0_1_2_3_4_5_6_7        ' Tile 0
+              long      $0_1_2_3_4_5_6_7
+              long      $0_1_2_3_4_5_6_7
+              long      $0_1_2_3_4_5_6_7
+              long      $0_1_2_3_4_5_6_7
+              long      $0_1_2_3_4_5_6_7
+              long      $0_1_2_3_4_5_6_7
+              long      $0_1_2_3_4_5_6_7
+
+tile_blank2   long      $8_9_A_B_C_D_E_F        ' Tile 0
+              long      $8_9_A_B_C_D_E_F
+              long      $8_9_A_B_C_D_E_F
+              long      $8_9_A_B_C_D_E_F
+              long      $8_9_A_B_C_D_E_F
+              long      $8_9_A_B_C_D_E_F
+              long      $8_9_A_B_C_D_E_F
+              long      $8_9_A_B_C_D_E_F
+
+tile_blank3   long      $0_0_1_1_2_2_3_3        ' Tile 0
+              long      $0_0_1_1_2_2_3_3
+              long      $0_0_1_1_2_2_3_3
+              long      $0_0_1_1_2_2_3_3
+              long      $0_0_1_1_2_2_3_3
+              long      $0_0_1_1_2_2_3_3
+              long      $0_0_1_1_2_2_3_3
+              long      $0_0_1_1_2_2_3_3
 
               ' Upper left corner of box
 tile_box_tl   long      $1_1_1_1_1_1_1_1        ' Tile 1

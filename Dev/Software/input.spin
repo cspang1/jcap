@@ -27,21 +27,21 @@ input   or              dira,   Pin_outs        ' Set output pins
 {{
 The "poll" subroutine reprents the entire process of latching and then pulsing the 74HC165s
 }}
-:poll   mov             pcnt,   #15             ' Load number of 74HC165 polls into register
+:poll   mov             pcnt,   #16             ' Load number of 74HC165 polls into register
         andn            outa,   Pin_CP          ' Drive clock pin low
         andn            outa,   Pin_PL_n        ' Drive parallel load pin low
         or              outa,   Pin_PL_n        ' Drive parallel load pin high           
 {{
 The "dsin" subroutine performs the individual clock pulses to retrieve the bits from the 74HC165s
 }}
-:dsin   test            Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
+:dsin   testn           Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
         rcl             inputs, #1              ' Shift Pin_Q7 state in inputs register
         or              outa,   Pin_CP          ' Drive clock pin high
         andn            outa,   Pin_CP          ' Drive clock pin low
         djnz            pcnt,   #:dsin          ' Repeat to retrieve all 16 bits
         or              outa,   Pin_CP          ' Drive clock pin high
         andn            outa,   Pin_CP          ' Drive clock pin low
-        test            Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
+        testn           Pin_Q7, ina wc          ' Poll and carry state of Pin_Q7
         wrword          inputs, iptr            ' Write inputs to Main RAM input_state register
         rcl             inputs, #1              ' Shift tilt state in inputs register
         and             inputs, #1              ' Isolate tilt state
