@@ -76,3 +76,6 @@ incremental_db/
 *.raw
 *.net
 *.fft
+
+**/Graphics Resources/*.txt
+
