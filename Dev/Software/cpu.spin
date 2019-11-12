@@ -89,8 +89,8 @@ PUB main | time,trans,cont,temp,x,y,z,q
         waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
         trans := constant(system#GFX_BUFFER_SIZE << 16) | @plx_pos{0}            ' register send request
         repeat temp from 1 to NUM_SEA_LINES
-            plxvars[temp-1] := plxvars[temp-1] + 1
-            x := sin(plxvars[temp-1],25)
+            plxvars[temp-1] := plxvars[temp-1] + 2
+            x := sin(plxvars[temp-1],{(temp-1)/5} (temp-1)//5)
             if x < 0
                 x += 447
             long[@plx_pos][temp] := (long[@plx_pos][temp] & $FFFFF) | (x << 20)
@@ -174,7 +174,7 @@ pri up_down(y_but) | y,dir,mir,temp,ysp
     temp |= (y | mir | dir)
     longmove(@sprite_atts, @temp, 1)
 
-PRI sin(degree, range) : s | c,z,angle
+pri sin(degree, range) : s | c,z,angle
   angle := (degree*91)~>2  ' *22.75
   c := angle & $800
   z := angle & $1000
