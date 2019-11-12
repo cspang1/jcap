@@ -90,7 +90,10 @@ PUB main | time,trans,cont,temp,x,y,z,q
         trans := constant(system#GFX_BUFFER_SIZE << 16) | @plx_pos{0}            ' register send request
         repeat temp from 1 to NUM_SEA_LINES
             plxvars[temp-1] := plxvars[temp-1] + 1
-            long[@plx_pos][temp] := (long[@plx_pos][temp] & $FFFFF) | ((sin(plxvars[temp-1],25)+25) << 20)    
+            x := sin(plxvars[temp-1],25)
+            if x < 0
+                x += 447
+            long[@plx_pos][temp] := (long[@plx_pos][temp] & $FFFFF) | (x << 20)
         x := word[@control_state][0] & $5000
         y := word[@control_state][0] & $A000
         if x == $4000 or x == $1000
