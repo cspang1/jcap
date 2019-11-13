@@ -615,6 +615,77 @@ waterfall_top   long      $4_4_4_4_4_4_4_4        ' Tile 3A
                 long      $8_8_8_9_9_8_A_B
                 long      $8_8_8_9_9_A_A_B
 
+rock_wtfl_right long      $4_4_4_4_4_4_4_4        ' Tile 3C
+                long      $8_4_8_4_8_4_8_4
+                long      $4_8_4_8_4_F_F_F
+                long      $8_8_8_9_F_E_E_E
+                long      $8_8_8_F_E_E_D_D
+                long      $8_8_8_8_F_E_D_C
+                long      $8_8_8_F_E_E_E_E
+                long      $8_8_8_F_E_D_E_C
+
+                long      $4_4_4_4_4_4_4_4        ' Tile 3D
+                long      $4_4_4_4_F_4_4_4
+                long      $4_F_4_F_E_F_F_F
+                long      $F_E_F_E_E_E_E_E
+                long      $E_E_E_E_D_C_D_D
+                long      $D_D_D_D_C_D_D_C
+                long      $C_C_E_C_C_D_E_E
+                long      $C_E_D_E_C_E_E_C
+
+                long      $B_B_F_E_E_D_C_D        ' Tile 3E
+                long      $8_B_B_F_E_C_C_E
+                long      $8_8_F_E_E_D_D_D
+                long      $9_8_8_F_E_E_D_C
+                long      $9_9_8_F_E_D_D_E
+                long      $A_9_9_8_F_E_C_E
+                long      $A_A_9_F_E_E_C_C
+                long      $B_A_A_F_E_D_D_D
+
+                long      $C_C_E_C_C_C_E_C        ' Tile 3F
+                long      $C_C_D_E_C_E_D_C
+                long      $C_D_D_E_C_D_D_E
+                long      $D_D_C_C_D_C_E_C
+                long      $D_E_D_C_C_C_E_C
+                long      $D_E_E_E_D_C_C_E
+                long      $C_E_E_E_C_C_C_E
+                long      $C_D_C_D_E_C_C_C
+
+rock_wtfl_left  long      $4_4_4_4_4_4_4_4        ' Tile 40
+                long      $4_8_4_8_4_8_4_8
+                long      $F_F_F_4_8_4_8_4
+                long      $E_E_E_F_9_8_8_8
+                long      $D_D_E_E_F_8_8_8
+                long      $C_D_E_F_8_8_8_8
+                long      $E_E_E_E_F_8_8_8
+                long      $C_E_D_E_F_8_8_8
+
+                long      $4_4_4_4_4_4_4_4        ' Tile 41
+                long      $4_4_4_F_4_4_4_4
+                long      $F_F_F_E_F_4_F_4
+                long      $E_E_E_E_E_F_E_F
+                long      $D_D_C_D_E_E_E_E
+                long      $C_D_D_C_D_D_D_D
+                long      $E_E_D_C_C_E_C_C
+                long      $C_E_E_C_E_D_E_C
+
+                long      $D_C_D_E_E_F_B_B        ' Tile 42
+                long      $E_C_C_E_F_B_B_8
+                long      $D_D_D_E_E_F_8_8
+                long      $C_D_E_E_F_8_8_9
+                long      $E_D_D_E_F_8_9_9
+                long      $E_C_E_F_8_9_9_A
+                long      $C_C_E_E_F_9_A_A
+                long      $D_D_D_E_F_A_A_B
+
+                long      $C_E_C_C_C_E_C_C        ' Tile 43
+                long      $C_D_E_C_E_D_C_C
+                long      $E_D_D_C_E_D_D_C
+                long      $C_E_C_D_C_C_D_D
+                long      $C_E_C_C_C_D_E_D
+                long      $E_C_C_D_E_E_E_D
+                long      $E_C_C_C_E_E_E_C
+                long      $C_C_C_E_D_C_D_C
 
 sprite_palettes
               ' Mario top left sprite
