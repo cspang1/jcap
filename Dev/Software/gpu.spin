@@ -687,6 +687,16 @@ rock_wtfl_left  long      $4_4_4_4_4_4_4_4        ' Tile 40
                 long      $E_C_C_C_E_E_E_C
                 long      $C_C_C_E_D_C_D_C
 
+wfall_split     long      $B_B_A_A_9_9_8_8        ' Tile 44
+                long      $8_B_B_A_A_9_9_8
+                long      $8_8_B_B_A_A_9_9
+                long      $9_8_8_B_B_A_A_9
+                long      $9_9_8_8_B_B_A_A
+                long      $A_9_9_8_8_B_B_A
+                long      $A_A_9_9_8_8_B_B
+                long      $B_A_A_9_9_8_8_B
+
+
 sprite_palettes
               ' Mario top left sprite
 mario_tl      long      $0_0_0_0_0_1_1_1        ' Sprite 0

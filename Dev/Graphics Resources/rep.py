@@ -17,17 +17,17 @@ def main(arguments):
 
     args = parser.parse_args(arguments)
     
-    tile_arr = ["28", "35", "36", "37"]
+    tile_arr = ["43", "3F"]
 
     seed(1453)
-    regex = re.compile(r'28{1}')
+    regex = re.compile(r'43{1}|3F{1}')
     with open(args.infile.name, args.infile.mode) as original, open(args.outfile.name, args.outfile.mode) as reverse:
         for line in original:
             for match in re.finditer(regex,line):
                 if match is not None:
                     s = match.start()
                     e = match.end()
-                    line = line[:s] + tile_arr[randint(0, 3)] + line[e:]
+                    line = line[:s] + tile_arr[randint(0, 1)] + line[e:]
             reverse.write(line)
 
 if __name__ == '__main__':
