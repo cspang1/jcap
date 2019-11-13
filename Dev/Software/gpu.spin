@@ -688,14 +688,40 @@ rock_wtfl_left  long      $4_4_4_4_4_4_4_4        ' Tile 40
                 long      $C_C_C_E_D_C_D_C
 
 wfall_split     long      $B_B_A_A_9_9_8_8        ' Tile 44
-                long      $8_B_B_A_A_9_9_8
-                long      $8_8_B_B_A_A_9_9
-                long      $9_8_8_B_B_A_A_9
-                long      $9_9_8_8_B_B_A_A
-                long      $A_9_9_8_8_B_B_A
-                long      $A_A_9_9_8_8_B_B
-                long      $B_A_A_9_9_8_8_B
+                long      $A_8_9_A_A_9_9_8
+                long      $E_E_E_A_9_A_9_9
+                long      $D_D_E_E_9_A_A_9
+                long      $C_C_D_E_E_9_A_A
+                long      $C_D_D_E_E_A_9_A
+                long      $D_E_E_E_8_B_B_9
+                long      $E_E_F_F_8_8_B_B
 
+                long      $F_F_F_A_A_A_B_B        ' Tile 45
+                long      $F_F_F_F_F_B_A_A
+                long      $F_F_F_F_F_8_B_B
+                long      $F_F_F_F_8_8_8_8
+                long      $F_F_F_9_9_9_9_8
+                long      $F_F_F_9_A_A_9_9
+                long      $F_F_F_F_B_B_A_A
+                long      $F_F_F_F_B_B_B_B
+
+                long      $8_8_9_9_A_A_B_B        ' Tile 46
+                long      $8_9_9_A_A_9_8_A
+                long      $9_9_A_9_A_E_E_E
+                long      $9_A_A_9_E_E_D_D
+                long      $A_A_9_E_E_D_C_C
+                long      $A_9_A_E_E_D_D_C
+                long      $9_B_B_8_E_E_E_D
+                long      $B_B_8_8_F_F_E_E
+
+                long      $B_B_A_A_A_F_F_F        ' Tile 47
+                long      $A_A_B_F_F_F_F_F
+                long      $B_B_8_F_F_F_F_F
+                long      $8_8_8_8_F_F_F_F
+                long      $8_9_9_9_9_F_F_F
+                long      $9_9_A_A_9_F_F_F
+                long      $A_A_B_B_F_F_F_F
+                long      $B_B_B_B_F_F_F_F
 
 sprite_palettes
               ' Mario top left sprite
