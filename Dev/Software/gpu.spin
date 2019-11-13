@@ -551,4 +551,108 @@ ref_right       long      $5_5_0_5_0_0_5_5        ' Tile 31
                 long      $0_0_5_5_5_1_1_2
                 long      $5_5_5_0_1_1_2_2
                 long      $0_5_5_1_1_2_2_3
+
+sea_spec_ref    long      $4_4_4_4_4_4_4_4        ' Tile 35
+                long      $4_4_4_4_4_4_1_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_5_4_4_4_5
+                long      $4_4_4_4_4_4_4_4
+
+                long      $1_4_1_4_4_4_4_4        ' Tile 36
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_5_4_4_5_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_1_4_4_4_4_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_5_4_4
+
+                long      $4_4_4_4_4_4_1_4        ' Tile 37
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_4_4_1
+                long      $5_4_4_4_4_4_4_4
+                long      $4_4_4_4_5_4_4_4
+                long      $4_4_4_4_4_4_4_4
+                long      $4_4_4_4_4_4_1_4
+                long      $4_4_4_4_4_4_4_4
+
+waterfall       long      $B_B_A_A_9_9_8_8        ' Tile 38
+                long      $8_B_B_A_A_9_9_8
+                long      $8_8_B_B_A_A_9_9
+                long      $9_8_8_B_B_A_A_9
+                long      $9_9_8_8_B_B_A_A
+                long      $A_9_9_8_8_B_B_A
+                long      $A_A_9_9_8_8_B_B
+                long      $B_A_A_9_9_8_8_B
+
+                long      $8_8_9_9_A_A_B_B        ' Tile 39
+                long      $8_9_9_A_A_B_B_8
+                long      $9_9_A_A_B_B_8_8
+                long      $9_A_A_B_B_8_8_9
+                long      $A_A_B_B_8_8_9_9
+                long      $A_B_B_8_8_9_9_A
+                long      $B_B_8_8_9_9_A_A
+                long      $B_8_8_9_9_A_A_B
+
+waterfall_top   long      $4_4_4_4_4_4_4_4        ' Tile 3A
+                long      $B_4_A_4_8_4_8_4
+                long      $4_A_4_9_4_8_4_8
+                long      $B_A_8_8_9_8_8_8
+                long      $9_A_A_9_8_8_8_8
+                long      $B_8_A_8_8_8_8_8
+                long      $B_A_8_9_9_8_8_8
+                long      $B_A_A_9_9_8_8_8
+
+                long      $4_4_4_4_4_4_4_4        ' Tile 3B
+                long      $8_4_8_4_8_4_8_4
+                long      $4_8_4_9_4_8_4_8
+                long      $8_8_8_9_8_8_A_B
+                long      $8_8_8_8_9_A_A_9
+                long      $8_8_8_8_8_A_8_B
+                long      $8_8_8_9_9_8_A_B
+                long      $8_8_8_9_9_A_A_B
+
+
 sprite_palettes
+              ' Mario top left sprite
+mario_tl      long      $0_0_0_0_0_1_1_1        ' Sprite 0
+              long      $0_0_0_0_1_1_1_1
+              long      $0_0_0_0_2_2_2_3
+              long      $0_0_0_2_3_2_3_3
+              long      $0_0_0_2_3_2_2_3
+              long      $0_0_0_2_2_3_3_3
+              long      $0_0_0_0_0_3_3_3
+              long      $0_0_0_0_2_2_1_2
+
+              ' Mario top right sprite
+mario_tr      long      $1_1_0_0_0_0_0_0        ' Sprite 1
+              long      $1_1_1_1_1_0_0_0
+              long      $3_2_3_0_0_0_0_0
+              long      $3_2_3_3_3_0_0_0
+              long      $3_3_2_3_3_3_0_0
+              long      $3_2_2_2_2_0_0_0
+              long      $3_3_3_3_0_0_0_0
+              long      $2_2_0_0_0_0_0_0
+
+              ' Mario bottom left sprite
+mario_bl      long      $0_0_0_2_2_2_1_2        ' Sprite 2
+              long      $0_0_2_2_2_2_1_1
+              long      $0_0_3_3_2_1_3_1
+              long      $0_0_3_3_3_1_1_1
+              long      $0_0_3_3_1_1_1_1
+              long      $0_0_0_0_1_1_1_0
+              long      $0_0_0_2_2_2_0_0
+              long      $0_0_2_2_2_2_0_0
+
+              ' Mario bottom right sprite
+mario_br      long      $2_1_2_2_2_0_0_0        ' Sprite 3
+              long      $1_1_2_2_2_2_0_0
+              long      $1_3_1_2_3_3_0_0
+              long      $1_1_1_3_3_3_0_0
+              long      $1_1_1_1_3_3_0_0
+              long      $0_1_1_1_0_0_0_0
+              long      $0_0_2_2_2_0_0_0
+              long      $0_0_2_2_2_2_0_0
