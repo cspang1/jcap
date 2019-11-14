@@ -16,6 +16,7 @@ CON
 
     ' Test settings
     NUM_SEA_LINES = 56
+
 OBJ
     system        : "system"      ' Import system settings
     gfx_tx        : "tx"          ' Import graphics transmission system
@@ -110,27 +111,20 @@ PUB main | time,trans,cont,temp,x,y,z,q
         if (tilt_state & 1) == 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
 
-pri left_right(x_but) | x,dir,mir,temp,xsp
+pri left_right(x_but) | x,dir,mir,temp
     x := long[@sprite_atts][0]
     temp := x & %00000000000000000111111111111011
     dir := 0 << 24
     x >>= 15
     x &= %111111111
-    xsp := long[@plx_pos][0] >> 20
     if x_but == $1000
         mir := 0
         x := (x + 1) & %111111111
-        if xsp == 447
-            long[@plx_pos][0] &= $FFFFF
-        else
-            long[@plx_pos][0] := (long[@plx_pos][0] & $FFFFF) | ((xsp + 1) << 20)
+        mv_scr_reg(1,0,57)
     if x_but == $4000
         mir := 1 << 2
         x := (x - 1) & %111111111
-        if xsp == 0
-            long[@plx_pos][0] := (long[@plx_pos][0] & $FFFFF) | (447 << 20)
-        else
-            long[@plx_pos][0] := (long[@plx_pos][0] & $FFFFF) | ((xsp - 1) << 20)
+        mv_scr_reg(-1,0,57)
     if temp & 2 == 2
         if x == 336
             x := 1
@@ -145,27 +139,20 @@ pri left_right(x_but) | x,dir,mir,temp,xsp
     temp |= (x | mir | dir)
     longmove(@sprite_atts, @temp, 1)
 
-pri up_down(y_but) | y,dir,mir,temp,ysp
+pri up_down(y_but) | y,dir,mir,temp
     y := long[@sprite_atts][0]
     temp := y & %00000000111111111000000001110111
     dir := 0 << 24
     y >>= 7
     y &= %11111111
-    ysp := (long[@plx_pos][0] & $FFF00) >> 8
     if y_but == $2000
         mir := 1 << 3
         y := (y + 1) & %11111111
-        if ysp == 271
-            long[@plx_pos][0] &= $FFF000FF
-        else
-            long[@plx_pos][0] := (long[@plx_pos][0] & $FFF000FF) | ((ysp + 1) << 8)
+        mv_scr_reg(0,1,57)
     if y_but == $8000
         mir := 0
         y := (y - 1) & %11111111
-        if ysp == 0
-            long[@plx_pos][0] := (long[@plx_pos][0] & $FFF000FF) | (271 << 8)
-        else
-            long[@plx_pos][0] := (long[@plx_pos][0] & $FFF000FF) | ((ysp - 1) << 8)
+        mv_scr_reg(0,-1,57)
     if temp & 1 == 1
         if y == 255
             y := 1
@@ -179,6 +166,28 @@ pri up_down(y_but) | y,dir,mir,temp,ysp
     y <<= 7
     temp |= (y | mir | dir)
     longmove(@sprite_atts, @temp, 1)
+
+pri mv_scr_reg(x,y,idx) | scr_reg,x_max,y_max,curr_x,curr_y,new_x,new_y
+    x_max := 447
+    y_max := 271
+    scr_reg := long[@plx_pos][idx]
+    curr_x := scr_reg >> 20
+    curr_y := (scr_reg & $000FFF00) >> 8
+    if x
+        new_x := curr_x + x
+        if new_x < 0
+            new_x := (x_max + 1) + new_x
+        elseif new_x > x_max
+            new_x := -1 + new_x - x_max
+        scr_reg := (scr_reg & $000FFFFF) | (new_x << 20)
+    if y
+        new_y := curr_y + y
+        if new_y < 0
+            new_y := (y_max + 1) + new_y
+        elseif new_y > y_max
+            new_y := -1 + new_y - y_max
+        scr_reg := (scr_reg & $FFF000FF) | (new_y << 8)
+    long[@plx_pos][idx] := scr_reg
 
 pri sin(degree, range) : s | c,z,angle
   angle := (degree*91)~>2  ' *22.75
