@@ -21,6 +21,8 @@ OBJ
     system        : "system"      ' Import system settings
     gfx_tx        : "tx"          ' Import graphics transmission system
     input         : "input"       ' Import input system
+    gfx_utils     : "gfx_utils"   ' Import graphics utilities
+    math_utils    : "math_utils"  ' Import math utilities
 
 VAR
     ' Game resource pointers
@@ -29,7 +31,6 @@ VAR
     long    gfx_buffer_size_        ' Container for graphics resources buffer size
 
     ' TEST RESOURCE POINTERS
-    long    satts[system#SAT_SIZE]
     long    plxvars[NUM_SEA_LINES]
 
 PUB main | time,trans,cont,temp,x,y,z,q
@@ -45,6 +46,7 @@ PUB main | time,trans,cont,temp,x,y,z,q
     input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
     gfx_buffer_size_ := system#GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
+    gfx_utils.setup (@plx_pos, @sprite_atts)
 
     ' Start subsystems
     trans := constant(NEGX|TX_PIN)                              ' link setup
@@ -60,19 +62,21 @@ PUB main | time,trans,cont,temp,x,y,z,q
     temp := 0
     x := 16 ' starting horizontal pos
     y := 128 'starting vertical pos
-    z := 0 'sprites per line
-    q := 0 'n lines
+    z := 8 'sprites per line
+    q := 8 'n lines
     repeat q
         repeat z
-            satts[temp] := (0 << 24) | (x << 15) | (y << 7) | 2 | 1
+            gfx_utils.set_sprite_tile (0,temp)
+            gfx_utils.set_sprite_pos (x,y,temp)
+            gfx_utils.set_sprite_wide (true,temp)
+            gfx_utils.set_sprite_tall (true,temp)
             x += 16
             temp += 1
         y += 16
         x := 16
     repeat system#SAT_SIZE-z*q
-        satts[temp] := (0 << 15) | (0 << 7)
+        gfx_utils.set_sprite_pos (0,0,temp)
         temp += 1
-    longmove(@sprite_atts, @satts, system#SAT_SIZE)
 
     ' Setup parallaxing
     longfill(@plx_pos, 0, system#NUM_PARALLAX_REGS)
@@ -97,7 +101,7 @@ PUB main | time,trans,cont,temp,x,y,z,q
           long[@t_palette1][2] <-= 8
         repeat temp from 1 to NUM_SEA_LINES
             plxvars[temp-1] := plxvars[temp-1] + 2
-            x := sin(-plxvars[temp-1],(temp-1)//4) + 50 - (temp-1)
+            x := math_utils.sin(-plxvars[temp-1],(temp-1)//4) + 50 - (temp-1)
             if x < 0
                 x += 447
             long[@plx_pos][temp] := (long[@plx_pos][temp] & $FFFFF) | (x << 20)
@@ -111,96 +115,25 @@ PUB main | time,trans,cont,temp,x,y,z,q
         if (tilt_state & 1) == 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
 
-pri left_right(x_but) | x,dir,mir,temp
-    x := long[@sprite_atts][0]
-    temp := x & %00000000000000000111111111111011
-    dir := 0 << 24
-    x >>= 15
-    x &= %111111111
-    if x_but == $1000
-        mir := 0
-        x := (x + 1) & %111111111
-        mv_scr_reg(1,0,57)
-    if x_but == $4000
-        mir := 1 << 2
-        x := (x - 1) & %111111111
-        mv_scr_reg(-1,0,57)
-    if temp & 2 == 2
-        if x == 336
-            x := 1
-        elseif x == 0
-            x := 335
-    else
-        if x == 336
-            x := 9
-        elseif x == 8
-            x := 335
-    x <<= 15
-    temp |= (x | mir | dir)
-    longmove(@sprite_atts, @temp, 1)
+pri left_right(x_button)
+    if x_button == $1000
+        gfx_utils.mv_sprite(1,0,0)
+        gfx_utils.set_sprite_hor_mir(false,0)
+        gfx_utils.mv_scr_reg(1,0,57)
+    if x_button == $4000
+        gfx_utils.mv_sprite(-1,0,0)
+        gfx_utils.set_sprite_hor_mir(true,0)
+        gfx_utils.mv_scr_reg(-1,0,57)
 
-pri up_down(y_but) | y,dir,mir,temp
-    y := long[@sprite_atts][0]
-    temp := y & %00000000111111111000000001110111
-    dir := 0 << 24
-    y >>= 7
-    y &= %11111111
-    if y_but == $2000
-        mir := 1 << 3
-        y := (y + 1) & %11111111
-        mv_scr_reg(0,1,57)
-    if y_but == $8000
-        mir := 0
-        y := (y - 1) & %11111111
-        mv_scr_reg(0,-1,57)
-    if temp & 1 == 1
-        if y == 255
-            y := 1
-        elseif y == 0
-            y := 254
-    else
-        if y == 255
-            y := 9
-        elseif y == 8
-            y := 254
-    y <<= 7
-    temp |= (y | mir | dir)
-    longmove(@sprite_atts, @temp, 1)
-
-pri mv_scr_reg(x,y,idx) | scr_reg,x_max,y_max,curr_x,curr_y,new_x,new_y
-    x_max := 447
-    y_max := 271
-    scr_reg := long[@plx_pos][idx]
-    curr_x := scr_reg >> 20
-    curr_y := (scr_reg & $000FFF00) >> 8
-    if x
-        new_x := curr_x + x
-        if new_x < 0
-            new_x := (x_max + 1) + new_x
-        elseif new_x > x_max
-            new_x := -1 + new_x - x_max
-        scr_reg := (scr_reg & $000FFFFF) | (new_x << 20)
-    if y
-        new_y := curr_y + y
-        if new_y < 0
-            new_y := (y_max + 1) + new_y
-        elseif new_y > y_max
-            new_y := -1 + new_y - y_max
-        scr_reg := (scr_reg & $FFF000FF) | (new_y << 8)
-    long[@plx_pos][idx] := scr_reg
-
-pri sin(degree, range) : s | c,z,angle
-  angle := (degree*91)~>2  ' *22.75
-  c := angle & $800
-  z := angle & $1000
-  if c
-    angle := -angle
-  angle |= $E000>>1
-  angle <<= 1
-  s := word[angle]
-  if z
-    s := -s
-  return (s*range)~>16     ' return sin = -range..+range
+pri up_down(y_button)
+    if y_button == $2000
+        gfx_utils.mv_sprite(0,1,0)
+        gfx_utils.set_sprite_vert_mir(true,0)
+        gfx_utils.mv_scr_reg(0,1,57)
+    if y_button == $8000
+        gfx_utils.mv_sprite(0,-1,0)
+        gfx_utils.set_sprite_vert_mir(false,0)
+        gfx_utils.mv_scr_reg(0,-1,57)
 
 DAT
 input_states
