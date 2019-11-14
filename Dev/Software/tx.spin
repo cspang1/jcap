@@ -22,10 +22,6 @@ VAR
 PUB start(varAddrBase, vsPin, txPin) : status
     stop
 
-    ' Start transmission driver
-    ifnot cog_ := cognew(@tx, varAddrBase) + 1            ' Initialize cog running "vga" routine with reference to start of variable registers
-        return FALSE                                        ' Graphics system failed to initialize
-
     ' Notify GPU ready
     dira[vsPin] := 0
     dira[txPin] := 1
@@ -33,6 +29,10 @@ PUB start(varAddrBase, vsPin, txPin) : status
     waitpeq(|< vsPin, |< vsPin, 0)
     outa[txPin] := 0
     dira[txPin] := 0
+
+    ' Start transmission driver
+    ifnot cog_ := cognew(@tx, varAddrBase) + 1            ' Initialize cog running "vga" routine with reference to start of variable registers
+        return FALSE                                        ' Graphics system failed to initialize
     
     return TRUE                                           ' Graphics system successfully initialized
 
