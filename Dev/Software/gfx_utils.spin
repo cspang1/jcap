@@ -18,15 +18,35 @@ pub mv_scr_reg(x,y,indx) | scr_reg,x_max,y_max,curr_x,curr_y,new_x,new_y
             new_x := (x_max + 1) + new_x
         elseif new_x > x_max
             new_x := -1 + new_x - x_max
-        scr_reg := (scr_reg & $FFFFF) | (new_x << 20)
+        set_scr_reg_hor_pos(new_x,indx)
     if y
         new_y := curr_y + y
         if new_y < 0
             new_y := (y_max + 1) + new_y
         elseif new_y > y_max
             new_y := -1 + new_y - y_max
-        scr_reg := (scr_reg & $FFF000FF) | (new_y << 8)
+        set_scr_reg_vert_pos(new_y,indx)
     long[parallax_array][indx] := scr_reg
+
+pub set_scr_reg_pos(x,y,indx)
+    set_scr_reg_hor_pos(x,indx)
+    set_scr_reg_vert_pos(y,indx)
+
+pub set_scr_reg_hor_pos(x,indx) | scr_reg
+    scr_reg := long[parallax_array][indx]
+    long[parallax_array][indx] := (scr_reg & $FFFFF) | (x << 20)
+
+pub set_scr_reg_vert_pos(y,indx) | scr_reg
+    scr_reg := long[parallax_array][indx]
+    long[parallax_array][indx] := (scr_reg & $FFF000FF) | (y << 8)
+
+pub init_sprite(tile,x,y,color,vmir,hmir,wide,tall,indx)
+    set_sprite_tile (tile,indx)
+    set_sprite_pos (x,y,indx)
+    set_sprite_hor_mir (hmir,indx)
+    set_sprite_vert_mir (vmir,indx)
+    set_sprite_wide (wide,indx)
+    set_sprite_tall (tall,indx)
 
 pub mv_sprite(x,y,indx) | sprite,x_max,y_max,curr_x,curr_y,new_x,new_y,size_x,size_y
     x_max := 337
@@ -42,15 +62,14 @@ pub mv_sprite(x,y,indx) | sprite,x_max,y_max,curr_x,curr_y,new_x,new_y,size_x,si
             new_x := (x_max + 1) + new_x
         elseif new_x > x_max
             new_x := 7 + new_x - x_max - size_x * 8
-        sprite := (sprite & $FF007FFF) | (new_x << 15)
+        set_sprite_hor_pos (new_x,indx)
     if y
         new_y := curr_y + y
         if new_y < (8 - size_y * 8)
             new_y := (y_max + 1) + new_y
         elseif new_y > y_max
             new_y := 7 + new_y - y_max - size_y * 8
-        sprite := (sprite & $FFFF807F) | (new_y << 7)
-    long[sprite_array][indx] := sprite
+        set_sprite_vert_pos (new_y,indx)
 
 pub set_sprite_tile(tile_indx,spr_indx) | sprite
     sprite := long[sprite_array][spr_indx]

@@ -26,14 +26,12 @@ OBJ
 
 VAR
     ' Game resource pointers
-    long    input_state_base_       ' Register in Main RAM containing state of inputs
     long    gfx_resources_base_     ' Register in Main RAM containing base of graphics resources
-    long    gfx_buffer_size_        ' Container for graphics resources buffer size
 
     ' TEST RESOURCE POINTERS
     long    plxvars[NUM_SEA_LINES]
 
-PUB main | time,trans,cont,temp,x,y,z,q
+PUB main | time,trans,temp,x,y,z,q
     ' Set unused pin states
     dira[3..7]~~
     dira[8..13]~~
@@ -43,16 +41,14 @@ PUB main | time,trans,cont,temp,x,y,z,q
     outa[16..27]~
 
     ' Initialize variables
-    input_state_base_ := @input_states                    ' Point input state base to base of input states
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
-    gfx_buffer_size_ := system#GFX_BUFFER_SIZE                   ' Set graphics resources buffer size
     gfx_utils.setup (@plx_pos, @sprite_atts)
 
     ' Start subsystems
     trans := constant(NEGX|TX_PIN)                              ' link setup
     gfx_tx.start(@trans, VS_PIN, TX_PIN)                    ' Start graphics resource transfer system
     repeat while trans
-    input.start(@input_state_base_)                       ' Start input system
+    input.start                       ' Start input system
 
     '     sprite         x position       y position    color v h size
     '|<------------->|<--------------->|<------------->|<--->|-|-|<->|
@@ -60,27 +56,21 @@ PUB main | time,trans,cont,temp,x,y,z,q
     '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
     temp := 0
-    x := 16 ' starting horizontal pos
+    x := 0  ' starting horizontal pos
     y := 128 'starting vertical pos
     z := 8 'sprites per line
     q := 8 'n lines
     repeat q
         repeat z
-            gfx_utils.set_sprite_tile (0,temp)
-            gfx_utils.set_sprite_pos (x,y,temp)
-            gfx_utils.set_sprite_wide (true,temp)
-            gfx_utils.set_sprite_tall (true,temp)
-            x += 16
-            temp += 1
+            gfx_utils.init_sprite (0,x+=16,y,0,false,false,true,true,temp++)
         y += 16
-        x := 16
+        x := 0
     repeat system#SAT_SIZE-z*q
-        gfx_utils.set_sprite_pos (0,0,temp)
-        temp += 1
+        gfx_utils.init_sprite (0,0,0,0,false,false,true,true,temp++)
 
     ' Setup parallaxing
     longfill(@plx_pos, 0, system#NUM_PARALLAX_REGS)
-    long[@plx_pos][0] := 0 | (50<<20)
+    gfx_utils.set_scr_reg_pos (50,0,0)
     x := 79
     repeat temp from 1 to NUM_SEA_LINES
         if (temp-1)//2 == 0
@@ -97,50 +87,37 @@ PUB main | time,trans,cont,temp,x,y,z,q
     repeat
         waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
         trans := constant(system#GFX_BUFFER_SIZE << 16) | @plx_pos{0}            ' register send request
-        if time//4 == 0
+        ifnot time//4
           long[@t_palette1][2] <-= 8
         repeat temp from 1 to NUM_SEA_LINES
             plxvars[temp-1] := plxvars[temp-1] + 2
             x := math_utils.sin(-plxvars[temp-1],(temp-1)//4) + 50 - (temp-1)
             if x < 0
                 x += 447
-            long[@plx_pos][temp] := (long[@plx_pos][temp] & $FFFFF) | (x << 20)
-        x := word[@control_state][0] & $5000
-        y := word[@control_state][0] & $A000
-        if x == $4000 or x == $1000
-            left_right(x)
-        if y == $8000 or y == $2000
-            up_down(y)
-        cont := tilt_state
-        if (tilt_state & 1) == 1
+            gfx_utils.set_scr_reg_hor_pos(x,temp)
+        move(input.get_control_state)
+        if input.get_tilt_state & 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
 
-pri left_right(x_button)
-    if x_button == $1000
+pri move(inputs)
+    if inputs & $1000
         gfx_utils.mv_sprite(1,0,0)
         gfx_utils.set_sprite_hor_mir(false,0)
         gfx_utils.mv_scr_reg(1,0,57)
-    if x_button == $4000
+    if inputs & $4000
         gfx_utils.mv_sprite(-1,0,0)
         gfx_utils.set_sprite_hor_mir(true,0)
         gfx_utils.mv_scr_reg(-1,0,57)
-
-pri up_down(y_button)
-    if y_button == $2000
+    if inputs & $2000
         gfx_utils.mv_sprite(0,1,0)
         gfx_utils.set_sprite_vert_mir(true,0)
         gfx_utils.mv_scr_reg(0,1,57)
-    if y_button == $8000
+    if inputs & $8000
         gfx_utils.mv_sprite(0,-1,0)
         gfx_utils.set_sprite_vert_mir(false,0)
         gfx_utils.mv_scr_reg(0,-1,57)
 
 DAT
-input_states
-              ' Input states
-control_state   word    0   ' Control states
-tilt_state      word    0   ' Tilt shift state
-
 plx_pos         long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
 tile_color_palettes

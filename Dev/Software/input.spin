@@ -9,10 +9,18 @@
 }}
 
 VAR
-  long base_input_addr_      ' Register in Main RAM containing state of inputs 
-PUB start (base_input_addr)                          
-  base_input_addr_ := base_input_addr                   ' Set global base_input_addr var
-  cognew(@input, base_input_addr_)                      ' Initialize cog running "input" routine with reference to start of variable registers
+    word    control_state   ' Control states
+    word    tilt_state      ' Tilt shift state
+
+PUB start
+  cognew(@input, @control_state)                      ' Initialize cog running "input" routine with reference to start of variable registers
+
+PUB get_control_state
+    return control_state
+
+PUB get_tilt_state
+    return tilt_state
+
 DAT        
         org             0
 {{
@@ -21,7 +29,6 @@ The "input" routine interfaces with the arcade controls via the 74HC165s
 input   or              dira,   Pin_outs        ' Set output pins
         andn            dira,   Pin_Q7          ' Set input pin
         mov             iptr,   par             ' Load Main RAM input_state address into iptr
-        rdlong          iptr,   iptr            ' Load actual control state address
         mov             tptr,   iptr            ' Load Main RAM control state address into tptr
         add             tptr,   #2              ' Increment tptr to point to tilt_state in Main RAM                  
 {{

@@ -21,6 +21,7 @@ CON
     MAX_SPR_VER_POS = 256                           ' Max vertical sprite position in memory
     NUM_REN_COGS = 6                                ' Number of render cogs instantiated for rendering
     PARALLAX_MIN = NUM_PARALLAX_REGS<#NUM_REN_COGS  ' Minimum iterations to determine initial frame parallax limits
-    GFX_BUFFER_SIZE = NUM_PARALLAX_REGS+((MEM_TILE_MAP_WIDTH*MEM_TILE_MAP_HEIGHT)*2+(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+SAT_SIZE*4)/4    ' Number of LONGs in graphics resources buffer
+    GFX_BUFFER_SIZE = NUM_PARALLAX_REGS+((MEM_TILE_MAP_WIDTH*MEM_TILE_MAP_HEIGHT)*2+{
+                    }(NUM_TILE_COLOR_PALETTES+NUM_SPRITE_COLOR_PALETTES)*16+SAT_SIZE*4)/4    ' Number of LONGs in graphics resources buffer
 
 PUB null
