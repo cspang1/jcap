@@ -31,7 +31,7 @@ VAR
     ' TEST RESOURCE POINTERS
     long    plxvars[NUM_SEA_LINES]
 
-PUB main | time,trans,temp,x,y,z,q
+PUB main | clock,time,trans,temp,x,y,z,q
     ' Set unused pin states
     dira[3..7]~~
     dira[8..13]~~
@@ -43,6 +43,7 @@ PUB main | time,trans,temp,x,y,z,q
     ' Initialize variables
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
     gfx_utils.setup (@plx_pos, @sprite_atts)
+    clock := 0
 
     ' Start subsystems
     trans := constant(NEGX|TX_PIN)                              ' link setup
@@ -58,8 +59,8 @@ PUB main | time,trans,temp,x,y,z,q
     temp := 0
     x := 0  ' starting horizontal pos
     y := 128 'starting vertical pos
-    z := 8 'sprites per line
-    q := 8 'n lines
+    z := 1 'sprites per line
+    q := 1 'n lines
     repeat q
         repeat z
             gfx_utils.init_sprite (0,x+=16,y,0,false,false,true,true,temp++)
@@ -85,7 +86,7 @@ PUB main | time,trans,temp,x,y,z,q
 
     ' Main game loop
     repeat
-        waitcnt(Time += clkfreq/60) ' Strictly for sensible sprite speed
+        waitcnt(time += clkfreq/60) ' Strictly for sensible sprite speed
         trans := constant(system#GFX_BUFFER_SIZE << 16) | @plx_pos{0}            ' register send request
         ifnot time//4
           long[@t_palette1][2] <-= 8
@@ -98,6 +99,8 @@ PUB main | time,trans,temp,x,y,z,q
         move(input.get_control_state)
         if input.get_tilt_state & 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
+        gfx_utils.animate_sprite (0,clock,60,4,@anim_frames)
+        clock++
 
 pri move(inputs)
     if inputs & $1000
@@ -118,6 +121,8 @@ pri move(inputs)
         gfx_utils.mv_scr_reg(0,-1,57)
 
 DAT
+anim_frames     byte    0,1,2,3
+
 plx_pos         long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
 tile_color_palettes
