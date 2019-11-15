@@ -74,10 +74,10 @@ PUB main | time,trans,temp,x,y,z,q
 
     ' Initialize sprites
     gfx_utils.init_sprite (0,16,16,0,false,false,true,true,0)
-    gfx_utils.init_sprite (4,40,90,0,false,true,false,false,1)
+    gfx_utils.init_sprite (4,40,85,0,false,true,false,false,1)
     gfx_utils.init_sprite (4,56,56,0,false,false,false,false,2)
-    gfx_utils.init_sprite (4,190,47,0,false,true,false,false,3)
-    gfx_utils.init_sprite (4,260,72,0,false,false,false,false,4)
+    gfx_utils.init_sprite (4,190,22,0,false,true,false,false,3)
+    gfx_utils.init_sprite (4,260,70,0,false,false,false,false,4)
 
     ' Setup parallaxing
     longfill(@plx_pos, 0, system#NUM_PARALLAX_REGS)
@@ -117,11 +117,12 @@ pri animate_birds
     gfx_utils.animate_sprite (2,clock_,10,4,@anim_bird)
     gfx_utils.animate_sprite (3,clock_,10,4,@anim_bird)
     gfx_utils.animate_sprite (4,clock_,10,4,@anim_bird)
-    ifnot clock_//1
+    ifnot clock_//2
       gfx_utils.mv_sprite(1,0,1)
       gfx_utils.mv_sprite(-1,0,2)
       gfx_utils.mv_sprite(1,0,3)
       gfx_utils.mv_sprite(-1,0,4)
+
 pri move(inputs)
     if inputs & $1000
         gfx_utils.mv_sprite(1,0,0)
