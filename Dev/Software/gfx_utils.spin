@@ -59,27 +59,27 @@ pub init_sprite(tile,x,y,color,vmir,hmir,wide,tall,indx)
     set_sprite_wide (wide,indx)
     set_sprite_tall (tall,indx)
 
-pub mv_sprite(x,y,indx) | sprite,x_max,y_max,curr_x,curr_y,new_x,new_y,size_x,size_y
-    x_max := 337
+pub mv_sprite(x,y,indx) | x_max,y_max,curr_x,curr_y,new_x,new_y,size_x,size_y
+    x_max := 344
     y_max := 255
-    sprite := long[sprite_array][indx]
     curr_x := get_sprite_hor_pos (indx)
     curr_y := get_sprite_vert_pos (indx)
-    size_x := get_sprite_wide (indx)
-    size_y := get_sprite_tall (indx)
+    size_x := get_sprite_wide (indx) ^ 1
+    size_y := get_sprite_tall (indx) ^ 1
+
     if x
         new_x := curr_x + x
-        if new_x < (8 - size_x * 8)
-            new_x := (x_max + 1) + new_x
+        if new_x < size_x * 8
+            new_x := x_max + new_x - size_x * 8 + 1
         elseif new_x > x_max
-            new_x := 7 + new_x - x_max - size_x * 8
+            new_x := -x_max + new_x + size_x * 8 - 1
         set_sprite_hor_pos (new_x,indx)
     if y
         new_y := curr_y + y
-        if new_y < (8 - size_y * 8)
-            new_y := (y_max + 1) + new_y
+        if new_y < size_y * 8
+            new_y := y_max + new_y - size_y * 8 + 1
         elseif new_y > y_max
-            new_y := 7 + new_y - y_max - size_y * 8
+            new_y := -y_max + new_y + size_y * 8 - 1
         set_sprite_vert_pos (new_y,indx)
 
 pub get_sprite_tile(indx)

@@ -6,9 +6,9 @@
 }}
 
 CON
-    ' Clock settings
-    _clkmode = xtal1 + pll16x     ' Standard clock mode w/ 16x PLL
-    _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
+    ' clock_ settings
+    _clkmode = xtal1 + pll16x     ' Standard clock_ mode w/ 16x PLL
+    _xinfreq = 6_500_000          ' 6.5 MHz clock_ for x16 = 104 MHz
 
     ' Pin settings
     VS_PIN = 14
@@ -28,10 +28,13 @@ VAR
     ' Game resource pointers
     long    gfx_resources_base_     ' Register in Main RAM containing base of graphics resources
 
+    ' Game clock_
+    long    clock_
+
     ' TEST RESOURCE POINTERS
     long    plxvars[NUM_SEA_LINES]
 
-PUB main | clock,time,trans,temp,x,y,z,q
+PUB main | time,trans,temp,x,y,z,q
     ' Set unused pin states
     dira[3..7]~~
     dira[8..13]~~
@@ -43,7 +46,7 @@ PUB main | clock,time,trans,temp,x,y,z,q
     ' Initialize variables
     gfx_resources_base_ := @tile_color_palettes           ' Set graphics resources base to start of tile color palettes
     gfx_utils.setup (@plx_pos, @sprite_atts)
-    clock := 0
+    clock_ := 0
 
     ' Start subsystems
     trans := constant(NEGX|TX_PIN)                              ' link setup
@@ -56,7 +59,7 @@ PUB main | clock,time,trans,temp,x,y,z,q
     ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
     '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
-    temp := 0
+    {temp := 0
     x := 0  ' starting horizontal pos
     y := 128 'starting vertical pos
     z := 1 'sprites per line
@@ -67,7 +70,14 @@ PUB main | clock,time,trans,temp,x,y,z,q
         y += 16
         x := 0
     repeat system#SAT_SIZE-z*q
-        gfx_utils.init_sprite (0,0,0,0,false,false,true,true,temp++)
+        gfx_utils.init_sprite (0,0,0,0,false,false,true,true,temp++)}
+
+    ' Initialize sprites
+    gfx_utils.init_sprite (0,16,16,0,false,false,true,true,0)
+    gfx_utils.init_sprite (4,40,90,0,false,true,false,false,1)
+    gfx_utils.init_sprite (4,56,56,0,false,false,false,false,2)
+    gfx_utils.init_sprite (4,190,47,0,false,true,false,false,3)
+    gfx_utils.init_sprite (4,260,72,0,false,false,false,false,4)
 
     ' Setup parallaxing
     longfill(@plx_pos, 0, system#NUM_PARALLAX_REGS)
@@ -99,9 +109,19 @@ PUB main | clock,time,trans,temp,x,y,z,q
         move(input.get_control_state)
         if input.get_tilt_state & 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
-        gfx_utils.animate_sprite (0,clock,60,4,@anim_frames)
-        clock++
+        animate_birds
+        clock_++
 
+pri animate_birds
+    gfx_utils.animate_sprite (1,clock_,10,4,@anim_bird)
+    gfx_utils.animate_sprite (2,clock_,10,4,@anim_bird)
+    gfx_utils.animate_sprite (3,clock_,10,4,@anim_bird)
+    gfx_utils.animate_sprite (4,clock_,10,4,@anim_bird)
+    ifnot clock_//1
+      gfx_utils.mv_sprite(1,0,1)
+      gfx_utils.mv_sprite(-1,0,2)
+      gfx_utils.mv_sprite(1,0,3)
+      gfx_utils.mv_sprite(-1,0,4)
 pri move(inputs)
     if inputs & $1000
         gfx_utils.mv_sprite(1,0,0)
@@ -121,9 +141,9 @@ pri move(inputs)
         gfx_utils.mv_scr_reg(0,-1,57)
 
 DAT
-anim_frames     byte    0,1,2,3
+anim_bird     byte    4,5,4,6
 
-plx_pos         long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
+plx_pos       long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
 tile_color_palettes
             ' Tile color palettes
@@ -138,7 +158,7 @@ t_palette1  byte    $FF,$3B,$37,$33 {OCEAN?}           ' Tile color palette 1
 
 sprite_color_palettes
             ' Sprite color palettes
-s_palette0  byte    %00000000,%11100000,%01001000,%11111010                    ' Tile color palette 0
+s_palette0  byte    %00000000,%00000000,%01001000,%11111010                    ' Tile color palette 0
             byte    %11110011,%00111111,%11001111,%11000011
             byte    %11010011,%00110111,%01001111,%01111011
             byte    %11010111,%01110111,%01011111,%00000011
