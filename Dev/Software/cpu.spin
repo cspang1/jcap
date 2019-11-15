@@ -113,10 +113,10 @@ PUB main | time,trans,temp,x,y,z,q
         clock_++
 
 pri animate_birds
-    gfx_utils.animate_sprite (1,clock_,10,4,@anim_bird)
-    gfx_utils.animate_sprite (2,clock_,10,4,@anim_bird)
-    gfx_utils.animate_sprite (3,clock_,10,4,@anim_bird)
-    gfx_utils.animate_sprite (4,clock_,10,4,@anim_bird)
+    gfx_utils.animate_sprite (1,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (2,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (3,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (4,clock_,15,8,@anim_bird)
     ifnot clock_//2
       gfx_utils.mv_sprite(1,0,1)
       gfx_utils.mv_sprite(-1,0,2)
@@ -142,7 +142,7 @@ pri move(inputs)
         gfx_utils.mv_scr_reg(0,-1,57)
 
 DAT
-anim_bird     byte    4,5,4,6
+anim_bird     byte    4,5,6,5,4,7,8,7
 
 plx_pos       long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
