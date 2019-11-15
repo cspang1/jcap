@@ -1,8 +1,13 @@
 from __future__ import print_function
+from itertools import zip_longest
 import os
 import sys
 import argparse
 import re
+
+def byteify(iterable, n, fillvalue=None):
+    args = [iter(iterable)] * n
+    return zip_longest(*args, fillvalue=fillvalue)
 
 def main(arguments):
 
@@ -11,7 +16,7 @@ def main(arguments):
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('infile', help="Input file", type=argparse.FileType('r'))
     parser.add_argument('-o', '--outfile', help="Output file",
-                        default=sys.stdout, type=argparse.FileType('w'))
+                        default=sys.stdout, type=argparse.FileType('wb'))
 
     args = parser.parse_args(arguments)
 
@@ -21,7 +26,11 @@ def main(arguments):
             result = re.search(r'(?<=\$)[0-9A-F_]{15}', line)
             if result:
                 result = result.group(0).replace("_","")
-                stripped.write(result)
+                for byte in byteify(result,8,"0"):
+                    byte = "".join(byte)[::-1]
+                    for element in byteify(byte,2,"0"):
+                        element = bytes.fromhex("".join(element)[::-1])
+                        stripped.write(element)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))

@@ -5,6 +5,7 @@ usage () {
     exit 1
 }
 
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cpu_flag=0
 gpu_flag=0
 
@@ -28,6 +29,11 @@ done
 
 if [[ "$cpu_flag" -eq 0 || "$gpu_flag" -eq 0 ]]; then usage; fi
 
-bstc cpu.spin -f -d$cpu_port -p2 &
-bstc gpu.spin -f -d$gpu_port -p2 &
+cd $parent_path 
+
+python makedat.py ../Resources/sprites.txt -o ../Software/sprites.dat
+python makedat.py ../Resources/tiles.txt -o ../Software/tiles.dat
+
+bstc ../Software/cpu.spin -f -d$cpu_port -p2 &
+bstc ../Software/gpu.spin -f -d$gpu_port -p2 &
 wait
