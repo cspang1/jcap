@@ -32,7 +32,6 @@ def parse_tile_maps(resource_file):
     return parse_hex(resource_file,4,r'(?<=\$)[0-9A-F_]{5}')
 
 def main(arguments):
-
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)

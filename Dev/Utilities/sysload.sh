@@ -4,6 +4,7 @@ usage () {
     echo "  -g port     Set COM port connected to GPU"
     exit 1
 }
+set -e
 
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cpu_flag=0
