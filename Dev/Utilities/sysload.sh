@@ -31,8 +31,11 @@ if [[ "$cpu_flag" -eq 0 || "$gpu_flag" -eq 0 ]]; then usage; fi
 
 cd $parent_path 
 
-python makedat.py ../Resources/sprites.txt -o ../Software/sprites.dat
-python makedat.py ../Resources/tiles.txt -o ../Software/tiles.dat
+python makedat.py --tile_palette ../Resources/sprites.txt ../Software/sprites.dat
+python makedat.py --tile_palette ../Resources/tiles.txt ../Software/tiles.dat
+python makedat.py --color_palette ../Resources/sprite_color_palettes.txt ../Software/sprite_color_palettes.dat
+python makedat.py --color_palette ../Resources/tile_color_palettes.txt ../Software/tile_color_palettes.dat
+python makedat.py --tile_map ../Resources/tile_maps.txt ../Software/tile_maps.dat
 
 bstc ../Software/cpu.spin -f -d$cpu_port -p2 &
 bstc ../Software/gpu.spin -f -d$gpu_port -p2 &
