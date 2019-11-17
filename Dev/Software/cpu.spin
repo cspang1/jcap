@@ -16,6 +16,7 @@ CON
 
     ' Test settings
     NUM_SEA_LINES = 56
+    #0, UP, DOWN, LEFT, RIGHT
 
 OBJ
     system        : "system"      ' Import system settings
@@ -28,11 +29,15 @@ VAR
     ' Game resource pointers
     long    gfx_resources_base_     ' Register in Main RAM containing base of graphics resources
 
-    ' Game clock_
+    ' Game clocks
     long    clock_
 
     ' TEST RESOURCE POINTERS
     long    plxvars[NUM_SEA_LINES]
+    word    foxposx
+    byte    foxposy
+    byte    moving
+    byte    facing
 
 PUB main | time,trans,temp,x,y,z,q,elapsed
     ' Set unused pin states
@@ -47,6 +52,8 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
     gfx_resources_base_ := @gfx_base           ' Set graphics resources base to start of tile color palettes
     gfx_utils.setup (@plx_pos, @sprite_atts)
     clock_ := 0
+    fox_still_clk := 0
+    fox_walk_clk := 0
 
     ' Start subsystems
     trans := constant(NEGX|TX_PIN)                              ' link setup
@@ -61,10 +68,14 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
 
     ' Initialize sprites
     ' Fox
-    gfx_utils.init_sprite ($5,16,120,$2,false,false,true,true,0)
-    gfx_utils.init_sprite ($9,32,120,$2,false,false,true,true,1)
-    gfx_utils.init_sprite ($D,16,136,$2,false,false,true,false,2)
-    gfx_utils.init_sprite ($F,32,136,$2,false,false,false,false,3)
+    foxposx := 16
+    foxposy := 120
+    moving := false
+    facing := RIGHT
+    gfx_utils.init_sprite ($5,foxposx,foxposy,$2,false,false,true,true,0)
+    gfx_utils.init_sprite ($9,foxposx+16,foxposy,$2,false,false,true,true,1)
+    gfx_utils.init_sprite ($D,foxposx,foxposy+16,$2,false,false,true,true,2)
+    gfx_utils.init_sprite ($11,foxposx+16,foxposy+16,$2,false,false,true,true,3)
 
     ' Birds
     gfx_utils.init_sprite ($4,40,85,$0,false,true,false,false,4)
@@ -103,7 +114,85 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
         if input.get_tilt_state & 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
         animate_birds
+        if moving == false
+            animate_fox_still
         clock_++
+
+pri move(inputs)
+    if inputs & $1000 ' Right
+        if (gfx_utils.get_scr_reg_hor_pos(57) < 128) and (gfx_utils.get_sprite_hor_pos(0) == 172)
+            gfx_utils.mv_scr_reg(1,0,57)
+        move_fox(RIGHT)
+    if inputs & $4000 ' Left
+        if(gfx_utils.get_scr_reg_hor_pos(57) > 0)  and (gfx_utils.get_sprite_hor_pos(0) == 172)
+            gfx_utils.mv_scr_reg(-1,0,57)
+        move_fox(LEFT)
+    if inputs & $2000 ' Up
+    if inputs & $8000 ' Down
+    if not (inputs & $F000)
+        moving := false
+        gfx_utils.set_sprite_tile($5,0)
+        gfx_utils.set_sprite_tile($9,1)
+        gfx_utils.set_sprite_tile($D,2)
+        gfx_utils.set_sprite_tile($11,3)
+
+pri move_fox(dir) | xpos0,xpos1,xpos2,xpos3,ypos0,ypos1,ypos2,ypos3,newdir
+    xpos0 := gfx_utils.get_sprite_hor_pos(0)
+    xpos1 := gfx_utils.get_sprite_hor_pos(1)
+    xpos2 := gfx_utils.get_sprite_hor_pos(2)
+    xpos3 := gfx_utils.get_sprite_hor_pos(3)
+    ypos0 := gfx_utils.get_sprite_vert_pos(0)
+    ypos1 := gfx_utils.get_sprite_vert_pos(1)
+    ypos2 := gfx_utils.get_sprite_vert_pos(2)
+    ypos3 := gfx_utils.get_sprite_vert_pos(3)
+
+    if dir == RIGHT
+        foxposx++
+        newdir := RIGHT
+        if facing <> newdir
+            gfx_utils.mv_sprite(-16,0,0)
+            gfx_utils.mv_sprite(16,0,1)
+            gfx_utils.mv_sprite(-16,0,2)
+            gfx_utils.mv_sprite(16,0,3)
+        if (gfx_utils.get_sprite_hor_pos(0) < 172) or (gfx_utils.get_scr_reg_hor_pos(57) == 128)
+            gfx_utils.mv_sprite(1,0,0)
+            gfx_utils.mv_sprite(1,0,1)
+            gfx_utils.mv_sprite(1,0,2)
+            gfx_utils.mv_sprite(1,0,3)
+        gfx_utils.set_sprite_hor_mir(false,0)
+        gfx_utils.set_sprite_hor_mir(false,1)
+        gfx_utils.set_sprite_hor_mir(false,2)
+        gfx_utils.set_sprite_hor_mir(false,3)
+    elseif dir == LEFT
+        foxposx--
+        newdir := LEFT
+        if facing <> newdir
+            gfx_utils.mv_sprite(16,0,0)
+            gfx_utils.mv_sprite(-16,0,1)
+            gfx_utils.mv_sprite(16,0,2)
+            gfx_utils.mv_sprite(-16,0,3)
+        if (gfx_utils.get_sprite_hor_pos(0) > 172) or (gfx_utils.get_scr_reg_hor_pos(57) == 0)
+            gfx_utils.mv_sprite(-1,0,0)
+            gfx_utils.mv_sprite(-1,0,1)
+            gfx_utils.mv_sprite(-1,0,2)
+            gfx_utils.mv_sprite(-1,0,3)
+        gfx_utils.set_sprite_hor_mir(true,0)
+        gfx_utils.set_sprite_hor_mir(true,1)
+        gfx_utils.set_sprite_hor_mir(true,2)
+        gfx_utils.set_sprite_hor_mir(true,3)
+
+    facing := newdir
+    moving := true
+    animate_fox_move
+
+pri animate_fox_still
+    gfx_utils.animate_sprite (2,fox_still_clk,60,2,@fox_stillbl)
+    gfx_utils.animate_sprite (3,fox_still_clk,60,2,@fox_stillbr)
+
+pri animate_fox_move
+    gfx_utils.animate_sprite (2,clock_,15,4,@fox_walkbl)
+    gfx_utils.animate_sprite (3,clock_,15,4,@fox_walkbr)
+
 
 pri animate_birds
     gfx_utils.animate_sprite (4,clock_,15,8,@anim_bird)
@@ -116,26 +205,12 @@ pri animate_birds
       gfx_utils.mv_sprite(1,0,6)
       gfx_utils.mv_sprite(-1,0,7)
 
-pri move(inputs)
-    if inputs & $1000
-        gfx_utils.mv_sprite(1,0,0)
-        gfx_utils.set_sprite_hor_mir(false,0)
-        gfx_utils.mv_scr_reg(1,0,57)
-    if inputs & $4000
-        gfx_utils.mv_sprite(-1,0,0)
-        gfx_utils.set_sprite_hor_mir(true,0)
-        gfx_utils.mv_scr_reg(-1,0,57)
-    if inputs & $2000
-        gfx_utils.mv_sprite(0,1,0)
-        gfx_utils.set_sprite_vert_mir(true,0)
-        gfx_utils.mv_scr_reg(0,1,57)
-    if inputs & $8000
-        gfx_utils.mv_sprite(0,-1,0)
-        gfx_utils.set_sprite_vert_mir(false,0)
-        gfx_utils.mv_scr_reg(0,-1,57)
-
 DAT
-anim_bird     byte    0,1,2,1,0,3,4,3
+anim_bird       byte    0,1,2,1,0,3,4,3
+fox_stillbl     byte    $D,$15
+fox_stillbr     byte    $11,$19
+fox_walkbl      byte    $1D,$D,$25,$D
+fox_walkbr      byte    $21,$11,$29,$11
 
 plx_pos       long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
