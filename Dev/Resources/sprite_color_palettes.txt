@@ -7,3 +7,7 @@ s_palette1  byte    $00,$33,$FF,$C3                    ' Tile color palette 1
             byte    $03,$33,$FF,$C3
             byte    $03,$33,$FF,$C3
             byte    $03,$33,$FF,$C3
+fox_pal     byte    $00{trans},$EC{dark o},$F4{light o},$0B{blue}                    ' Tile color palette 1
+            byte    $FF{white},$00{blk},$00,$00
+            byte    $00,$00,$00,$00
+            byte    $00,$00,$00,$00

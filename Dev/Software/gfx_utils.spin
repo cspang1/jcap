@@ -54,6 +54,7 @@ pub set_scr_reg_vert_pos(y,indx) | scr_reg
 pub init_sprite(tile,x,y,color,vmir,hmir,wide,tall,indx)
     set_sprite_tile (tile,indx)
     set_sprite_pos (x,y,indx)
+    set_sprite_color(color,indx)
     set_sprite_hor_mir (hmir,indx)
     set_sprite_vert_mir (vmir,indx)
     set_sprite_wide (wide,indx)

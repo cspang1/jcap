@@ -34,7 +34,7 @@ VAR
     ' TEST RESOURCE POINTERS
     long    plxvars[NUM_SEA_LINES]
 
-PUB main | time,trans,temp,x,y,z,q
+PUB main | time,trans,temp,x,y,z,q,elapsed
     ' Set unused pin states
     dira[3..7]~~
     dira[8..13]~~
@@ -59,25 +59,18 @@ PUB main | time,trans,temp,x,y,z,q
     ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
     '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
-    {temp := 0
-    x := 0  ' starting horizontal pos
-    y := 128 'starting vertical pos
-    z := 1 'sprites per line
-    q := 1 'n lines
-    repeat q
-        repeat z
-            gfx_utils.init_sprite (0,x+=16,y,0,false,false,true,true,temp++)
-        y += 16
-        x := 0
-    repeat system#SAT_SIZE-z*q
-        gfx_utils.init_sprite (0,0,0,0,false,false,true,true,temp++)}
-
     ' Initialize sprites
-    gfx_utils.init_sprite (0,16,16,0,false,false,true,true,0)
-    gfx_utils.init_sprite (4,40,85,0,false,true,false,false,1)
-    gfx_utils.init_sprite (4,56,56,0,false,false,false,false,2)
-    gfx_utils.init_sprite (4,190,22,0,false,true,false,false,3)
-    gfx_utils.init_sprite (4,260,70,0,false,false,false,false,4)
+    ' Fox
+    gfx_utils.init_sprite ($5,16,120,$2,false,false,true,true,0)
+    gfx_utils.init_sprite ($9,32,120,$2,false,false,true,true,1)
+    gfx_utils.init_sprite ($D,16,136,$2,false,false,true,false,2)
+    gfx_utils.init_sprite ($F,32,136,$2,false,false,false,false,3)
+
+    ' Birds
+    gfx_utils.init_sprite ($4,40,85,$0,false,true,false,false,4)
+    gfx_utils.init_sprite ($4,56,56,$0,false,false,false,false,5)
+    gfx_utils.init_sprite ($4,190,22,$0,false,true,false,false,6)
+    gfx_utils.init_sprite ($4,260,70,$0,false,false,false,false,7)
 
     ' Setup parallaxing
     longfill(@plx_pos, 0, system#NUM_PARALLAX_REGS)
@@ -113,15 +106,15 @@ PUB main | time,trans,temp,x,y,z,q
         clock_++
 
 pri animate_birds
-    gfx_utils.animate_sprite (1,clock_,15,8,@anim_bird)
-    gfx_utils.animate_sprite (2,clock_,15,8,@anim_bird)
-    gfx_utils.animate_sprite (3,clock_,15,8,@anim_bird)
     gfx_utils.animate_sprite (4,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (5,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (6,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (7,clock_,15,8,@anim_bird)
     ifnot clock_//2
-      gfx_utils.mv_sprite(1,0,1)
-      gfx_utils.mv_sprite(-1,0,2)
-      gfx_utils.mv_sprite(1,0,3)
-      gfx_utils.mv_sprite(-1,0,4)
+      gfx_utils.mv_sprite(1,0,4)
+      gfx_utils.mv_sprite(-1,0,5)
+      gfx_utils.mv_sprite(1,0,6)
+      gfx_utils.mv_sprite(-1,0,7)
 
 pri move(inputs)
     if inputs & $1000
@@ -142,7 +135,7 @@ pri move(inputs)
         gfx_utils.mv_scr_reg(0,-1,57)
 
 DAT
-anim_bird     byte    4,5,6,5,4,7,8,7
+anim_bird     byte    0,1,2,1,0,3,4,3
 
 plx_pos       long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 

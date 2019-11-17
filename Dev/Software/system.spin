@@ -1,14 +1,14 @@
 CON
     ' Game settings
     NUM_TILE_COLOR_PALETTES = 2                     ' Number of tile color palettes
-    NUM_SPRITE_COLOR_PALETTES = 2                   ' Number of sprite color palettes
+    NUM_SPRITE_COLOR_PALETTES = 3                   ' Number of sprite color palettes
     SAT_SIZE = 64                                   ' Number of sprites in sprite attribute table
     VIS_TILE_MAP_WIDTH = 40                         ' Number of visible horizontal tiles in tile map
     VIS_TILE_MAP_HEIGHT = 30                        ' Number of visible vertical tiles in tile map
     MEM_TILE_MAP_WIDTH = 56                         ' Number of visible horizontal tiles in tile map
     MEM_TILE_MAP_HEIGHT = 34                        ' Number of visible vertical tiles in tile map
     NUM_TILE_PALETTES = $47+1                       ' Number of tile palettes
-    NUM_SPRITE_PALETTES = $8+1                      ' Number of sprite palettes
+    NUM_SPRITE_PALETTES = $F+1                      ' Number of sprite palettes
     SPR_SZ_S = 8                                    ' Number of pixels wide/tall for small sprites
     SPR_SZ_L = 16                                   ' Number of pixels wide/tall for large sprites
     NUM_PARALLAX_REGS = 58                          ' Max number of parallaxing regions on screen
