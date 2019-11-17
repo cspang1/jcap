@@ -32,15 +32,23 @@ if [[ "$cpu_flag" -eq 0 || "$gpu_flag" -eq 0 ]]; then usage; fi
 
 cd $parent_path
 
+echo Converting resources...
+
 python makedat.py --tile_palette ../Resources/sprites.txt ../Software/sprites.dat
 python makedat.py --tile_palette ../Resources/tiles.txt ../Software/tiles.dat
 python makedat.py --color_palette ../Resources/sprite_color_palettes.txt ../Software/sprite_color_palettes.dat
 python makedat.py --color_palette ../Resources/tile_color_palettes.txt ../Software/tile_color_palettes.dat
 python makedat.py --tile_map ../Resources/tile_maps.txt ../Software/tile_maps.dat
 
-bstc -e ../Software/cpu.spin -o ../Software/cpu.binary -q
-bstc -e ../Software/cpu.spin -o ../Software/cpu.binary -q
+echo Compiling...
 
-bstc -p2 ../Software/cpu.binary -f -d$cpu_port &
-bstc -p2 ../Software/gpu.binary -f -d$gpu_port &
+bstc ../Software/cpu.spin -q
+bstc ../Software/gpu.spin -q
+
+echo Programming...
+
+bstc -p2 ../Software/cpu.spin -f -d$cpu_port -q &
+bstc -p2 ../Software/gpu.spin -f -d$gpu_port -q &
 wait
+
+echo Done!
