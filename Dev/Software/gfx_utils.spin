@@ -6,7 +6,7 @@ pub setup(plx_arr_loc, spr_arr_loc)
     parallax_array := plx_arr_loc
     sprite_array := spr_arr_loc
 
-pub animate_sprite(sprindx,clock,freq,nframes,frameptr) | sprite,new_frame
+pub animate_sprite(clock,freq,nframes,frameptr,sprindx) | sprite,new_frame
     new_frame := byte[frameptr][(clock/freq)//nframes]
     set_sprite_tile (new_frame,sprindx)
 

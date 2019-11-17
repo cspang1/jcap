@@ -36,8 +36,12 @@ VAR
     long    plxvars[NUM_SEA_LINES]
     word    foxposx
     byte    foxposy
-    byte    moving
+    byte    jumping
+    byte    crouching
     byte    facing
+    byte    jmpcnt
+    byte    stillcnt
+    byte    walkcnt
 
 PUB main | time,trans,temp,x,y,z,q,elapsed
     ' Set unused pin states
@@ -52,8 +56,6 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
     gfx_resources_base_ := @gfx_base           ' Set graphics resources base to start of tile color palettes
     gfx_utils.setup (@plx_pos, @sprite_atts)
     clock_ := 0
-    fox_still_clk := 0
-    fox_walk_clk := 0
 
     ' Start subsystems
     trans := constant(NEGX|TX_PIN)                              ' link setup
@@ -70,7 +72,10 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
     ' Fox
     foxposx := 16
     foxposy := 120
-    moving := false
+    stillcnt := 0
+    walkcnt := 0
+    jumping := false
+    crouching := false
     facing := RIGHT
     gfx_utils.init_sprite ($5,foxposx,foxposy,$2,false,false,true,true,0)
     gfx_utils.init_sprite ($9,foxposx+16,foxposy,$2,false,false,true,true,1)
@@ -114,27 +119,50 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
         if input.get_tilt_state & 1
             longfill(@sprite_atts, 0, system#SAT_SIZE)
         animate_birds
-        if moving == false
-            animate_fox_still
+        if jumping and jmpcnt < 25
+            animate_fox_jump
+            jmpcnt++
+            stillcnt := 0
+            walkcnt := 0
+        else
+            jumping := false
+            jmpcnt := 0
         clock_++
 
 pri move(inputs)
     if inputs & $1000 ' Right
-        if (gfx_utils.get_scr_reg_hor_pos(57) < 128) and (gfx_utils.get_sprite_hor_pos(0) == 172)
-            gfx_utils.mv_scr_reg(1,0,57)
-        move_fox(RIGHT)
+        ifnot crouching
+            if (gfx_utils.get_scr_reg_hor_pos(57) < 128) and (gfx_utils.get_sprite_hor_pos(0) == 172)
+                gfx_utils.mv_scr_reg(1,0,57)
+            move_fox(RIGHT)
+            walkcnt++
+            stillcnt := 0
     if inputs & $4000 ' Left
-        if(gfx_utils.get_scr_reg_hor_pos(57) > 0)  and (gfx_utils.get_sprite_hor_pos(0) == 172)
-            gfx_utils.mv_scr_reg(-1,0,57)
-        move_fox(LEFT)
+        ifnot crouching
+            if(gfx_utils.get_scr_reg_hor_pos(57) > 0)  and (gfx_utils.get_sprite_hor_pos(0) == 172)
+                gfx_utils.mv_scr_reg(-1,0,57)
+            move_fox(LEFT)
+            walkcnt++
+            stillcnt := 0
     if inputs & $2000 ' Up
+        ifnot jumping or crouching
+            jumping := true
     if inputs & $8000 ' Down
-    if not (inputs & $F000)
-        moving := false
-        gfx_utils.set_sprite_tile($5,0)
-        gfx_utils.set_sprite_tile($9,1)
-        gfx_utils.set_sprite_tile($D,2)
-        gfx_utils.set_sprite_tile($11,3)
+        ifnot jumping
+            gfx_utils.set_sprite_tile ($5,0)
+            gfx_utils.set_sprite_tile ($2D,1)
+            gfx_utils.set_sprite_tile ($31,2)
+            gfx_utils.set_sprite_tile ($35,3)
+            crouching := true
+            stillcnt := 0
+            walkcnt := 0
+    else
+        crouching := false
+    ifnot (inputs & $F000)
+        walkcnt := 0
+        ifnot jumping
+            animate_fox_still
+            stillcnt++
 
 pri move_fox(dir) | xpos0,xpos1,xpos2,xpos3,ypos0,ypos1,ypos2,ypos3,newdir
     xpos0 := gfx_utils.get_sprite_hor_pos(0)
@@ -182,23 +210,32 @@ pri move_fox(dir) | xpos0,xpos1,xpos2,xpos3,ypos0,ypos1,ypos2,ypos3,newdir
         gfx_utils.set_sprite_hor_mir(true,3)
 
     facing := newdir
-    moving := true
-    animate_fox_move
+    ifnot jumping
+        animate_fox_walk
 
 pri animate_fox_still
-    gfx_utils.animate_sprite (2,fox_still_clk,60,2,@fox_stillbl)
-    gfx_utils.animate_sprite (3,fox_still_clk,60,2,@fox_stillbr)
+    gfx_utils.set_sprite_tile($5,0)
+    gfx_utils.set_sprite_tile($9,1)
+    gfx_utils.animate_sprite (stillcnt,60,2,@fox_stillbl,2)
+    gfx_utils.animate_sprite (stillcnt,60,2,@fox_stillbr,3)
 
-pri animate_fox_move
-    gfx_utils.animate_sprite (2,clock_,15,4,@fox_walkbl)
-    gfx_utils.animate_sprite (3,clock_,15,4,@fox_walkbr)
+pri animate_fox_walk
+    gfx_utils.set_sprite_tile($5,0)
+    gfx_utils.set_sprite_tile($9,1)
+    gfx_utils.animate_sprite (walkcnt,15,4,@fox_walkbl,2)
+    gfx_utils.animate_sprite (walkcnt,15,4,@fox_walkbr,3)
 
+pri animate_fox_jump
+    gfx_utils.animate_sprite (jmpcnt,5,5,@fox_jumptl,0)
+    gfx_utils.animate_sprite (jmpcnt,5,5,@fox_jumptr,1)
+    gfx_utils.animate_sprite (jmpcnt,5,5,@fox_jumpbl,2)
+    gfx_utils.animate_sprite (jmpcnt,5,5,@fox_jumpbr,3)   
 
 pri animate_birds
-    gfx_utils.animate_sprite (4,clock_,15,8,@anim_bird)
-    gfx_utils.animate_sprite (5,clock_,15,8,@anim_bird)
-    gfx_utils.animate_sprite (6,clock_,15,8,@anim_bird)
-    gfx_utils.animate_sprite (7,clock_,15,8,@anim_bird)
+    gfx_utils.animate_sprite (clock_,15,8,@anim_bird,4)
+    gfx_utils.animate_sprite (clock_,15,8,@anim_bird,5)
+    gfx_utils.animate_sprite (clock_,15,8,@anim_bird,6)
+    gfx_utils.animate_sprite (clock_,15,8,@anim_bird,7)
     ifnot clock_//2
       gfx_utils.mv_sprite(1,0,4)
       gfx_utils.mv_sprite(-1,0,5)
@@ -206,11 +243,15 @@ pri animate_birds
       gfx_utils.mv_sprite(-1,0,7)
 
 DAT
-anim_bird       byte    0,1,2,1,0,3,4,3
+anim_bird       byte    $0,$1,$2,$1,$0,$3,$4,$3
 fox_stillbl     byte    $D,$15
 fox_stillbr     byte    $11,$19
 fox_walkbl      byte    $1D,$D,$25,$D
 fox_walkbr      byte    $21,$11,$29,$11
+fox_jumptl      byte    $5,$39,$49,$59,$5
+fox_jumptr      byte    $2D,$3D,$4D,$5D,$2D
+fox_jumpbl      byte    $31,$41,$51,$61,$31
+fox_jumpbr      byte    $35,$45,$55,$65,$35
 
 plx_pos       long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
 
