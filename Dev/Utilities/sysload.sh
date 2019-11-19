@@ -34,11 +34,11 @@ cd $parent_path
 
 echo Converting resources...
 
-python makedat.py --tile_palette ../Resources/sprites.txt ../Software/sprites.dat
-python makedat.py --tile_palette ../Resources/tiles.txt ../Software/tiles.dat
-python makedat.py --color_palette ../Resources/sprite_color_palettes.txt ../Software/sprite_color_palettes.dat
-python makedat.py --color_palette ../Resources/tile_color_palettes.txt ../Software/tile_color_palettes.dat
-python makedat.py --tile_map ../Resources/tile_maps.txt ../Software/tile_maps.dat
+python makedat.py --tile_palette ../resources/sprites.txt ../software/sprites.dat
+python makedat.py --tile_palette ../resources/tiles.txt ../software/tiles.dat
+python makedat.py --color_palette ../resources/sprite_color_palettes.txt ../software/sprite_color_palettes.dat
+python makedat.py --color_palette ../resources/tile_color_palettes.txt ../software/tile_color_palettes.dat
+python makedat.py --tile_map ../resources/tile_maps.txt ../software/tile_maps.dat
 
 echo Compiling...
 
