@@ -71,7 +71,7 @@ PUB main | time,trans,temp,x,y,z,q,elapsed
     ' Initialize sprites
     ' Fox
     foxposx := 16
-    foxposy := 120
+    foxposy := 125
     stillcnt := 0
     walkcnt := 0
     jumping := false
