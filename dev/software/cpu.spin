@@ -161,7 +161,7 @@ pri move(inputs)
     ifnot (inputs & $F000)
         walkcnt := 0
         ifnot jumping
-            'animate_fox_still
+            animate_fox_still
             stillcnt++
 
 pri move_fox(dir) | xpos0,xpos1,xpos2,xpos3,ypos0,ypos1,ypos2,ypos3,newdir
@@ -214,13 +214,13 @@ pri move_fox(dir) | xpos0,xpos1,xpos2,xpos3,ypos0,ypos1,ypos2,ypos3,newdir
         animate_fox_walk
 
 pri animate_fox_still
-    gfx_utils.set_sprite_tile($5,0)
+    gfx_utils.set_sprite_tile($4,0)
     gfx_utils.set_sprite_tile($6,1)
     gfx_utils.animate_sprite (stillcnt,60,2,@fox_stillbl,2)
     gfx_utils.animate_sprite (stillcnt,60,2,@fox_stillbr,3)
 
 pri animate_fox_walk
-    gfx_utils.set_sprite_tile($5,0)
+    gfx_utils.set_sprite_tile($4,0)
     gfx_utils.set_sprite_tile($6,1)
     gfx_utils.animate_sprite (walkcnt,15,4,@fox_walkbl,2)
     gfx_utils.animate_sprite (walkcnt,15,4,@fox_walkbr,3)
@@ -244,8 +244,8 @@ pri animate_birds
 
 DAT
 anim_bird       byte    $0,$1,$10,$1,$0,$11,$2,$11
-fox_stillbl     byte    $8,$A
-fox_stillbr     byte    $C,$E
+fox_stillbl     byte    $8,$C
+fox_stillbr     byte    $A,$E
 fox_walkbl      byte    $20,$8,$24,$8
 fox_walkbr      byte    $22,$A,$26,$A
 fox_jumptl      byte    $3,$40,$44,$48,$3

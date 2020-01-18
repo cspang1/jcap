@@ -245,7 +245,11 @@ sprites ' Load sprite vertical position and check visibility
         if_c sub        spyoff, temp    ' If so find difference from offset
         if_nc mov       spyoff, temp    ' Else grab offset
         mov             temp,   spyoff  ' Store offset temporarily
-        and             temp,   neg8    ' Perform floor(offset/8)*8
+        shr             temp,   #3      ' floor(offset/8)
+        mov             findx,  temp    ' Store previous
+        shl             findx,  #3      ' offset *= 8
+        shl             temp,   #7      ' offset *= 128
+        sub             temp,   findx   ' Final is *= 120
         add             spyoff, temp    ' Combine
         shl             spyoff, #2      ' *= 4 to get final vertical sprite palette line offset
 
