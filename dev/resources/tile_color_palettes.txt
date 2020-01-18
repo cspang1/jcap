@@ -1,8 +1,0 @@
-t_palette0  byte    $00,$FD {SUN EDGE},$FD {in sun},$3B {SKY BLUE}                    ' Tile color palette 0
-            byte    $64 {brown gnd},$E0 {1st purple},$E1,$E2
-            byte    $E3,$F3,$FA,$FE
-            byte    $FF,$DF,$7F,$1F
-t_palette1  byte    $FF,$3B,$37,$33 {OCEAN?}           ' Tile color palette 1
-            byte    $2F,$9F,$00,$00 {?}
-            byte    $2F,$33,$37,$3B { WATERFALL}
-            byte    $68,$64,$60,$00 {ROCKS}
