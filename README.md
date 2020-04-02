@@ -3,7 +3,7 @@
 <hr>
 
 <p align="center"><b>Check out the <a href="https://github.com/cspang1/JCAP/wiki">Project Wiki</a> for the development log</b></p> 
-<p align="center"><b>A custom game resource creation software suite <a href="https://github.com/cspang1/JCAP/wiki">is being developed</a> for the inaugural JCAP release!</b></p> 
+<p align="center"><b>A custom game resource creation software suite <a href="https://github.com/cspang1/jide">is being developed</a> for the inaugural JCAP release!</b></p> 
 
 <hr>
 
