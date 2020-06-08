@@ -186,7 +186,7 @@ iW      waitvid         vbptrs+0, #%%3210   ' Display pixels
 vgapin      long      |<16 | |<17 | |<18 | |<19 | |<20 | |<21 | |<22 | |<23 ' VGA output pins
 syncpin     long      |<24 | |<25                                           ' Sync pins
 vspin       long      |<0                                                   ' VSync signal output pin
-pllfreq     long      259917792                                             ' Counter A frequency
+pllfreq     long      268435456                                             ' Counter A frequency
 CtrCfg      long      %00000110100000000000000000000000                     ' Counter A configuration
 ColCfg      long      %00110000000000000000010011111111                     ' Video generator color pins configuration
 SyncCfg     long      %00110000000000000000011011111111                     ' Video generator sync pins configuration
