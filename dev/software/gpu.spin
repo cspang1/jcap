@@ -13,12 +13,15 @@ CON
     ' Pin settings
     VS_PIN = 0
     RX_PIN = 1
+    KEY_PIN = 8
+    DEBUG_PIN = 27
 
 OBJ
     system        : "system"      ' Import system settings
     gfx_rx        : "rx"          ' Import graphics reception system
     vga_render    : "vga_render"  ' Import VGA render system
     vga_display   : "vga_display" ' Import VGA display system
+    serial        : "serial"  ' Import COM serial system
 
 VAR
     ' Video system pointers
@@ -35,12 +38,17 @@ VAR
     long  tile_palette_base_      ' Register pointing to base of tile palettes
     long  sprite_palette_base_    ' Register pointing to base of sprite palettes
 
-PUB main | rx1, rx2
+PUB main | rx1, rx2, debug
     ' Set unused pin states
-    dira[2..15]~~
-    dira[26..27]~~
-    outa[2..15]~
-    outa[26..27]~
+    ' dira[2..7]~~
+    ' dira[9..15]~~
+    ' dira[27]~~
+    ' outa[2..7]~
+    ' outa[9..15]~
+    ' outa[27]~
+
+    dira[KEY_PIN]~
+    dira[DEBUG_PIN]~
 
     ' Initialize graphics system pointers
     gfx_buffer_base_ := @gfx_buff                                                   ' Point graphics buffer base to graphics buffer
@@ -59,8 +67,26 @@ PUB main | rx1, rx2
     ' Start subsystems
     rx1 := constant(NEGX|RX_PIN)
     rx2 := constant(system#GFX_BUFFER_SIZE << 16) | @gfx_buff
+
+    if ina[DEBUG_PIN]
+        serial.init(31, 30, 19200)
+        debug := 0
+        repeat while debug == 0
+            debug := serial.rx
+            if debug <> 89
+                debug := 0
+        if ina[KEY_PIN]
+            serial.str(string("GPU"))
+        else
+            serial.str(string("CPU"))
+        serial.finalize
+
+    serial.init(31, 30, 19200)
+    serial.str(string("GPU!"))
+
     gfx_rx.start(@rx1, VS_PIN, RX_PIN)                       ' Start video data RX driver
     repeat while rx1
+
     vga_display.start(@data_ready_base_)                  ' Start display driver
     vga_render.start(@data_ready_base_)                   ' Start renderers
 

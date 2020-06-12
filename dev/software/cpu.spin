@@ -11,8 +11,10 @@ CON
     _xinfreq = 6_500_000          ' 6.5 MHz clock_ for x16 = 104 MHz
 
     ' Pin settings
+    KEY_PIN = 8
     VS_PIN = 14
     TX_PIN = 15
+    DEBUG_PIN = 27
 
     ' Test settings
     NUM_SEA_LINES = 56
@@ -24,6 +26,7 @@ OBJ
     input         : "input"       ' Import input system
     gfx_utils     : "gfx_utils"   ' Import graphics utilities
     math_utils    : "math_utils"  ' Import math utilities
+    serial        : "serial"  ' Import COM serial system
 
 VAR
     ' Game resource pointers
@@ -43,25 +46,41 @@ VAR
     byte    stillcnt
     byte    walkcnt
 
-PUB main | time,trans,temp,x,y,z,q,elapsed
+PUB main | time,trans,temp,x,y,z,q,elapsed,inputs
     ' Set unused pin states
-    dira[3..7]~~
-    dira[8..13]~~
-    dira[16..27]~~
-    outa[3..7]~
-    outa[8..13]~
-    outa[16..27]~
+    ' dira[3..7]~~
+    ' dira[9..13]~~
+    ' dira[16..26]~~
+    ' outa[3..7]~
+    ' outa[9..13]~
+    ' outa[16..26]~
+
+    dira[KEY_PIN]~
+    dira[DEBUG_PIN]~
 
     ' Initialize variables
     gfx_resources_base_ := @gfx_base           ' Set graphics resources base to start of tile color palettes
     gfx_utils.setup (@plx_pos, @sprite_atts)
     clock_ := 0
 
+    if ina[DEBUG_PIN]
+        serial.init(31, 30, 19200)
+        inputs := 0
+        repeat while inputs == 0
+            inputs := serial.rx
+            if inputs <> 89
+                inputs := 0
+        if ina[KEY_PIN]
+            serial.str(string("GPU"))
+        else
+            serial.str(string("CPU"))
+        serial.finalize
+
     ' Start subsystems
-    trans := constant(NEGX|TX_PIN)                              ' link setup
-    gfx_tx.start(@trans, VS_PIN, TX_PIN)                    ' Start graphics resource transfer system
+    input.start                             ' Start input system
+    trans := constant(NEGX|TX_PIN)          ' link setup
+    gfx_tx.start(@trans, VS_PIN, TX_PIN)    ' Start graphics resource transfer system
     repeat while trans
-    input.start                       ' Start input system
 
     '     sprite         x position       y position    color v h size
     '|<------------->|<--------------->|<------------->|<--->|-|-|<->|

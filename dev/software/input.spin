@@ -13,6 +13,8 @@ VAR
     word    tilt_state      ' Tilt shift state
 
 PUB start
+  control_state := 0
+  tilt_state := 0
   cognew(@input, @control_state)                      ' Initialize cog running "input" routine with reference to start of variable registers
 
 PUB get_control_state
@@ -20,6 +22,9 @@ PUB get_control_state
 
 PUB get_tilt_state
     return tilt_state
+
+PUB set_control_state(state)
+    control_state := state
 
 DAT        
         org             0
@@ -58,6 +63,7 @@ Pin_CP        long      |< 1                    ' 74HC165 clock pin bitmask
 Pin_PL_n      long      |< 0                    ' 74HC165 parallel load pin bitmask
 Pin_outs      long      |< 1 | |< 0             ' Set output pin bitmask
 Pin_Q7        long      |< 2                    ' 74HC165 serial output pin bitmask
+flag          word      $FFFF
 iptr          res       1                       ' Pointer to input_state register in Main RAM
 tptr          res       1                       ' Pointer to tilt_state register in Main RAM
 pcnt          res       1                       ' 74HC165 clock pulse pcnt

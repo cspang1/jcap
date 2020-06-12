@@ -19,9 +19,6 @@ CON
 VAR
     long  cog_                    ' Variable containing ID of transmission cog
 
-PUB null
-'' This is not a top level object.
-
 PUB start(varAddrBase, vsPin, rxPin) : status
     ' Wait for CPU to start
     dira[rxPin] := 0
