@@ -30,7 +30,7 @@ DAT
         org             0
 vga           
         ' Initialize variables
-        add             clptr,  par
+        add             clptr,  par                     ' Initialize pointer to current scanline
         add             vbptrs, par                     ' Initialize pointer to video buffer
         rdlong          datptr, par                     ' Load data indicator location
         rdlong          clptr,  clptr                   ' Load current scanline memory location
@@ -155,7 +155,7 @@ sc      long            0[80*2]             ' Buffer containing display scancode
         movd            :loop,  #vbptrs+0               ' Initialize initial render address
         movd            :patch, #vbptrs+0               ' Initialize initial patch address
 :loop   waitvid         vbptrs+0, #%%3210               ' Output 4 pixels
-        add             $-1,    d0                      ' Incremebt render address
+        add             $-1,    d0                      ' Increment render address
 :patch  mov             vbptrs+0, temp                  ' Restore patch address
         add             $-1,    d0                      ' Increment patch address
         add             temp,   #4                      ' Increment main memory address

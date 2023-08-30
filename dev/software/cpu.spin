@@ -6,9 +6,9 @@
 }}
 
 CON
-    ' clock_ settings
-    _clkmode = xtal1 + pll16x     ' Standard clock_ mode w/ 16x PLL
-    _xinfreq = 6_500_000          ' 6.5 MHz clock_ for x16 = 104 MHz
+    ' clock settings
+    _clkmode = xtal1 + pll16x     ' Standard clock mode w/ 16x PLL
+    _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
     ' Pin settings
     KEY_PIN = 8
@@ -26,7 +26,7 @@ OBJ
     input         : "input"       ' Import input system
     gfx_utils     : "gfx_utils"   ' Import graphics utilities
     math_utils    : "math_utils"  ' Import math utilities
-    serial        : "serial"  ' Import COM serial system
+    serial        : "serial"      ' Import COM serial system
 
 VAR
     ' Game resource pointers
@@ -81,11 +81,6 @@ PUB main | time,trans,temp,x,y,z,q,elapsed,inputs
     trans := constant(NEGX|TX_PIN)          ' link setup
     gfx_tx.start(@trans, VS_PIN, TX_PIN)    ' Start graphics resource transfer system
     repeat while trans
-
-    '     sprite         x position       y position    color v h size
-    '|<------------->|<--------------->|<------------->|<--->|-|-|<->|
-    ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-    '|----spr<<24----|------x<<15------|-----y<<7------|c<<4-|8|4|x-y|
 
     ' Initialize sprites
     ' Fox
@@ -272,14 +267,9 @@ fox_jumptr      byte    $28,$42,$46,$4A,$28
 fox_jumpbl      byte    $2A,$60,$64,$68,$2A
 fox_jumpbr      byte    $2C,$62,$66,$6A,$2C
 
-plx_pos       long    0[system#NUM_PARALLAX_REGS]   ' Parallax array (x[31:20]|y[19:8]|i[7:0] where 'i' is scanline index)
-
+plx_pos       long    0[system#NUM_PARALLAX_REGS]
 gfx_base
 ti_col_pal  file    "tile_color_palettes.dat"
-
 spr_col_pal file    "sprite_color_palettes.dat"
-
-            ' Sprite attribute table
 sprite_atts long    0[system#SAT_SIZE]
-
 tile_maps   file    "tile_maps.dat"

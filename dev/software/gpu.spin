@@ -21,7 +21,7 @@ OBJ
     gfx_rx        : "rx"          ' Import graphics reception system
     vga_render    : "vga_render"  ' Import VGA render system
     vga_display   : "vga_display" ' Import VGA display system
-    serial        : "serial"  ' Import COM serial system
+    serial        : "serial"      ' Import COM serial system
 
 VAR
     ' Video system pointers
@@ -80,9 +80,6 @@ PUB main | rx1, rx2, debug
         else
             serial.str(string("CPU"))
         serial.finalize
-
-    serial.init(31, 30, 19200)
-    serial.str(string("GPU!"))
 
     gfx_rx.start(@rx1, VS_PIN, RX_PIN)                       ' Start video data RX driver
     repeat while rx1

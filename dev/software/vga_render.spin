@@ -43,7 +43,7 @@ DAT
         org             0
 render
         ' Initialize variables
-        rdlong          datptr, par     ' Initialize pointer to current scanline
+        rdlong          datptr, par     ' Initialize pointer to main RAM variables
         add             semptr, par     ' Initialize pointer to semaphore
         add             ilptr,  par     ' Initialize pointer to initial scanline
         rdbyte          semptr, semptr  ' Get semaphore ID
@@ -53,7 +53,7 @@ render
         rdlong          slbptr, slbptr  ' Load video buffer memory location
         add             hspptr, datptr  ' Calculate horizontal screen position memory location
         rdlong          hspptr, hspptr  ' Load horizontal screen position memory location
-        add             tcpptr, datptr  ' Calculate graphics resource buffer memory location
+        add             tcpptr, datptr  ' Calculate tile color pallete memory location
         rdlong          tcpptr, tcpptr  ' Load graphics resource buffer memory location
         add             scpptr, datptr  ' Calculate sprite color palette memory location
         rdlong          scpptr, scpptr  ' Load sprite color palette memory locations
@@ -66,7 +66,7 @@ render
         shr             frqb,   #1      ' load from phsb+2*frqb
         add             spptr,  datptr  ' Calculate sprite palette location
         rdlong          spptr,  spptr   ' Load sprite palette location
-        rdlong          datptr, datptr  ' Load current scanline memory location
+        rdlong          datptr, datptr  ' Load data ready indicator location
 
         ' Calculate initial parallax parameters
         mov             plxoff, #system#PARALLAX_MIN-1
