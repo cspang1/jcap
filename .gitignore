@@ -79,3 +79,5 @@ incremental_db/
 
 **/Graphics Resources/*.txt
 
+# Excel temp files
+~$*.xls*

@@ -89,8 +89,8 @@ VGA_RENDER:
 - The initial scanline a given cog will always use is set via semaphore
 - The next scanline to be rendered after the initial one is calculated
 - Counter B is initialized in logic.always mode to facilitate fast tile loading
-- The parallax table is iterated over in reverse order to find the first entry with a scanline index less than or equal to a given render cog's initial scanline
-- The horizontal & vertical parallax positions of that entry are masked out
+- The last parallax table entry that affects the given render cog is identified
+- The current scanline's parallax positions are parsed, and the next scanline's parallax table entry is calculated
 - 
 
 What's happening here is that a given scanline rendered by a render cog is beholden to the parallax effect of the closest scanline index in the parallax table less than it. E.g., if we're rendering scanline #35, and the closest parallax table entry index without going over 35 is say 25, then we will use the parallax effect dictated by that entry for all lines from 25 through whatever the next parallax table entry scanline index dictates, which would include out current scanline 35.

@@ -123,7 +123,7 @@ nxtcal  call            #nxt                    ' Get current and next parallax 
         mov             temp,   horpos                          ' Calculate tile map column memory address due to horizontal parallax
         mov             thpos,  temp                            ' |
         shr             temp,   #3                              ' |
-        mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' | pre-incremented for tile load subroutine
+        mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' |
         sub             remtil, temp                            ' |
         shl             temp,   #1                              ' |
         add             tmindx, temp                            ' |
@@ -132,13 +132,13 @@ nxtcal  call            #nxt                    ' Get current and next parallax 
         ' Determine horizontal pixel location in tile
         and             thpos,  #%111   ' Calculate start pixel in tile and patch 
         add             patch,  thpos   ' |
-        shl             thpos,  #2      ' |
-        shl             curpt,  thpos   ' Shift to first pixel and load relevant offset
-patch   mov             temp,   ptable  ' |
-        movs            patch,  #ptable ' |
-trset   mov             px7,    shlcall ' make sure we don't corrupt location 0 (might be important some day)
-        movd            tiset,  temp    ' Set next frame's reset
-        movd            trset,  temp    ' Set this frame's tile load routine call location
+        shl             thpos,  #2      ' Calculate tile offset and shift to first pixel
+        shl             curpt,  thpos   ' |
+patch   mov             temp,   ptable  ' Retrieve first pixel load subroutine address
+        movs            patch,  #ptable ' Reset the patch instruction
+trset   mov             px7,    shlcall ' Reset the previously patched pixel subroutine
+        movd            tiset,  temp    ' Set this frame's tile load routine call location
+        movd            trset,  temp    ' Set the next frame's patched pixel subroutine reset dest
 tiset   mov             0-0,    tldcall ' Set this frame's tile load
 
         ' Parse palette tile pixels
@@ -149,61 +149,61 @@ tile    mov             temp,   curpt   ' Load current palette tile into temp va
         mov             pxbuf1, curcp   ' Initialize first half-tile pixel buffer
         ror             pxbuf1, #8      ' Allocate space for next color
 px0     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
-        or              pxbuf1, curcp   ' Store color
-        ror             pxbuf1, #8      ' Allocate space for next color
-px1     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
-        or              pxbuf1, curcp   ' Store color
-        ror             pxbuf1, #8      ' Allocate space for next color
-px2     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
-        or              pxbuf1, curcp   ' Store color
-        ror             pxbuf1, #8      ' Allocate space for next color
-px3     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
+        mov             temp,   curpt   ' Process second pixel
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
+        or              pxbuf1, curcp   ' |
+        ror             pxbuf1, #8      ' |
+px1     shl             curpt,  #4      ' |
+        mov             temp,   curpt   ' Process third pixel
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
+        or              pxbuf1, curcp   ' |
+        ror             pxbuf1, #8      ' |
+px2     shl             curpt,  #4      ' |
+        mov             temp,   curpt   ' Process fourth pixel
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
+        or              pxbuf1, curcp   ' |
+        ror             pxbuf1, #8      ' |
+px3     shl             curpt,  #4      ' |
+        mov             temp,   curpt   ' Process fifth pixel
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
         mov             pxbuf2, curcp   ' Initialize second half-tile pixel buffer        
         ror             pxbuf2, #8      ' Allocate space for next color
-px4     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
-        or              pxbuf2, curcp   ' Store color
-        ror             pxbuf2, #8      ' Allocate space for next color
-px5     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
-        or              pxbuf2, curcp   ' Store color
-        ror             pxbuf2, #8      ' Allocate space for next color
-px6     shl             curpt,  #4      ' Shift palette tile left 4 bits
-        mov             temp,   curpt   ' Load current palette tile into temp variable
-        shr             temp,   #28     ' LSB align palette index
-        add             temp,   cpindx  ' Calculate color palette offset
-        rdbyte          curcp,  temp    ' Load color
-        or              pxbuf2, curcp   ' Store color
-        ror             pxbuf2, #8      ' Allocate space for next color
-px7     shl             curpt,  #4      ' Shift palette tile left 4 bits
+px4     shl             curpt,  #4      ' Process sixth pixel
+        mov             temp,   curpt   ' |
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
+        or              pxbuf2, curcp   ' |
+        ror             pxbuf2, #8      ' |
+px5     shl             curpt,  #4      ' |
+        mov             temp,   curpt   ' Process seventh pixel 
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
+        or              pxbuf2, curcp   ' |
+        ror             pxbuf2, #8      ' |
+px6     shl             curpt,  #4      ' |
+        mov             temp,   curpt   ' Process eighth pixel
+        shr             temp,   #28     ' |
+        add             temp,   cpindx  ' |
+        rdbyte          curcp,  temp    ' |
+        or              pxbuf2, curcp   ' |
+        ror             pxbuf2, #8      ' |
+px7     shl             curpt,  #4      ' |
 
         ' Store tile pixels
-shbuf1  mov             slbuff+4, pxbuf1    ' Allocate space for color
-        add             shbuf1, d1          ' Increment scanline buffer OR position
-shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
-        add             shbuf2, d1          ' Increment scanline buffer OR position
+shbuf1  mov             slbuff+4, pxbuf1    ' Store the two 4-pixel halves
+        add             shbuf1, d1          ' |
+shbuf2  mov             slbuff+5, pxbuf2    ' |
+        add             shbuf2, d1          ' |
         djnz            index , #tile       ' Repeat for all tiles in scanline
         movd            shbuf1, #slbuff+4   ' Reset shbuf destination address
         movd            shbuf2, #slbuff+5   ' Reset shbuf destination address
@@ -213,7 +213,7 @@ shbuf2  mov             slbuff+5, pxbuf2    ' Allocate space for color
         mov             tmindx, satptr              ' Initialize sprite attribute table index
 
 sprites ' Load sprite vertical position and check visibility
-        rdlong          curmt,  tmindx              ' Load sprite attributes from Main RAM
+        rdlong          curmt,  tmindx              ' Parse SAT entry component
         mov             spypos, curmt               ' Copy sprite attributes to temp variable
         shr             spypos, #7                  ' Shift vertical position to LSB
         and             spypos, #255 wz             ' Mask out vertical position, checking invisibility
@@ -304,38 +304,43 @@ sprites ' Load sprite vertical position and check visibility
         djnz            index,  #sprites            ' Repeat for all sprites in SAT
 
         ' Wait for target scanline
-        mov             index,  numSegs     ' Initialize current scanline segment
-        mov             curvb,  slbptr      ' Initialize Main RAM video buffer memory location
-        mov             ptr,    curvb       ' Initialize transfer counter
-gettsl  rdlong          temp,   cslptr      ' Read target scanline index from Main RAM
-        cmp             temp,   cursl wz    ' Check if current scanline is being requested for display
-        if_nz jmp       #gettsl             ' If not, re-read target scanline
+        mov             index,  numSegs     ' Wait until current scanline data is requested by display cog
+        mov             curvb,  slbptr      ' |
+        mov             ptr,    curvb       ' |
+gettsl  rdlong          temp,   cslptr      ' |
+        cmp             temp,   cursl wz    ' |
+        if_nz jmp       #gettsl             ' |
 
         ' Write scanline buffer to video buffer in Main RAM
-        movd            long0,  #ptr-5                      ' last long in cog buffer
-        movd            long1,  #ptr-6                      ' second-to-last long in cog buffer
-        add             ptr,    #system#VID_BUFFER_SIZE*4-1 ' last byte in hub buffer (8n + 7)
-        movi            ptr,    #system#VID_BUFFER_SIZE-2   ' add magic marker
-long0   wrlong          0-0,    ptr                         ' |
-        sub             long0,  d1                          ' |
-        sub             ptr,    i2s7 wc                     ' |
-long1   wrlong          0-0,    ptr                         ' |
-        sub             long1,  d1                          ' |
-        if_nc djnz      ptr,    #long0                      ' sub #7/djnz (Thanks Phil!)
-        add             cursl,  #system#NUM_REN_COGS        ' Increment current scanline for next render
-        cmp             cursl,  numLines wc                 ' Check if at bottom of screen
-        mov             nxtsl,  cursl
-        add             nxtsl,  #system#NUM_REN_COGS
-        if_c jmp        #slgen                              ' If not continue to next scanline, otherwise...
-        mov             temptr, pxtptr
-        add             temptr, plxoff
-        mov             cursl,  initsl                      ' Reinitialize current scanline
-        mov             nxtsl,  cursl
-        add             nxtsl,  #system#NUM_REN_COGS
-waitdat rdlong          temp,   datptr wz                   ' Check if graphics resources ready
-        if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
-        jmp             #frame                              ' Generate next frame
+        movd            long0,  #ptr-5                          ' last long in cog buffer
+        movd            long1,  #ptr-6                          ' second-to-last long in cog buffer
+        add             ptr,    #system#VID_BUFFER_SIZE*4-1     ' last byte in hub buffer (8n + 7)
+        movi            ptr,    #system#VID_BUFFER_SIZE-2       ' add magic marker
+long0   wrlong          0-0,    ptr                             ' |
+        sub             long0,  d1                              ' |
+        sub             ptr,    i2s7 wc                         ' |
+long1   wrlong          0-0,    ptr                             ' |
+        sub             long1,  d1                              ' |
+        if_nc djnz      ptr,    #long0                          ' sub #7/djnz (Thanks Phil!)
 
+        ' Prepare for next scanline to render
+        add             cursl,  #system#NUM_REN_COGS            ' Increment current scanline for next render
+        cmp             cursl,  numLines wc                     ' Check if at bottom of screen {{ MOVE THIS DOWN BELOW mov/add??? }}
+        mov             nxtsl,  cursl                           ' Calculate next scanline index
+        add             nxtsl,  #system#NUM_REN_COGS            ' |
+        if_c jmp        #slgen                                  ' If not continue to next scanline, otherwise...
+
+        ' Prepare for next frame to render
+        mov             temptr, pxtptr                          ' Re-calculate the first parallax table entry to check for the next frame
+        add             temptr, plxoff                          ' | {{ WE SHOULD STORE THIS VALUE PERMANENTLY TO AVOID RE-CALCULATING EACH FRAME }}
+        mov             cursl,  initsl                          ' Re-initialize current and next scanlines
+        mov             nxtsl,  cursl                           ' |
+        add             nxtsl,  #system#NUM_REN_COGS            ' |
+waitdat rdlong          temp,   datptr wz                       ' Wait for graphics resources to be ready to render next frame
+        if_nz  jmp      #waitdat                                ' |
+        jmp             #frame                                  ' |
+
+        ' We can move the entire nxt routine back inline
 nxt     mov             horpos, nxtpte          ' Capture horizontal and vertical parallax values for this scanline 
         mov             verpos, horpos          ' |
         shr             horpos, #20             ' |
@@ -372,13 +377,13 @@ tld     djnz            remtil, #:next  ' Wrap to beginning of tile map row if a
 tld_ret ret
 
         ' Instructions for dynamic tile shifting
-nxtcall call            #nxt
-nopcall nop
-tldcall call            #tld        ' Tile load instr call
-shlcall shl             curpt,  #4  ' Shift left instr call
+nxtcall call            #nxt            {{ THIS CAN BE REMOVED }}
+nopcall nop                             {{ THIS CAN BE REMOVED }}
+tldcall call            #tld            ' Tile load instr call
+shlcall shl             curpt,  #4      ' Shift left instr call
 
 ' Video attributes
-maxHor      long    system#MAX_MEM_HOR_POS      ' Maximum horizontal position
+maxHor      long    system#MAX_MEM_HOR_POS      ' Maximum horizontal position {{ CAN BE REMOVED }}
 maxHVis     long    system#MAX_VIS_HOR_POS-1    ' Maximum visible horizontal position
 maxVVis     long    system#MAX_VIS_VER_POS-1    ' Maximum visible vertical position
 numLines    long    system#MAX_VIS_VER_POS-16   ' Number of rendered scanlines
@@ -401,22 +406,22 @@ tpptr       long    32  ' Pointer to location of tile palettes in Main RAM w/ of
 spptr       long    36  ' Pointer to location of sprite palettes in Main RAM w/ offset
 
 ' Other values
-d0          long    1 << 9                  ' Value to increment destination register
-d1          long    1 << 10                 ' Value to increment destination register
-i2s7        long    2 << 23 | 7             ' Value to summon Cthullu
-pxmask      long    $FFFFFF00               ' Mask for pixels in scanline buffer
-vpmask      long    $FFF                    ' Mask for vertical game world position
-ptable      long    px7, px6, px5, px4      ' Patch table for modifying tile load logic
-            long    px3, px2, px1, px0
-neg8        long    -8                      ' Value to modify sprite position given wide+mirrored
+d0          long    1 << 9              ' Value to increment destination register {{ CAN BE REMOVED }}
+d1          long    1 << 10             ' Value to increment destination register
+i2s7        long    2 << 23 | 7         ' Value to summon Cthullu
+pxmask      long    $FFFFFF00           ' Mask for pixels in scanline buffer
+vpmask      long    $FFF                ' Mask for vertical game world position
+ptable      long    px7, px6, px5, px4  ' Patch table for modifying tile load logic
+            long    px3, px2, px1, px0  ' |
+neg8        long    -8                  ' Value to modify sprite position given wide+mirrored
 
 ' Scanline buffer
-slbuff      res     system#VID_BUFFER_SIZE+8    ' Buffer containing scanline
+slbuff      res     system#VID_BUFFER_SIZE+8    ' Buffer containing scanline w/ off-screen padding
 ptr         res     1                           ' Data pointer assisting scanline buffer cog->hub tx
 
 ' Tile pointers
 tmindx      res     1   ' Tile map index
-tpindx      res     1   ' Tile palette index
+tpindx      res     1   ' Tile palette index {{ CAN BE REMOVED }}
 cpindx      res     1   ' Color palette index
 curmt       res     1   ' Current map tile
 curpt       res     1   ' Current palette tile
@@ -452,7 +457,7 @@ temptr      res     1   ' Container for temporary pointer to parallax table
 maxptr      res     1   ' Container for max parallax array pointer
 nxtptr      res     1   ' Container for next parallax array pointer
 nxtpte      res     1   ' Container for next parallax table entry
-nextvp      res     1   ' Container for next vertical parallax position
+nextvp      res     1   ' Container for next vertical parallax position {{ CAN BE REMOVED }}
 nxtpsl      res     1   ' Container for next parallax change scanline
 thpos       res     1   ' Container for temporary horizontal position
 temp        res     1   ' Container for temporary variables
