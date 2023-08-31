@@ -30,7 +30,7 @@ VAR
     long  data_ready_base_        ' Register pointing to data status indicator
     long  cur_scanline_base_      ' Register pointing to current scanline being requested by the VGA Display system
     long  scanline_buff_base_     ' Register pointing to scanline buffer
-    long  horizontal_position_    ' Register pointing to base of tile color palettes
+    long  horizontal_position_    ' Register pointing to base of scanline parallax positions
     long  tcolor_palette_base_    ' Register pointing to base of tile color palettes
     long  scolor_palette_base_    ' Register pointing to base of sprite color palettes
     long  sprite_att_base_        ' Register pointing to base of sprite attribute table

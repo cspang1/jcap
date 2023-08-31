@@ -77,7 +77,7 @@ VGA_RENDER:
     - Initial scanline
     - Current scanline
     - Video buffer
-    - Horizontal screen position
+    - Parallax table
     - Tile color palettes
     - Sprite color palettes
     - Sprite attribute table
@@ -85,4 +85,29 @@ VGA_RENDER:
     - Tile palettes
     - Sprite palettes
     - Data ready indicator
-- Now for the hard part...
+- The highest initial parallax table address we need to check is calculated
+- The initial scanline a given cog will always use is set via semaphore
+- The next scanline to be rendered after the initial one is calculated
+- Counter B is initialized in logic.always mode to facilitate fast tile loading
+- The parallax table is iterated over in reverse order to find the first entry with a scanline index less than or equal to a given render cog's initial scanline
+- The horizontal & vertical parallax positions of that entry are masked out
+- 
+
+What's happening here is that a given scanline rendered by a render cog is beholden to the parallax effect of the closest scanline index in the parallax table less than it. E.g., if we're rendering scanline #35, and the closest parallax table entry index without going over 35 is say 25, then we will use the parallax effect dictated by that entry for all lines from 25 through whatever the next parallax table entry scanline index dictates, which would include out current scanline 35.
+
+So, we need to identify what that last relevant parallax table entry is before rendering each scanline. We accomplish this in several steps:
+    At render cog startup:
+        1. We calculate the highest initial parallax table memory address we'll need to inspect (can't be further in the table than either the number of table entries or the number of render cogs, whichever is lower)
+            - plxoff = memory offset of highest we need to inspect
+            - temptr = actual mempry address of the offset parallax table entry
+            - maxptr = last parallax table entry memory address
+    At the start of a full screen (frame):
+        2. We iterate over the parallax table in reverse from that initial address until we find an entry whose index <= the current cog's initial scanline (this is the first parallax table entry that will affect this render cog's scanlines)
+            - temptr = memory address of the last parallax table entry that affects this cog
+            - nxtpte = actual value of that temptr parallax table entry
+            - nxtptr = next parallax table memory address after temptr
+    At the start of each scanline:
+        3. We advance forward through the parallax table to find the entry which will affect the next render cog scanline
+            - horpos = horizontal parallax for this scanline
+            - verpos = vertical parallax for this scanline
+            - nxtpte = the parallax data for the next scanline

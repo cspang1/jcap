@@ -44,102 +44,102 @@ DAT
 render
         ' Initialize variables
         rdlong          datptr, par     ' Initialize pointer to main RAM variables
-        add             semptr, par     ' Initialize pointer to semaphore
         add             ilptr,  par     ' Initialize pointer to initial scanline
-        rdbyte          semptr, semptr  ' Get semaphore ID
-        add             cslptr, datptr  ' Calculate current scanline memory location
-        rdlong          cslptr, cslptr  ' Load current scanline memory location
-        add             slbptr, datptr  ' Calculate video buffer memory location
-        rdlong          slbptr, slbptr  ' Load video buffer memory location
-        add             hspptr, datptr  ' Calculate horizontal screen position memory location
-        rdlong          hspptr, hspptr  ' Load horizontal screen position memory location
-        add             tcpptr, datptr  ' Calculate tile color pallete memory location
-        rdlong          tcpptr, tcpptr  ' Load graphics resource buffer memory location
-        add             scpptr, datptr  ' Calculate sprite color palette memory location
-        rdlong          scpptr, scpptr  ' Load sprite color palette memory locations
-        add             satptr, datptr  ' Calculate sprite attribute table memory location
-        rdlong          satptr, satptr  ' Load sprite attribute table memory location
-        add             tmptr,  datptr  ' Calculate tile map location
-        rdlong          tmptr,  tmptr   ' Load tile map location
-        add             tpptr,  datptr  ' Calculate tile palette location
-        rdlong          frqb,   tpptr   ' Load tile palette location
-        shr             frqb,   #1      ' load from phsb+2*frqb
-        add             spptr,  datptr  ' Calculate sprite palette location
-        rdlong          spptr,  spptr   ' Load sprite palette location
+        add             semptr, par     ' Calculate and load semaphore ID
+        rdbyte          semptr, semptr  ' |
+        add             cslptr, datptr  ' Calculate and load current scanline memory location
+        rdlong          cslptr, cslptr  ' |
+        add             slbptr, datptr  ' Calculate and load video buffer memory location
+        rdlong          slbptr, slbptr  ' |
+        add             pxtptr, datptr  ' Calculate and load parallax table memory location
+        rdlong          pxtptr, pxtptr  ' |
+        add             tcpptr, datptr  ' Calculate and load tile color pallete memory location
+        rdlong          tcpptr, tcpptr  ' |
+        add             scpptr, datptr  ' Calculate and load sprite color palette memory location
+        rdlong          scpptr, scpptr  ' |
+        add             satptr, datptr  ' Calculate and load sprite attribute table memory location
+        rdlong          satptr, satptr  ' |
+        add             tmptr,  datptr  ' Calculate and load tile map location
+        rdlong          tmptr,  tmptr   ' |
+        add             tpptr,  datptr  ' Calculate and load (from phsb+2*frqb) tile palette location
+        rdlong          frqb,   tpptr   ' |
+        shr             frqb,   #1      ' |
+        add             spptr,  datptr  ' Calculate and load sprite palette location
+        rdlong          spptr,  spptr   ' |
         rdlong          datptr, datptr  ' Load data ready indicator location
 
         ' Calculate initial parallax parameters
-        mov             plxoff, #system#PARALLAX_MIN-1
-        shl             plxoff, #2
-        mov             temptr, hspptr
-        add             temptr, plxoff
-        mov             maxptr, #system#NUM_PARALLAX_REGS
-        shl             maxptr, #2
-        add             maxptr, hspptr
+        mov             plxoff, #system#PARALLAX_MIN-1          ' Calculate highest parallax table memory address we need to inspect
+        shl             plxoff, #2                              ' |
+        mov             temptr, pxtptr                          ' |
+        add             temptr, plxoff                          ' |
+        mov             maxptr, #system#NUM_PARALLAX_REGS       ' Calculate absolute highest parallax table memory address
+        shl             maxptr, #2                              ' |
+        add             maxptr, pxtptr                          ' |
 
         ' Get initial scanline and set next cogs via semaphore
-:lock   lockset         semptr wc       ' Attempt to lock semaphore
-        if_c  jmp       #:lock          ' Re-attempt to lock semaphore
-        rdlong          initsl, ilptr   ' Load initial scanline
-        adds            initsl, #1      ' Increment initial scanline for next cog
-        mov             cursl,  initsl  ' Initialize current scanline
-        wrlong          initsl, ilptr   ' Write back next initial scanline
-        lockclr         semptr          ' Clear semaphore
-        cogid           temp wz, nr     ' Check if this is the final cog to be initialized
-        if_z  lockret   semptr          ' Return lock handle if so
-        mov             nxtsl,  cursl
-        add             nxtsl,  #system#NUM_REN_COGS
+:lock   lockset         semptr wc                       ' Wait for semaphore unlock and lock
+        if_c  jmp       #:lock                          ' |
+        rdlong          initsl, ilptr                   ' Load initial scanline and set for next cog
+        adds            initsl, #1                      ' |
+        mov             cursl,  initsl                  ' |
+        wrlong          initsl, ilptr                   ' |
+        lockclr         semptr                          ' Clear semaphore and return lock handle if no more cogs to initialize
+        cogid           temp wz, nr                     ' |
+        if_z  lockret   semptr                          ' |
+        mov             nxtsl,  cursl                   ' Calculate the next scanline this cog will render after cursl
+        add             nxtsl,  #system#NUM_REN_COGS    ' |
 
         ' Start Counter B for tile loading routine
         movi            ctrb,   #%0_11111_000   ' Start counter b in logic.always mode
 
 frame   ' Initialize parallax positions
-:initp  rdlong          temp,   temptr
-        and             temp,   #$FF
-        cmp             initsl, temp wc
-        if_nc jmp       #:cont
-        sub             temptr, #4
-        jmp             #:initp
-:cont   rdlong          nexthp, temptr
-        mov             nxtptr, temptr
-        add             nxtptr, #4
+:initp  rdlong          temp,   temptr  ' Identify the first parallax table entry relevant to this cog
+        and             temp,   #$FF    ' |
+        cmp             initsl, temp wc ' |
+        if_nc jmp       #:cont          ' |
+        sub             temptr, #4      ' |
+        jmp             #:initp         ' |
+:cont   rdlong          nxtpte, temptr  ' Store the value of that parallax table entry
+        mov             nxtptr, temptr  ' Calculate the next table entry address as well
+        add             nxtptr, #4      ' |
 
-slgen   ' Calculate tile map line memory location
-nxtcal  call            #nxt
-        mov             possl,  cursl       ' Store current scanline into position scanline
-        add             possl,  verpos      ' Calculate net vertical position
-        cmpsub          possl,  numMemLines ' Compensate for wrapping
-        mov             tmindx, possl       ' Initialize tile map index
-        shr             tmindx, #3          ' tmindx = floor(cursl/8)
-        mov             temp,   tmindx      ' Store tile map index into temp variable
-        shl             tmindx, #3          ' x8
-        sub             tmindx, temp        ' x7
-        shl             tmindx, #4          ' x112
-        add             tmindx, tmptr       ' tmindx = tmptr + (cursl/8)*112
-        mov             initti, tmindx      ' Store initial row tile location
+slgen   ' Calculate tile map row memory address
+nxtcal  call            #nxt                    ' Get current and next parallax values
+        mov             possl,  cursl           ' Calculate net vertical position w/ wrapping compensation
+        add             possl,  verpos          ' |
+        cmpsub          possl,  numMemLines     ' |
+        mov             tmindx, possl           ' Calculate first tile memory address of resulting row
+        shr             tmindx, #3              ' |
+        mov             temp,   tmindx          ' |
+        shl             tmindx, #3              ' |
+        sub             tmindx, temp            ' |
+        shl             tmindx, #4              ' |
+        add             tmindx, tmptr           ' | tmindx = tmptr + (possl/8)*112
+        mov             initti, tmindx          ' |
 
-        ' Calculate initial tile offset and load
+        ' Calculate starting tile map memory address and load
         mov             index,  numTiles                        ' Initialize number of tiles to parse
-        mov             temp,   horpos                          ' Store horizontal screen position in temp variable
-        mov             thpos,  temp                            ' Make copy of horizontal screen position to preserve
-        shr             temp,   #3                              ' temp = floor(horpos/8)
-        mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' Load pre-incremented width of tile map in memory
-        sub             remtil, temp                            ' Subtract offset from map memory width
-        shl             temp,   #1                              ' temp *= 2
-        add             tmindx, temp                            ' Calculate final offset
-        call            #tld                                    ' Load initial tile
+        mov             temp,   horpos                          ' Calculate tile map column memory address due to horizontal parallax
+        mov             thpos,  temp                            ' |
+        shr             temp,   #3                              ' |
+        mov             remtil, #system#MEM_TILE_MAP_WIDTH+1    ' | pre-incremented for tile load subroutine
+        sub             remtil, temp                            ' |
+        shl             temp,   #1                              ' |
+        add             tmindx, temp                            ' |
+        call            #tld                                    ' Load first tile
 
         ' Determine horizontal pixel location in tile
-        and             thpos,  #%111   ' limit
-        add             patch,  thpos   ' base+index
-        shl             thpos,  #2      ' *= 4
-        shl             curpt,  thpos   ' Shift to first pixel
-patch   mov             temp,   ptable  ' load relevant offset
-        movs            patch,  #ptable ' restore
+        and             thpos,  #%111   ' Calculate start pixel in tile and patch 
+        add             patch,  thpos   ' |
+        shl             thpos,  #2      ' |
+        shl             curpt,  thpos   ' Shift to first pixel and load relevant offset
+patch   mov             temp,   ptable  ' |
+        movs            patch,  #ptable ' |
 trset   mov             px7,    shlcall ' make sure we don't corrupt location 0 (might be important some day)
         movd            tiset,  temp    ' Set next frame's reset
         movd            trset,  temp    ' Set this frame's tile load routine call location
-tiset   mov             0-0,    tldcall ' Set this frame's tile load 
+tiset   mov             0-0,    tldcall ' Set this frame's tile load
 
         ' Parse palette tile pixels
 tile    mov             temp,   curpt   ' Load current palette tile into temp variable
@@ -327,7 +327,7 @@ long1   wrlong          0-0,    ptr                         ' |
         mov             nxtsl,  cursl
         add             nxtsl,  #system#NUM_REN_COGS
         if_c jmp        #slgen                              ' If not continue to next scanline, otherwise...
-        mov             temptr, hspptr
+        mov             temptr, pxtptr
         add             temptr, plxoff
         mov             cursl,  initsl                      ' Reinitialize current scanline
         mov             nxtsl,  cursl
@@ -336,38 +336,38 @@ waitdat rdlong          temp,   datptr wz                   ' Check if graphics 
         if_nz  jmp      #waitdat                            ' Wait for graphics resources to be ready
         jmp             #frame                              ' Generate next frame
 
-nxt     mov             horpos, nexthp
-        mov             verpos, horpos
-        shr             horpos, #20
-        shr             verpos, #8
-        and             verpos, vpmask
-:try    rdlong          nxtpsl, nxtptr
-        and             nxtpsl, #$FF
-        cmp             nxtptr, maxptr wz
-        cmp             nxtpsl, nxtsl wc
-        if_z_or_nc jmp  #:cont
-        add             nxtptr, #4
-        jmp             #:try
-:cont   sub             nxtptr, #4
-        rdlong          nxtpsl, nxtptr
-        mov             nexthp, nxtpsl
+nxt     mov             horpos, nxtpte          ' Capture horizontal and vertical parallax values for this scanline 
+        mov             verpos, horpos          ' |
+        shr             horpos, #20             ' |
+        shr             verpos, #8              ' | We can move nxt up to :try back to the main loop
+        and             verpos, vpmask          ' | We can also move the whole :try routine back to the main loop
+:try    rdlong          nxtpsl, nxtptr          ' Find the first entry that doesn't affect the next scanline
+        and             nxtpsl, #$FF            ' |
+        cmp             nxtptr, maxptr wz       ' |
+        cmp             nxtpsl, nxtsl wc        ' |
+        if_z_or_nc jmp  #:cont                  ' |
+        add             nxtptr, #4              ' |
+        jmp             #:try                   ' |
+:cont   sub             nxtptr, #4              ' Decrement to get the last entry that does affect the next scanline
+        rdlong          nxtpsl, nxtptr          ' I think we can change the dest here to nxtpte and remove the next instruction
+        mov             nxtpte, nxtpsl          ' I also think we may be able to simplify this nxt/try loop...
 nxt_ret ret
 
         ' Tile loading routine
-tld     djnz            remtil, #:next  ' Check if need to wrap to beginning
-        mov             tmindx, initti  ' If so wrap to beginning
-:next   rdword          curmt,  tmindx  ' Load current map tile from Main RAM
-        mov             cpindx, curmt   ' Store map tile into color palette index
-        and             curmt,  #255    ' Isolate palette tile index of map tile
-        shr             cpindx, #8      ' Isolate color palette index of map tile
-        shl             cpindx, #4      ' cpindx *= 16
-        add             cpindx, tcpptr  ' cpindx += tcpptr
-        mov             phsb,   possl   ' Initialize tile palette index
-        and             phsb,   #7      ' tpindx %= 8
-        shl             phsb,   #2      ' tpindx *= 4
-        shl             curmt,  #5      ' tilePaletteIndex *= 32
-        add             phsb,   curmt   ' tpindx += paletteTileIndex
-        rdlong          curpt,  phsb    ' Load current palette tile from Main RAM
+tld     djnz            remtil, #:next  ' Wrap to beginning of tile map row if at end
+        mov             tmindx, initti  ' |
+:next   rdword          curmt,  tmindx  ' Load current map tile and parse color and tile palette indexes
+        mov             cpindx, curmt   ' |
+        and             curmt,  #255    ' |
+        shr             cpindx, #8      ' |
+        shl             cpindx, #4      ' Calculate main RAM color palette memory address
+        add             cpindx, tcpptr  ' |
+        mov             phsb,   possl   ' Use CTRB to fast-load tile
+        and             phsb,   #7      ' |
+        shl             phsb,   #2      ' |
+        shl             curmt,  #5      ' |
+        add             phsb,   curmt   ' |
+        rdlong          curpt,  phsb    ' Load current palette tile from main RAM
         add             tmindx, #2      ' Increment pointer to tile in tile map
 tld_ret ret
 
@@ -392,7 +392,7 @@ ilptr       long    8   ' Pointer to location of initial scanline in Main RAM w/
 datptr      long    0   ' Pointer to location of data indicator in Main RAM w/ offset
 cslptr      long    4   ' Pointer to location of current scanline in Main RAM w/ offset
 slbptr      long    8   ' Pointer to location of scanline buffer in Main RAM w/ offset
-hspptr      long    12  ' Pointer to location of horizontal screen position in Main RAM w/ offset
+pxtptr      long    12  ' Pointer to location of horizontal screen position in Main RAM w/ offset
 tcpptr      long    16  ' Pointer to location of tile color palettes in Main RAM w/ offset
 scpptr      long    20  ' Pointer to location of sprite color palettes in Main RAM w/ offset
 satptr      long    24  ' Pointer to location of sprite attribute table in Main RAM w/ offset
@@ -451,7 +451,7 @@ plxoff      res     1   ' Container for initial parallax offset
 temptr      res     1   ' Container for temporary pointer to parallax table
 maxptr      res     1   ' Container for max parallax array pointer
 nxtptr      res     1   ' Container for next parallax array pointer
-nexthp      res     1   ' Container for next horizontal parallax position
+nxtpte      res     1   ' Container for next parallax table entry
 nextvp      res     1   ' Container for next vertical parallax position
 nxtpsl      res     1   ' Container for next parallax change scanline
 thpos       res     1   ' Container for temporary horizontal position
