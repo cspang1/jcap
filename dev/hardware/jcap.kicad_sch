@@ -49,6 +49,23 @@
     )
   )
 
+  (sheet (at 176.53 123.19) (size 36.83 30.48) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 86e6f384-c422-400d-8407-2294b351ad7e)
+    (property "Sheetname" "Input" (at 176.53 122.4784 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "Input.kicad_sch" (at 176.53 154.2546 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "jcap"
+        (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1" (page "6"))
+      )
+    )
+  )
+
   (sheet (at 181.61 59.69) (size 46.99 34.29) (fields_autoplaced)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0000))
