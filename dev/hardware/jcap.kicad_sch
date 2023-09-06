@@ -32,6 +32,23 @@
     )
   )
 
+  (sheet (at 33.02 59.69) (size 48.26 34.29) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 3a3e708a-cd32-4198-bb03-bb32a9313b1c)
+    (property "Sheetname" "VGA_DAC" (at 33.02 58.9784 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "VGA_DAC.kicad_sch" (at 33.02 94.5646 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "jcap"
+        (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1" (page "5"))
+      )
+    )
+  )
+
   (sheet (at 181.61 59.69) (size 46.99 34.29) (fields_autoplaced)
     (stroke (width 0.1524) (type solid))
     (fill (color 0 0 0 0.0000))
@@ -45,6 +62,23 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1" (page "3"))
+      )
+    )
+  )
+
+  (sheet (at 86.36 124.46) (size 33.02 29.21) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid fef6ede6-5843-4140-8b23-7dcea4adc604)
+    (property "Sheetname" "EEPROM" (at 86.36 123.7484 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "EEPROM.kicad_sch" (at 86.36 154.2546 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "jcap"
+        (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1" (page "4"))
       )
     )
   )

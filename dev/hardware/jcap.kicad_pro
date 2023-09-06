@@ -334,6 +334,14 @@
     [
       "f5a50cf1-3d87-469f-beb1-b0b9cfae00ce",
       "Power"
+    ],
+    [
+      "fef6ede6-5843-4140-8b23-7dcea4adc604",
+      "EEPROM"
+    ],
+    [
+      "3a3e708a-cd32-4198-bb03-bb32a9313b1c",
+      "VGA_DAC"
     ]
   ],
   "text_variables": {}

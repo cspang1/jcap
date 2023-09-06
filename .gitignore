@@ -94,6 +94,7 @@ incremental_db/
 *-backups
 *.kicad_prl
 *.sch-bak
+*.lck
 *~
 _autosave-*
 *.tmp
