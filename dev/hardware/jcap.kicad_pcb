@@ -5550,7 +5550,7 @@
         (effects (font (size 1 1) (thickness 0.15)))
       (tstamp 996e69df-13f4-4a3a-98f1-6a2b613f69a9)
     )
-    (fp_text value "Barrel_Jack_MountingPin" (at 0 13) (layer "F.Fab")
+    (fp_text value "DC IN" (at 0 13) (layer "F.Fab")
         (effects (font (size 1 1) (thickness 0.15)))
       (tstamp 77ccf367-f35a-4be4-aaf1-41a483af1213)
     )
