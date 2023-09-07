@@ -482,7 +482,9 @@
       "Net-(SW203-A)": "Signal",
       "Net-(SW203-C)": "Signal",
       "Net-(U101-XI)": "Signal",
+      "Net-(U101-XO)": "Signal",
       "Net-(U201-XI)": "Signal",
+      "Net-(U201-XO)": "Signal",
       "Net-(U302-VI)": "Power",
       "Net-(U401-VCC)": "Power",
       "Net-(U402-VCC)": "Power",
@@ -490,7 +492,116 @@
       "Net-(U601-VCC)": "Power",
       "Net-(U602-VCC)": "Power"
     },
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "+3.3V"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/~{SER_RES_CPU}"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "~{INPUTS_PL}"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "INPUTS_CLK"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "INPUTS"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/CPU_SPARE_*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/CPU_DAT_*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "V_SYNC"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/DEBUG"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "SCL_CPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "SDA_CPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/SER_RX_CPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/SER_TX_CPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/~{SER_RES_GPU}"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/GPU_SPARE_*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/GPU_DAT_*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "BLUE*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "GREEN*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "RED*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "H_SYNC"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "SCL_GPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "SDA_GPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/SER_RX_GPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Propellers/SER_TX_GPU"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Input/IN*"
+      },
+      {
+        "netclass": "Signal",
+        "pattern": "/Input/SHIFT_IN"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
