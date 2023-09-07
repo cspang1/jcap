@@ -532,13 +532,28 @@
     (uuid fcf44b72-65c6-4ef3-b861-eb92bbd2f601)
   )
 
+  (netclass_flag "" (length 1) (shape dot) (at 172.72 95.25 270) (fields_autoplaced)
+    (effects (font (size 1.27 1.27) (color 255 0 0 1)) (justify right bottom))
+    (uuid 8d99229d-e426-42fd-8124-65520ee77ee7)
+    (property "Netclass" "Power" (at 173.72 94.5515 90)
+      (effects (font (size 1.27 1.27) italic) (justify left) hide)
+    )
+  )
+  (netclass_flag "" (length 1) (shape dot) (at 135.89 87.63 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27) (color 255 0 0 1)) (justify left bottom))
+    (uuid d1c9d97c-3f70-452d-bd8c-12e89d91dfab)
+    (property "Netclass" "Power" (at 136.5885 86.63 0)
+      (effects (font (size 1.27 1.27) italic) (justify left) hide)
+    )
+  )
+
   (symbol (lib_id "Connector:Barrel_Jack_MountingPin") (at 116.84 90.17 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 0a104603-94f5-44d3-9933-41c988ad63fc)
     (property "Reference" "J301" (at 116.84 81.28 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "Barrel_Jack_MountingPin" (at 116.84 83.82 0)
+    (property "Value" "DC IN" (at 116.84 83.82 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "Connector_BarrelJack:BarrelJack_CUI_PJ-063AH_Horizontal_CircularHoles" (at 118.11 91.186 0)
@@ -547,9 +562,9 @@
     (property "Datasheet" "~" (at 118.11 91.186 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 16db6c58-5098-4004-9d54-73e121979ccb))
-    (pin "2" (uuid 3947930a-e638-412b-b617-3ceff5cbdf3b))
-    (pin "MP" (uuid 4a1647f7-62d8-41bd-b29f-06f55f788543))
+    (pin "1" (uuid 379d2ea8-2fdf-4e58-84f8-ad90a58083fb))
+    (pin "2" (uuid 9d10de88-b02e-48fe-82b1-a5b0d6480151))
+    (pin "MP" (uuid aeb1dc1e-b608-4e14-bf9f-e041025eee24))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -574,7 +589,7 @@
     (property "Datasheet" "~" (at 130.81 87.63 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 5bdc1e9e-9f66-4a5c-8fac-698ef140af92))
+    (pin "1" (uuid 3852e307-67b4-4fcd-8959-0bf458f37db5))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -599,8 +614,8 @@
     (property "Datasheet" "~" (at 130.81 95.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 3875a36d-71ae-42d0-9e86-0e2a400554ec))
-    (pin "2" (uuid 37666c37-c350-4d25-9460-0f7f01077a3b))
+    (pin "1" (uuid 7179ee3d-2a35-42be-90dc-42dfe12cfed0))
+    (pin "2" (uuid e2a9cb63-b1c5-4ccd-9531-5ad588a81c37))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
@@ -631,9 +646,9 @@
     (property "Datasheet" "http://www.st.com/content/ccc/resource/technical/document/datasheet/c4/0e/7e/2a/be/bc/4c/bd/CD00000546.pdf/files/CD00000546.pdf/jcr:content/translations/en.CD00000546.pdf" (at 147.32 88.9 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 1f0bc5e6-f2d5-4d1c-9b3c-e98fd31d8136))
-    (pin "2" (uuid ae5c6955-0df3-4b44-9eef-aba6aa3ce94d))
-    (pin "3" (uuid 9cd1c899-2942-43b6-88fe-997bfe004524))
+    (pin "1" (uuid 42b29236-02c0-4f4e-87f6-936e286b64e7))
+    (pin "2" (uuid 7b6ba71c-3a44-417c-bf3c-015644a030c0))
+    (pin "3" (uuid 3461d51a-805e-49d8-8c99-5a9e2d04a80e))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -658,7 +673,7 @@
     (property "Datasheet" "~" (at 130.81 102.87 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid dbe5356d-cc87-44ed-9da8-8e9712bb8a8f))
+    (pin "1" (uuid f9c8d4bb-37ac-46dc-bb84-897abc0d2bb4))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -683,8 +698,8 @@
     (property "Datasheet" "~" (at 172.72 99.06 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid a34b86f7-9085-4500-9abd-0c75331d0310))
-    (pin "2" (uuid 653980fb-4fd1-490d-a97a-da1403cbc32d))
+    (pin "1" (uuid e8887fef-b073-48d8-9bb2-e6ce5ed1a597))
+    (pin "2" (uuid 6a9ac40a-86fb-4468-bd0e-939dabc37a67))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -709,8 +724,8 @@
     (property "Datasheet" "~" (at 172.72 91.44 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 329f1409-dac6-4b29-aa03-69c690eef056))
-    (pin "2" (uuid bf3173bf-67fc-4684-bb3a-26dceec8dbc4))
+    (pin "1" (uuid 55a11edd-47d3-41ab-a778-bdc894c468fa))
+    (pin "2" (uuid d940d5c1-cf18-424d-9e75-e711cf6a1743))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -735,8 +750,8 @@
     (property "Datasheet" "~" (at 161.29 95.25 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid a9419193-25ce-41ef-934b-4cf9df0d3f6d))
-    (pin "2" (uuid 3e662696-d08d-41d1-b194-0fef5be29af2))
+    (pin "1" (uuid b98d5549-cb2a-4ceb-b563-ece8b9a476ff))
+    (pin "2" (uuid 3e204410-18dc-4cbc-a949-d5f96635d0eb))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
@@ -767,7 +782,7 @@
     (property "Datasheet" "" (at 172.72 80.01 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid d177ab99-e8f3-4f20-b4bb-01205947d818))
+    (pin "1" (uuid 5680d785-e477-4f0b-b5e9-747c2f642f6f))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -792,7 +807,7 @@
     (property "Datasheet" "" (at 147.32 102.87 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 4e4a403d-8a53-4376-94a7-ceeef5d0a4c9))
+    (pin "1" (uuid 7bf41d24-9cca-4341-ad79-0b4776ddae3d))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"

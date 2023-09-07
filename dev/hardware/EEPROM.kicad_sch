@@ -485,6 +485,21 @@
     )
   )
 
+  (netclass_flag "" (length 1) (shape dot) (at 111.76 86.36 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27) (color 255 0 0 1)) (justify left bottom))
+    (uuid 33370d46-4c6f-4aa6-9fde-d9068faa78fc)
+    (property "Netclass" "Power" (at 112.4585 85.36 0)
+      (effects (font (size 1.27 1.27) italic) (justify left) hide)
+    )
+  )
+  (netclass_flag "" (length 1) (shape dot) (at 180.34 86.36 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27) (color 255 0 0 1)) (justify left bottom))
+    (uuid ebaa9503-b29a-4f2d-97a1-00b3e03af5b5)
+    (property "Netclass" "Power" (at 181.0385 85.36 0)
+      (effects (font (size 1.27 1.27) italic) (justify left) hide)
+    )
+  )
+
   (symbol (lib_id "power:+3.3V") (at 102.87 74.93 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 0f277821-70db-41fe-9201-431bd21e3460)
@@ -500,7 +515,7 @@
     (property "Datasheet" "" (at 102.87 74.93 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 42e27a98-f698-42b0-af72-fc3adf6e3585))
+    (pin "1" (uuid fb788a55-3a9a-478a-973c-3ad634142a8b))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
@@ -528,8 +543,8 @@
     (property "Datasheet" "~" (at 187.96 92.71 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid b607e47e-7b21-4307-b9c0-a05f35f158d8))
-    (pin "2" (uuid 2fe456a0-d76e-4700-a18d-4d5c1ad84bf9))
+    (pin "1" (uuid 3c70b312-920c-4e89-9f78-c380a3a612f7))
+    (pin "2" (uuid 50a23d1a-a6c6-4ecc-ba75-9cf8c4cd94b1))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -557,8 +572,8 @@
     (property "Datasheet" "~" (at 119.38 92.71 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 29571ef4-a82d-43c6-8a4e-bef5503c2491))
-    (pin "2" (uuid 46782428-d9f7-4fe9-95a2-f78a61ed9bc0))
+    (pin "1" (uuid a5ed5459-d4da-4ee0-91e6-3210ea461563))
+    (pin "2" (uuid 707aa807-6699-4b05-b76b-b62ce3dc66a0))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -586,7 +601,7 @@
     (property "Datasheet" "" (at 102.87 111.76 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid d00ffe61-dd00-4045-aaab-e5b555ecfeb8))
+    (pin "1" (uuid 020d49c6-3b9c-4edd-a25a-0783c734221b))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/fef6ede6-5843-4140-8b23-7dcea4adc604"
@@ -611,8 +626,8 @@
     (property "Datasheet" "~" (at 171.45 78.74 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 9d63952c-673d-4ece-bc1a-608611dcb350))
-    (pin "2" (uuid 5c713d50-ccae-46a2-b30b-b9945e84d34a))
+    (pin "1" (uuid 9cb5398d-de9c-4c40-b1f8-aab08292475d))
+    (pin "2" (uuid 2f6b22e9-545c-47d6-a182-af054eb1dfa1))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
@@ -643,14 +658,14 @@
     (property "Datasheet" "http://ww1.microchip.com/downloads/en/devicedoc/21203m.pdf" (at 171.45 101.6 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 0252b1e1-2ae0-4b2f-9c94-c3e7da5ed0b3))
-    (pin "2" (uuid 5320df4d-a0be-4805-90a0-01eeff35227a))
-    (pin "3" (uuid 61b89356-d0fb-46ba-9254-6de6a0a0cd64))
-    (pin "4" (uuid 75f5084f-1582-4ab4-8591-382729faf453))
-    (pin "5" (uuid d3552a98-14c0-41b2-bfea-5387007545bb))
-    (pin "6" (uuid 69371c30-2676-4cb8-a249-feaa233ecc37))
-    (pin "7" (uuid f13e6d0e-adf7-41ab-b2e2-8c2dc54be6f4))
-    (pin "8" (uuid 22917496-70dc-4caf-ba2e-a745afbad546))
+    (pin "1" (uuid 8d1274cc-e4d6-44f6-b25d-cd201b122193))
+    (pin "2" (uuid 9b72259b-1a3b-46d6-a4c0-9a07a2dbb3a4))
+    (pin "3" (uuid 28034e83-060d-4d1f-9242-5494c5f20de2))
+    (pin "4" (uuid be74c15e-117f-410e-b8c9-98ab6c7d3c0a))
+    (pin "5" (uuid 447c9cdc-e8df-44b5-9ae5-8dbca6bd42cc))
+    (pin "6" (uuid d1ef3f72-7b3a-44d9-80e0-34dafe6bc6de))
+    (pin "7" (uuid 0bf350ed-a45e-4204-976f-194b424103b8))
+    (pin "8" (uuid 8e8aa521-9549-4937-98e3-e6ab362dd01a))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/fef6ede6-5843-4140-8b23-7dcea4adc604"
@@ -675,7 +690,7 @@
     (property "Datasheet" "" (at 171.45 74.93 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 517f5f52-c543-4206-aa8a-8741d8930526))
+    (pin "1" (uuid b8086489-80ef-4482-8104-d988d89f66d0))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
@@ -703,7 +718,7 @@
     (property "Datasheet" "~" (at 171.45 91.44 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 473c8f47-1722-4db4-9ba3-2c150e9006a3))
+    (pin "1" (uuid 17c46a80-e5a6-4c41-ac2f-26c486c6a8e6))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -734,7 +749,7 @@
     (property "Datasheet" "~" (at 102.87 91.44 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 981c86fe-3f9f-4c00-871a-c98bd48fcb67))
+    (pin "1" (uuid 15e5f033-69ac-4a87-abd8-5cfad7ee216a))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
@@ -765,7 +780,7 @@
     (property "Datasheet" "" (at 171.45 111.76 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid f2c9c8dc-bf1d-49a4-aae5-3afeaafe605c))
+    (pin "1" (uuid e4dca2d7-13fa-4647-a626-311b55eff919))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/fef6ede6-5843-4140-8b23-7dcea4adc604"
@@ -790,14 +805,14 @@
     (property "Datasheet" "http://ww1.microchip.com/downloads/en/devicedoc/21203m.pdf" (at 102.87 101.6 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid 2a04ec87-e251-465a-9823-e35506fe09ad))
-    (pin "2" (uuid 0db8d96f-6265-4acb-8b82-72d259b0679a))
-    (pin "3" (uuid 7beeda51-afd2-4f2a-8c0c-c1f63d962cab))
-    (pin "4" (uuid 3d0854d9-5824-438f-911e-e3e781140148))
-    (pin "5" (uuid e9afb945-b223-4fa8-b723-412445014c67))
-    (pin "6" (uuid 71917036-bd8e-47d5-9127-65bcd73e3730))
-    (pin "7" (uuid ee88466b-5db0-4efb-bea5-f2f41c7f8787))
-    (pin "8" (uuid e1c327a5-5dc1-4a50-9fdf-6845e880ba13))
+    (pin "1" (uuid 182bccd5-10c9-4989-9eb4-bfc9ca901243))
+    (pin "2" (uuid eabc384d-11be-4194-be8a-786891b819c1))
+    (pin "3" (uuid 14d7ed37-f62d-4e29-85aa-2d98f120ed79))
+    (pin "4" (uuid e57be208-e887-45dd-90c8-45370946cef2))
+    (pin "5" (uuid f521fea8-f553-4550-9e95-e8ac1214f5a4))
+    (pin "6" (uuid 6583fd68-aa0d-4fe1-8b30-e1575ca640b0))
+    (pin "7" (uuid f5f140d8-188b-45ba-a610-239062c1a575))
+    (pin "8" (uuid fb187904-2a62-4959-82c0-b7855d5c9762))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/fef6ede6-5843-4140-8b23-7dcea4adc604"
@@ -822,8 +837,8 @@
     (property "Datasheet" "~" (at 102.87 78.74 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid c6432107-41e9-42a0-8988-6590230aa7d5))
-    (pin "2" (uuid 4ee3a533-8e91-4528-9436-0ca05012fe1b))
+    (pin "1" (uuid 2223370b-581d-4453-9197-287aafc1777c))
+    (pin "2" (uuid 3f683c4e-9c81-472b-b744-32074b3dec4b))
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
