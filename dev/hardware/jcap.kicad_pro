@@ -472,10 +472,6 @@
       "/VGA_DAC/BLUE_OUT": "Signal",
       "/VGA_DAC/GREEN_OUT": "Signal",
       "/VGA_DAC/RED_OUT": "Signal",
-      "Net-(C201-Pad1)": "Power",
-      "Net-(C202-Pad1)": "Power",
-      "Net-(C203-Pad1)": "Power",
-      "Net-(C204-Pad1)": "Power",
       "Net-(D301-A)": "Power",
       "Net-(J502-Pad13)": "Signal",
       "Net-(J502-Pad14)": "Signal",
@@ -486,11 +482,7 @@
       "Net-(U201-XI)": "Signal",
       "Net-(U201-XO)": "Signal",
       "Net-(U302-VI)": "Power",
-      "Net-(U401-VCC)": "Power",
-      "Net-(U402-VCC)": "Power",
-      "Net-(U601-DS)": "Signal",
-      "Net-(U601-VCC)": "Power",
-      "Net-(U602-VCC)": "Power"
+      "Net-(U601-DS)": "Signal"
     },
     "netclass_patterns": [
       {
