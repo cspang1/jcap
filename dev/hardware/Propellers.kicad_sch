@@ -2458,7 +2458,7 @@
   (symbol (lib_id "power:GND") (at 219.71 64.77 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 08d58207-93d1-4ca2-b4d6-afceb6369b83)
-    (property "Reference" "#PWR0218" (at 219.71 71.12 0)
+    (property "Reference" "#PWR0217" (at 219.71 71.12 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 223.52 66.04 0)
@@ -2474,7 +2474,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0218") (unit 1)
+          (reference "#PWR0217") (unit 1)
         )
       )
     )
@@ -2483,7 +2483,7 @@
   (symbol (lib_id "Switch:SW_Push") (at 185.42 63.5 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 0d86c021-be9a-4771-93e1-21a56e273fed)
-    (property "Reference" "SW202" (at 185.42 55.88 0)
+    (property "Reference" "SW203" (at 185.42 55.88 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "GPU ~{RES}" (at 185.42 58.42 0)
@@ -2500,7 +2500,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "SW202") (unit 1)
+          (reference "SW203") (unit 1)
         )
       )
     )
@@ -2509,7 +2509,7 @@
   (symbol (lib_id "Switch:SW_SPDT") (at 144.78 35.56 0) (mirror x) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 11758a1d-a5c7-4647-ac47-a2486090a397)
-    (property "Reference" "SW203" (at 144.78 27.94 0)
+    (property "Reference" "SW202" (at 144.78 27.94 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "DEBUG" (at 144.78 30.48 0)
@@ -2527,7 +2527,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "SW203") (unit 1)
+          (reference "SW202") (unit 1)
         )
       )
     )
@@ -2536,7 +2536,7 @@
   (symbol (lib_id "power:GND") (at 80.01 64.77 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 14472790-06aa-479f-9bc4-a838278353d5)
-    (property "Reference" "#PWR0215" (at 80.01 71.12 0)
+    (property "Reference" "#PWR0207" (at 80.01 71.12 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 83.82 66.04 0)
@@ -2552,7 +2552,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0215") (unit 1)
+          (reference "#PWR0207") (unit 1)
         )
       )
     )
@@ -2611,7 +2611,7 @@
   (symbol (lib_id "power:GND") (at 207.01 64.77 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 29b8ea6f-2f03-4d3b-9d0b-61673f14b317)
-    (property "Reference" "#PWR0216" (at 207.01 71.12 0)
+    (property "Reference" "#PWR0214" (at 207.01 71.12 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 203.2 66.04 0)
@@ -2627,7 +2627,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0216") (unit 1)
+          (reference "#PWR0214") (unit 1)
         )
       )
     )
@@ -2664,7 +2664,7 @@
   (symbol (lib_id "power:GND") (at 74.93 129.54 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 48b44fb9-e05a-4194-a4b1-2c1aee33fa5b)
-    (property "Reference" "#PWR0204" (at 74.93 135.89 0)
+    (property "Reference" "#PWR0205" (at 74.93 135.89 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 77.47 130.81 0)
@@ -2680,7 +2680,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0204") (unit 1)
+          (reference "#PWR0205") (unit 1)
         )
       )
     )
@@ -2689,7 +2689,7 @@
   (symbol (lib_id "power:+3.3V") (at 67.31 57.15 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 4972947d-242d-41b2-8f08-b89cabd8f5c0)
-    (property "Reference" "#PWR0202" (at 67.31 60.96 0)
+    (property "Reference" "#PWR0203" (at 67.31 60.96 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 67.31 52.07 0)
@@ -2705,7 +2705,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0202") (unit 1)
+          (reference "#PWR0203") (unit 1)
         )
       )
     )
@@ -2714,7 +2714,7 @@
   (symbol (lib_id "power:GND") (at 88.9 24.13 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 528569d8-08ad-4e74-87d9-6ca98c728f40)
-    (property "Reference" "#PWR0207" (at 88.9 30.48 0)
+    (property "Reference" "#PWR0208" (at 88.9 30.48 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 91.44 25.4 0)
@@ -2730,7 +2730,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0207") (unit 1)
+          (reference "#PWR0208") (unit 1)
         )
       )
     )
@@ -2739,7 +2739,7 @@
   (symbol (lib_id "power:GND") (at 67.31 64.77 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 5800869b-5e5c-4488-bff4-794f1351ff70)
-    (property "Reference" "#PWR0214" (at 67.31 71.12 0)
+    (property "Reference" "#PWR0204" (at 67.31 71.12 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 63.5 66.04 0)
@@ -2755,7 +2755,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0214") (unit 1)
+          (reference "#PWR0204") (unit 1)
         )
       )
     )
@@ -2764,7 +2764,7 @@
   (symbol (lib_id "Device:C") (at 67.31 60.96 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 5d146bf2-a558-43ae-b6bf-2a26505ca12b)
-    (property "Reference" "C1" (at 63.5 59.69 0)
+    (property "Reference" "C?" (at 63.5 59.69 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "0.1u" (at 63.5 62.23 0)
@@ -2781,10 +2781,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "C203") (unit 1)
+          (reference "C201") (unit 1)
         )
       )
     )
@@ -2793,7 +2793,7 @@
   (symbol (lib_id "Connector_Generic:Conn_02x07_Top_Bottom") (at 74.93 158.75 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 64f094bf-dfbf-48a0-baee-36b392130ba0)
-    (property "Reference" "J204" (at 76.2 144.78 0)
+    (property "Reference" "J202" (at 76.2 144.78 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "SPARE CPU HDR" (at 76.2 147.32 0)
@@ -2822,7 +2822,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "J204") (unit 1)
+          (reference "J202") (unit 1)
         )
       )
     )
@@ -2831,7 +2831,7 @@
   (symbol (lib_id "power:+3.3V") (at 219.71 57.15 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 66d2494f-960c-494d-b582-983c8a5641ad)
-    (property "Reference" "#PWR0217" (at 219.71 60.96 0)
+    (property "Reference" "#PWR0216" (at 219.71 60.96 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 219.71 52.07 0)
@@ -2847,7 +2847,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0217") (unit 1)
+          (reference "#PWR0216") (unit 1)
         )
       )
     )
@@ -2856,7 +2856,7 @@
   (symbol (lib_id "power:GND") (at 214.63 129.54 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 726fcf1e-2040-48c8-b462-b65097a602fc)
-    (property "Reference" "#PWR0205" (at 214.63 135.89 0)
+    (property "Reference" "#PWR0215" (at 214.63 135.89 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 217.17 130.81 0)
@@ -2872,7 +2872,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0205") (unit 1)
+          (reference "#PWR0215") (unit 1)
         )
       )
     )
@@ -2881,7 +2881,7 @@
   (symbol (lib_id "Device:Crystal") (at 237.49 69.85 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 777f9181-0bd6-4dce-a591-0ee2355ba756)
-    (property "Reference" "Y1" (at 241.3 68.58 90)
+    (property "Reference" "Y?" (at 241.3 68.58 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "6.5MHz" (at 241.3 71.12 90)
@@ -2898,10 +2898,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "Y1") (unit 1)
+          (reference "Y?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "Y201") (unit 1)
+          (reference "Y202") (unit 1)
         )
       )
     )
@@ -2910,7 +2910,7 @@
   (symbol (lib_id "power:GND") (at 228.6 24.13 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 7c27e337-0e52-458f-8029-e065d462b0a3)
-    (property "Reference" "#PWR0208" (at 228.6 30.48 0)
+    (property "Reference" "#PWR0218" (at 228.6 30.48 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 231.14 25.4 0)
@@ -2926,7 +2926,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0208") (unit 1)
+          (reference "#PWR0218") (unit 1)
         )
       )
     )
@@ -2935,7 +2935,7 @@
   (symbol (lib_id "Device:C") (at 80.01 60.96 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 87fe0568-bd60-4cd5-95f3-fe10c3cbfb91)
-    (property "Reference" "C1" (at 83.82 59.69 0)
+    (property "Reference" "C?" (at 83.82 59.69 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "0.1u" (at 83.82 62.23 0)
@@ -2952,10 +2952,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "C204") (unit 1)
+          (reference "C202") (unit 1)
         )
       )
     )
@@ -2964,7 +2964,7 @@
   (symbol (lib_id "MCU_Parallax:P8X32A-D40") (at 214.63 93.98 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 8986d5b0-d1f0-42bc-bfb2-33e8fcc1954a)
-    (property "Reference" "U1" (at 216.8241 120.65 0)
+    (property "Reference" "U?" (at 216.8241 120.65 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "P8X32A-D40" (at 216.8241 123.19 0)
@@ -3022,10 +3022,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "U1") (unit 1)
+          (reference "U?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "U201") (unit 1)
+          (reference "U202") (unit 1)
         )
       )
     )
@@ -3034,7 +3034,7 @@
   (symbol (lib_id "Device:C") (at 207.01 60.96 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid a2ce832c-c29e-4e69-9fac-7eff5c8351af)
-    (property "Reference" "C1" (at 203.2 59.69 0)
+    (property "Reference" "C?" (at 203.2 59.69 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "0.1u" (at 203.2 62.23 0)
@@ -3051,10 +3051,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "C201") (unit 1)
+          (reference "C203") (unit 1)
         )
       )
     )
@@ -3063,7 +3063,7 @@
   (symbol (lib_id "Device:Crystal") (at 97.79 72.39 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid a35999b0-5530-4c48-b83e-9a9911eefc0e)
-    (property "Reference" "Y1" (at 101.6 71.12 90)
+    (property "Reference" "Y?" (at 101.6 71.12 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "6.5MHz" (at 101.6 73.66 90)
@@ -3080,10 +3080,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "Y1") (unit 1)
+          (reference "Y?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "Y101") (unit 1)
+          (reference "Y201") (unit 1)
         )
       )
     )
@@ -3092,7 +3092,7 @@
   (symbol (lib_id "power:GND") (at 52.07 73.66 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid a6b5fe07-b365-4f8c-a431-1fa6290657ab)
-    (property "Reference" "#PWR0203" (at 52.07 80.01 0)
+    (property "Reference" "#PWR0202" (at 52.07 80.01 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 49.53 74.93 0)
@@ -3108,7 +3108,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0203") (unit 1)
+          (reference "#PWR0202") (unit 1)
         )
       )
     )
@@ -3117,7 +3117,7 @@
   (symbol (lib_id "power:+3.3V") (at 166.37 29.21 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid a6e75be3-2912-4fd6-882c-857c6c2d8087)
-    (property "Reference" "#PWR0210" (at 166.37 33.02 0)
+    (property "Reference" "#PWR0209" (at 166.37 33.02 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 168.91 27.94 0)
@@ -3133,7 +3133,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0210") (unit 1)
+          (reference "#PWR0209") (unit 1)
         )
       )
     )
@@ -3142,7 +3142,7 @@
   (symbol (lib_id "Device:R") (at 158.75 38.1 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid ab545162-b9a1-49df-b246-48cdb3797008)
-    (property "Reference" "R1" (at 158.75 41.91 90)
+    (property "Reference" "R?" (at 158.75 41.91 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "200" (at 158.75 44.45 90)
@@ -3159,10 +3159,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "R1") (unit 1)
+          (reference "R?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "R204") (unit 1)
+          (reference "R202") (unit 1)
         )
       )
     )
@@ -3171,7 +3171,7 @@
   (symbol (lib_id "power:+3.3V") (at 80.01 57.15 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid b30e1fbf-e35e-447e-8042-e9124910cc7c)
-    (property "Reference" "#PWR0213" (at 80.01 60.96 0)
+    (property "Reference" "#PWR0206" (at 80.01 60.96 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 80.01 52.07 0)
@@ -3187,7 +3187,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0213") (unit 1)
+          (reference "#PWR0206") (unit 1)
         )
       )
     )
@@ -3196,7 +3196,7 @@
   (symbol (lib_id "MCU_Parallax:P8X32A-D40") (at 74.93 93.98 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid b3b83ab4-2ff4-4b51-bf2a-58958634d37d)
-    (property "Reference" "U1" (at 77.1241 120.65 0)
+    (property "Reference" "U?" (at 77.1241 120.65 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "P8X32A-D40" (at 77.1241 123.19 0)
@@ -3254,10 +3254,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "U1") (unit 1)
+          (reference "U?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "U101") (unit 1)
+          (reference "U201") (unit 1)
         )
       )
     )
@@ -3292,7 +3292,7 @@
   (symbol (lib_id "power:GND") (at 166.37 41.91 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid c5383b15-8480-4078-8e77-1c40b090f848)
-    (property "Reference" "#PWR0209" (at 166.37 48.26 0)
+    (property "Reference" "#PWR0210" (at 166.37 48.26 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (at 168.91 43.18 0)
@@ -3308,7 +3308,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0209") (unit 1)
+          (reference "#PWR0210") (unit 1)
         )
       )
     )
@@ -3317,7 +3317,7 @@
   (symbol (lib_id "Connector_Generic:Conn_01x04") (at 213.36 33.02 0) (mirror y) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid de96f1ff-bfe6-4d9c-ad83-10d84ecde824)
-    (property "Reference" "J202" (at 213.36 24.13 0)
+    (property "Reference" "J203" (at 213.36 24.13 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "GPU PGMR" (at 213.36 26.67 0)
@@ -3336,7 +3336,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "J202") (unit 1)
+          (reference "J203") (unit 1)
         )
       )
     )
@@ -3345,7 +3345,7 @@
   (symbol (lib_id "Device:C") (at 219.71 60.96 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid e332a9e4-0a5b-4b63-8b4f-23f52663d6a4)
-    (property "Reference" "C1" (at 223.52 59.69 0)
+    (property "Reference" "C?" (at 223.52 59.69 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "0.1u" (at 223.52 62.23 0)
@@ -3362,10 +3362,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "C202") (unit 1)
+          (reference "C204") (unit 1)
         )
       )
     )
@@ -3374,7 +3374,7 @@
   (symbol (lib_id "Connector_Generic:Conn_02x04_Top_Bottom") (at 214.63 153.67 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid e4b7f1ec-c970-48ab-b091-89c187721154)
-    (property "Reference" "J203" (at 215.9 144.78 0)
+    (property "Reference" "J204" (at 215.9 144.78 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "SPARE GPU HDR" (at 215.9 147.32 0)
@@ -3397,7 +3397,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "J203") (unit 1)
+          (reference "J204") (unit 1)
         )
       )
     )
@@ -3406,7 +3406,7 @@
   (symbol (lib_id "Device:R") (at 158.75 33.02 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid f4f133a6-e27a-4663-877b-5e5901a861d6)
-    (property "Reference" "R1" (at 158.75 26.67 90)
+    (property "Reference" "R?" (at 158.75 26.67 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "200" (at 158.75 29.21 90)
@@ -3423,10 +3423,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "R1") (unit 1)
+          (reference "R?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "R203") (unit 1)
+          (reference "R201") (unit 1)
         )
       )
     )
@@ -3435,7 +3435,7 @@
   (symbol (lib_id "power:+3.3V") (at 207.01 57.15 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid f93c1bfc-e39d-4faf-bf16-c630ec47632b)
-    (property "Reference" "#PWR0206" (at 207.01 60.96 0)
+    (property "Reference" "#PWR0213" (at 207.01 60.96 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 207.01 52.07 0)
@@ -3451,7 +3451,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "#PWR0206") (unit 1)
+          (reference "#PWR0213") (unit 1)
         )
       )
     )

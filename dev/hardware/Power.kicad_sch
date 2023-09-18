@@ -602,7 +602,7 @@
   (symbol (lib_id "Device:C") (at 130.81 95.25 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 5bf05d22-7145-4023-9a9a-8e3dc046d229)
-    (property "Reference" "C1" (at 134.62 93.98 0)
+    (property "Reference" "C?" (at 134.62 93.98 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "0.1u" (at 134.62 96.52 0)
@@ -619,10 +619,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
           (reference "C301") (unit 1)
@@ -634,7 +634,7 @@
   (symbol (lib_id "Regulator_Linear:LF33_TO220") (at 147.32 87.63 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 641757f9-0893-4e9b-89ad-cd761a318e55)
-    (property "Reference" "U302" (at 147.32 81.28 0)
+    (property "Reference" "U301" (at 147.32 81.28 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Value" "LF33_TO220" (at 147.32 83.82 0)
@@ -652,7 +652,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
-          (reference "U302") (unit 1)
+          (reference "U301") (unit 1)
         )
       )
     )
@@ -738,7 +738,7 @@
   (symbol (lib_id "Device:C") (at 161.29 95.25 180) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid d4159d29-74fb-425f-8de7-ea4c3e9240e3)
-    (property "Reference" "C1" (at 165.1 93.98 0)
+    (property "Reference" "C?" (at 165.1 93.98 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "10u" (at 165.1 96.52 0)
@@ -755,10 +755,10 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/203ea849-2dbb-4e64-89c6-7fa05a05e11f"
-          (reference "C1") (unit 1)
+          (reference "C?") (unit 1)
         )
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
           (reference "C302") (unit 1)
@@ -770,7 +770,7 @@
   (symbol (lib_id "power:+3.3V") (at 172.72 80.01 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid d80fcff8-f3a0-4fa0-b455-56cccf343f7f)
-    (property "Reference" "#PWR0303" (at 172.72 83.82 0)
+    (property "Reference" "#PWR0302" (at 172.72 83.82 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "+3.3V" (at 172.72 74.93 0)
@@ -786,7 +786,7 @@
     (instances
       (project "jcap"
         (path "/7fc25e9e-3600-419b-89ef-b962e4e374c1/f5a50cf1-3d87-469f-beb1-b0b9cfae00ce"
-          (reference "#PWR0303") (unit 1)
+          (reference "#PWR0302") (unit 1)
         )
       )
     )
