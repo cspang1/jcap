@@ -1,3 +1,4 @@
 (fp_lib_table
   (version 7)
+  (lib (name "jcap-footprints")(type "KiCad")(uri "${KIPRJMOD}/jcap-footprints.pretty")(options "")(descr "Footprints for JCAP"))
 )
