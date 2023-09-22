@@ -493,6 +493,8 @@
       "Net-(D301-A)": "Power",
       "Net-(J501-Pad13)": "Signal",
       "Net-(J501-Pad14)": "Signal",
+      "Net-(Q301-D)": "Power",
+      "Net-(Q301-S)": "Power",
       "Net-(R201-Pad1)": "Signal",
       "Net-(R202-Pad2)": "Signal",
       "Net-(R502-Pad1)": "Signal",
@@ -504,7 +506,6 @@
       "Net-(U201-XO)": "Signal",
       "Net-(U202-XI)": "Signal",
       "Net-(U202-XO)": "Signal",
-      "Net-(U301-IN)": "Power",
       "Net-(U602-DS)": "Signal"
     },
     "netclass_patterns": [
