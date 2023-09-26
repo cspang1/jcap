@@ -113,3 +113,4 @@ fp-info-cache
 # Exported BOM files
 dev/hardware/*.xml
 dev/hardware/*.csv
+dev/hardware/bom/*

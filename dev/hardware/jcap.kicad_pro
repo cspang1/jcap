@@ -497,7 +497,7 @@
       "Net-(Q301-D)": "Power",
       "Net-(Q301-S)": "Power",
       "Net-(R201-Pad1)": "Signal",
-      "Net-(R202-Pad2)": "Signal",
+      "Net-(R202-Pad1)": "Signal",
       "Net-(R502-Pad1)": "Signal",
       "Net-(R503-Pad1)": "Signal",
       "Net-(R509-Pad1)": "Signal",
