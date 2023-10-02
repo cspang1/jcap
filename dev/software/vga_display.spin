@@ -54,7 +54,7 @@ vga
         ' Setup and start video generator
         or              dira,   vgapin      ' Set video generator output pins
         andn            outa,   vgapin      ' Drive VGA pins low for blanking
-        or              dira,   vspin       ' Set VSync signal output pin
+'        or              dira,   vspin       ' Set VSync signal output pin
         or              dira,   syncpin     ' Set sync output pins
         andn            outa,   syncpin     ' Drive sync pins high
         mov             frqa,   pllfreq     ' Set Counter A frequency
@@ -68,12 +68,12 @@ vga
         ' Display video
         mov             cursl,  #0      ' Initialize current scanline
         wrlong          cursl,  clptr   ' Set initial scanline in Main RAM
-video   or              outa,   vspin   ' Drive vertical sync signal pin high
+video   ' or              outa,   vspin   ' Drive vertical sync signal pin high
         mov             vidx,   numFP   ' Initialize vertical sync pointer
 
         ' Display vertical sync area
 :fporch mov             vscl,   blkScale    ' Set video scale for blank active video area
-        andn            outa,   vspin       ' Drive vertical sync signal pin low
+        ' andn            outa,   vspin       ' Drive vertical sync signal pin low
         waitvid         sColor, pixel3      ' Display blank active video line
         mov             vscl,   fphScale    ' Set video generator scale to half front porch
         waitvid         sColor, pixel0      ' Display first half of front porch
@@ -185,8 +185,9 @@ iW      waitvid         vbptrs+0, #%%3210   ' Display pixels
 ' Config values
 vgapin      long      |<16 | |<17 | |<18 | |<19 | |<20 | |<21 | |<22 | |<23 ' VGA output pins
 syncpin     long      |<24 | |<25                                           ' Sync pins
-vspin       long      |<0                                                   ' VSync signal output pin
-pllfreq     long      268435456                                             ' Counter A frequency
+' vspin       long      |<24                                                  ' VSync signal output pin
+' pllfreq     long      268435456                                             ' Counter A frequency
+pllfreq     long      259917792                                             ' Counter A frequency
 CtrCfg      long      %00000110100000000000000000000000                     ' Counter A configuration
 ColCfg      long      %00110000000000000000010011111111                     ' Video generator color pins configuration
 SyncCfg     long      %00110000000000000000011011111111                     ' Video generator sync pins configuration

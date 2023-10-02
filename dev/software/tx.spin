@@ -103,7 +103,7 @@ tx              jmpret  $, #:setup              ' once
 ' initialised data and/or presets
 
 tx_mask         long    1                       ' pin mask (outgoing data)
-vs_mask         long    |< 14
+vs_mask         long    |< 26
 
 ' uninitialised data and/or temporaries
 

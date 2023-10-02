@@ -11,9 +11,8 @@ CON
     _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
     ' Pin settings
-    KEY_PIN = 8
-    VS_PIN = 14
-    TX_PIN = 15
+    VS_PIN = 26
+    TX_PIN = 23
     DEBUG_PIN = 27
 
     ' Test settings
@@ -55,7 +54,6 @@ PUB main | time,trans,temp,x,y,z,q,elapsed,inputs
     ' outa[9..13]~
     ' outa[16..26]~
 
-    dira[KEY_PIN]~
     dira[DEBUG_PIN]~
 
     ' Initialize variables
@@ -69,11 +67,8 @@ PUB main | time,trans,temp,x,y,z,q,elapsed,inputs
         repeat while inputs == 0
             inputs := serial.rx
             if inputs <> 89
-                inputs := 0
-        if ina[KEY_PIN]
-            serial.str(string("GPU"))
-        else
-            serial.str(string("CPU"))
+                serial.str(string("CPU"))
+                ' inputs := 1
         serial.finalize
 
     ' Start subsystems

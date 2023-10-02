@@ -11,10 +11,9 @@ CON
     _xinfreq = 6_500_000          ' 6.5 MHz clock for x16 = 104 MHz
 
     ' Pin settings
-    VS_PIN = 0
-    RX_PIN = 1
-    KEY_PIN = 8
-    DEBUG_PIN = 27
+    VS_PIN = 24
+    RX_PIN = 8
+    DEBUG_PIN = 0
 
 OBJ
     system        : "system"      ' Import system settings
@@ -47,7 +46,6 @@ PUB main | rx1, rx2, debug
     ' outa[9..15]~
     ' outa[27]~
 
-    dira[KEY_PIN]~
     dira[DEBUG_PIN]~
 
     ' Initialize graphics system pointers
@@ -74,11 +72,8 @@ PUB main | rx1, rx2, debug
         repeat while debug == 0
             debug := serial.rx
             if debug <> 89
-                debug := 0
-        if ina[KEY_PIN]
-            serial.str(string("GPU"))
-        else
-            serial.str(string("CPU"))
+                serial.str(string("GPU"))
+                ' debug := 1
         serial.finalize
 
     gfx_rx.start(@rx1, VS_PIN, RX_PIN)                       ' Start video data RX driver
