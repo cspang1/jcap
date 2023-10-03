@@ -17,7 +17,7 @@
 
 # ignore compilation output of ModelSim
 *.mti
-*.dat
+# *.dat
 *.dbs
 *.psm
 *.bak
