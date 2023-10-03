@@ -34,13 +34,13 @@ cd $parent_path
 
 echo Compiling...
 
-bstc cpu.spin -q
-bstc gpu.spin -q
+bstc cpu.spin
+bstc gpu.spin
 
 echo Programming...
 
-bstc -p2 cpu.spin -f -d$cpu_port -q &
-bstc -p2 gpu.spin -f -d$gpu_port -q &
+bstc -p2 cpu.spin -f -d$cpu_port &
+bstc -p2 gpu.spin -f -d$gpu_port &
 wait
 
 echo Done!
