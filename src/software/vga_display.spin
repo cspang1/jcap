@@ -193,7 +193,7 @@ blkScale    long      %00000000000000000000001010000000 ' Video generator blank 
 fphScale    long      %00000000000000000000000000001000 ' Video generator scale for half of front porch
 hsScale     long      %00000000000000000000000001100000 ' Video generator scale for horizontal sync
 bphScale    long      %00000000000000000000000000011000 ' Video generator scale for horizontal sync
-sColor      long      %00000011_00000010_00000001_00000000 ' Sync colors (porch_HSync_VSync_HVSync)
+sColor      long      %00000011000000100000000100000000 ' Sync colors (porch_HSync_VSync_HVSync)
 pixel0      long      %%0000000000000000                ' Porch color blank pixels
 pixel1      long      %%1111111111111111                ' VSync pixels blank pixels
 pixel2      long      %%2222222222222222                ' HSync sync blank pixels
