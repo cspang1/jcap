@@ -54,7 +54,6 @@ vga
         ' Setup and start video generator
         or              dira,   vgapin      ' Set video generator output pins
         andn            outa,   vgapin      ' Drive VGA pins low for blanking
-'        or              dira,   vspin       ' Set VSync signal output pin
         or              dira,   syncpin     ' Set sync output pins
         andn            outa,   syncpin     ' Drive sync pins high
         mov             frqa,   pllfreq     ' Set Counter A frequency
@@ -68,12 +67,10 @@ vga
         ' Display video
         mov             cursl,  #0      ' Initialize current scanline
         wrlong          cursl,  clptr   ' Set initial scanline in Main RAM
-video   ' or              outa,   vspin   ' Drive vertical sync signal pin high
-        mov             vidx,   numFP   ' Initialize vertical sync pointer
+video   mov             vidx,   numFP   ' Initialize vertical sync pointer
 
         ' Display vertical sync area
 :fporch mov             vscl,   blkScale    ' Set video scale for blank active video area
-        ' andn            outa,   vspin       ' Drive vertical sync signal pin low
         waitvid         sColor, pixel3      ' Display blank active video line
         mov             vscl,   fphScale    ' Set video generator scale to half front porch
         waitvid         sColor, pixel0      ' Display first half of front porch
@@ -185,8 +182,6 @@ iW      waitvid         vbptrs+0, #%%3210   ' Display pixels
 ' Config values
 vgapin      long      |<16 | |<17 | |<18 | |<19 | |<20 | |<21 | |<22 | |<23 ' VGA output pins
 syncpin     long      |<24 | |<25                                           ' Sync pins
-' vspin       long      |<24                                                  ' VSync signal output pin
-' pllfreq     long      268435456                                             ' Counter A frequency
 pllfreq     long      259917792                                             ' Counter A frequency
 CtrCfg      long      %00000110100000000000000000000000                     ' Counter A configuration
 ColCfg      long      %00110000000000000000010011111111                     ' Video generator color pins configuration
@@ -198,9 +193,9 @@ blkScale    long      %00000000000000000000001010000000 ' Video generator blank 
 fphScale    long      %00000000000000000000000000001000 ' Video generator scale for half of front porch
 hsScale     long      %00000000000000000000000001100000 ' Video generator scale for horizontal sync
 bphScale    long      %00000000000000000000000000011000 ' Video generator scale for horizontal sync
-sColor      long      %00000011000000010000001000000000 ' Sync colors (porch_HSync_VSync_HVSync)
+sColor      long      %00000011_00000010_00000001_00000000 ' Sync colors (porch_HSync_VSync_HVSync)
 pixel0      long      %%0000000000000000                ' Porch color blank pixels
-pixel1      long      %%1111111111111111                ' VSync pixels
+pixel1      long      %%1111111111111111                ' VSync pixels blank pixels
 pixel2      long      %%2222222222222222                ' HSync sync blank pixels
 pixel3      long      %%3333333333333333                ' Porch sync blank pixels
 
